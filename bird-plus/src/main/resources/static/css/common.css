@@ -1,0 +1,208 @@
+@charset "UTF-8";
+
+:root{
+	--arrow_down : "▼";
+	--arrow_up : "▲";
+	--arrow_left : "◀";
+	--arrow_right: "▶";
+}
+
+/* 전체 컴포넌트에 적용될 크기 (html의 폰트사이즈 기준)*/
+html{
+	font-size: 0.9vmax;
+	overflow: hidden;
+	width: 100%;
+	height: 100%;
+}
+body{
+	-webkit-user-select:none;
+	-moz-user-select:none;
+	-ms-user-select:none;
+	user-select:none
+}
+/* 가로 모드 강제 적용 */
+@media( orientation: portrait ){
+  html {
+    transform: rotate(-90deg);
+    transform-origin: top left;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100vh;
+    height: 100vw;
+  }
+}
+
+/* a태그 색상 검은색 */
+a{
+	text-decoration: none;
+    color: black;
+}
+
+/* summary 마크 화살표 제거 */
+summary::marker {
+    display: none;
+    /*font-size: 1.5rem;*/
+}
+
+/* summary 마크 화살표 제거 */
+summary{
+    list-style: none ;
+}
+
+/* li 표시 제거 */
+ul {
+    list-style: none;
+    padding: 0;
+    display: block;
+    margin-block-start: 0em;
+    margin-block-end: 0em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+    padding-inline-start: 0px;
+}
+
+
+li{
+	display: list-item;
+    text-align: -webkit-match-parent;
+}
+
+.wrap{
+	display: flex;
+}
+
+.side_wrap{
+	justify-content: space-between;
+}
+
+ul.sidebar{
+	position: absolute;
+}
+
+.side_menu{
+	position: absolute;
+}
+#left_menu{
+	left: 0rem;
+	top: 50%;
+}
+
+#right_menu{
+	right: 0rem;
+	top: 50%;
+}
+
+#wrapper{
+	position:
+	absolute; top:0; bottom:0; right:0; left:0;
+	display: flex;
+	flex-direction: column;
+}
+
+#content-wrapper{
+	display: flex;
+	align-content: space-around;
+	justify-content: center;
+    width:100%;
+    height:100%;
+	align-items: center;
+}
+
+textarea {
+	border: none;
+	resize: none;
+}
+button{
+	border:none;
+	background: none;
+	font-family: serif;
+	font-weight: bold;
+	font-size: 1vmax;
+	cursor: pointer;
+}
+
+label{
+	font-family: serif;
+	font-size: 1vmax;
+}
+
+input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+}
+
+p {
+    font-size: 0.9vmax;
+}
+
+main#content{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.direction_up{
+	transform: rotate(-135deg);
+	-webkit-transform: rotate(-135deg);
+}
+.direction_up_right{
+	transform: rotate(-90deg);
+	-webkit-transform: rotate(-90deg);
+}
+.direction_right{
+	transform: rotate(-45deg);
+	-webkit-transform: rotate(-45deg);
+}
+.direction_down_right{
+	transform: rotate(-0deg);
+	-webkit-transform: rotate(-0deg);
+}
+.direction_down{
+	transform: rotate(45deg);
+	-webkit-transform: rotate(45deg);
+}
+
+.direction_down_left{
+	transform: rotate(90deg);
+	-webkit-transform: rotate(135deg);
+}
+.direction_left{
+	transform: rotate(135deg);
+	-webkit-transform: rotate(135deg);
+}
+.direction_up_left{
+	transform: rotate(180deg);
+	-webkit-transform: rotate(180deg);
+}
+
+.loading_rotate{
+	border: 16px solid #f3f3f3;
+	border-radius: 50%;
+	border-top: 16px solid #3498db;
+	width: 20vmax;
+	height: 20vmax;
+	margin: 0 auto;
+	-webkit-animation: spin 2s linear infinite; /* Safari */
+	animation: spin 2s linear infinite;
+}
+/* Safari */
+@-webkit-keyframes spin {
+  0% { -webkit-transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(360deg); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.hide_scrollbar{
+	-ms-overflow-style: none;
+    scrollbar-width: none;
+}
+.hide_scrollbar::-webkit-scrollbar{
+	display: none;
+}

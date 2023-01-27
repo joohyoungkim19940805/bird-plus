@@ -1,0 +1,8 @@
+@charset "UTF-8";
+
+.roles_details::after {
+	content: var(--arrow_down);
+}
+header#top_header details[open] .roles_details::after {
+	content: var(--arrow_up);
+}

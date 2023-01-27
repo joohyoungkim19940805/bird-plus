@@ -1,0 +1,67 @@
+@charset "UTF-8";
+
+/* 사이드 메뉴 펼칠시 사이즈 및 색상 */
+aside#left_sidebar details[open]{
+	width: 30vw;
+	height: 95vh;
+    background-color: #f1f1f187;
+}
+
+/* 사이드 메뉴 펼칠시 X 아이콘 위치 조절 */
+aside#left_sidebar details[open] > summary{
+	width: fit-content;
+	margin-left: 92%;
+}			
+
+/* 사이드 메뉴 펼칠시 X 아이콘 오른쪽 정렬 */
+aside#left_sidebar details[open] > summary:after{text-align: end;}
+
+/* 사이드 메뉴 펼칠시 X 아이콘 노출 */
+aside#left_sidebar details[open] > summary > #menu_close_icon{display: block;}
+/* 사이드 메뉴 접을시 X 아이콘 숨김 */
+aside#left_sidebar details > summary > #menu_close_icon{display: none;}
+
+/* 사이드 메뉴 펼칠시 햄버거 아이콘 숨김 */
+aside#left_sidebar details[open] > summary > #menu_open_icon{display: none;}
+/* 사이드 메뉴 접을시 햄버거 아이콘 노출 */
+aside#left_sidebar details > summary > #menu_open_icon{display: block;}
+
+/* 사이드 메뉴 메뉴 요소 크기 및 스크롤바 숨김처리 */
+aside#left_sidebar details ul{
+	height: 86vh;
+    overflow-y: scroll;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    display: flex;
+    flex-direction: column;
+    padding-top: 5%;
+}
+/* 구글 / 사파리 / 오페라 웹 스크롤바 숨김처리 */
+aside#left_sidebar details ul::-webkit-scrollbar {
+    display: none;
+}
+
+/* 사이드 메뉴 명칭 가로 사이즈 초과시 말줄임 */
+aside#left_sidebar li{
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 4.7vh;
+    min-height: 8.9vh;
+    border-top-color: initial;
+    border-top-style: outset;
+    border-top-width: initial;
+}
+/* 사이드 메뉴 명칭 가로 사이즈 초과시 말줄임 */
+aside#left_sidebar li button{
+	width: -webkit-fill-available;
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+aside#left_sidebar{
+	position: absolute; 
+	top: 5vh; 
+	left: 0;
+}
