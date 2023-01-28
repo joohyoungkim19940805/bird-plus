@@ -14,8 +14,8 @@
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
 	</properties>
-	
-<dependencies>
+
+	<dependencies>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-engine</artifactId>
@@ -23,36 +23,10 @@
 			<scope>test</scope>
 		</dependency>
 		
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-devtools</artifactId>
-			<optional>true</optional>
-			<version>2.6.6</version>
-		</dependency>
-        
-        <dependency>
-		    <groupId>org.springframework.boot</groupId>
-		    <artifactId>spring-boot-starter-webflux</artifactId>
-		    <version>2.7.3</version>
-		</dependency>
-
-		<dependency>
-		    <groupId>org.springframework.boot</groupId>
-		    <artifactId>spring-boot-starter-data-r2dbc</artifactId>
-		    <version>2.7.3</version>
-		</dependency>
-
         <dependency>
 		    <groupId>com.googlecode.json-simple</groupId>
 		    <artifactId>json-simple</artifactId>
 		    <version>1.1.1</version>
-		</dependency>
-		
-		<dependency>
-		    <groupId>io.r2dbc</groupId>
-		    <artifactId>r2dbc-postgresql</artifactId>
-		    <version>0.8.12.RELEASE</version>
-		    <scope>runtime</scope>
 		</dependency>
 
 		<dependency>
@@ -60,25 +34,40 @@
 		    <artifactId>commons-codec</artifactId>
 		    <version>1.15</version>
 		</dependency>
-		
-		<!-- 
-			io.r2dbc-postgresql 디펜던시가 다른 버전의 reactor core을 사용하는 걸로 보임
-			spring쪽에서는 3.4.xx버전을 쓰는데 포스트그리만 3.3.xx를 사용하여 오류 발생하기에
-			3.4.xx 리엑트 코어를 넣어준다.
-		-->
+
 		
 		<dependency>
-		    <groupId>io.projectreactor</groupId>
-		    <artifactId>reactor-core</artifactId>
-		    <version>3.4.22</version>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-tomcat</artifactId>
+		    <version>3.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<optional>true</optional>
+			<version>3.0.0</version>
 		</dependency>
 
 		<dependency>
 		    <groupId>org.springframework.boot</groupId>
-		    <artifactId>spring-boot-starter-tomcat</artifactId>
-		    <version>2.7.3</version>
+		    <artifactId>spring-boot-starter-data-r2dbc</artifactId>
+		    <version>3.0.0</version>
 		</dependency>
-
+		<!-- 
+			이 라이브러리는 graphhql-java와 spring webflux starter를 포함합니다.
+		-->
+		<dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-webflux</artifactId>
+		    <version>3.0.0</version>
+		</dependency>
+		
+		<dependency>
+		    <groupId>org.postgresql</groupId>
+		    <artifactId>r2dbc-postgresql</artifactId>
+		    <version>1.0.0.RELEASE</version>
+		    <scope>runtime</scope>
+		</dependency>
 	</dependencies>
 	<!-- 
 				빌드시 사용할 메이븐 플러그인 

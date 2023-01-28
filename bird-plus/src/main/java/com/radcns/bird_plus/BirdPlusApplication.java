@@ -5,20 +5,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.context.annotation.ComponentScan;
 
-
-import io.r2dbc.spi.ConnectionFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Bean;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.r2dbc.connection.init.ConnectionFactoryInitializer;
-import org.springframework.r2dbc.connection.init.ResourceDatabasePopulator;
 //import com.hide_and_fps.project.entity.Customer;
 //import com.hide_and_fps.project.repository.testRepository;
 
-import java.time.Duration;
-import java.util.Arrays;
 /*
  * 이 클래스의 패키지가 최상위 루트로 지정된다.
  */
@@ -33,14 +22,24 @@ import java.util.Arrays;
 public class BirdPlusApplication {
 
     public static void main(String[] args) {
-		SpringApplication.run(BirdPlusApplication.class, args);
+
 		/*
 		//System.setProperty("spring.profiles.active", "local");
         SpringApplication application = new SpringApplication(ProjectApplication.class);
         application.setWebApplicationType(WebApplicationType.REACTIVE); 
         // starter-web은 SERVLET으로 자동으로 선택한다. 이것을 강제로 REACTIVE로 바꾼다.
         application.run(args);
-        */
+        *///
+		String profiles = System.getenv("MY_SERVER_PROFILES");
+		System.out.println(profiles);
+		System.out.println("test<<<<<");
+		if(profiles == null) {
+			//System.set
+		}else {
+			//System.setProperty("spring.profiles.active", "prd");
+		}
+		SpringApplication.run(BirdPlusApplication.class, args);
+		
 	}
 	
     /**
