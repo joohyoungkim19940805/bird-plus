@@ -65,14 +65,14 @@
 				"zip",
 				"nsis"
 			],
-			"icon": "./view/image/icon.png"
+			"icon": "./view/static/image/icon.png"
 		},
 		"nsis": {
 			"oneClick": false,
 			"allowToChangeInstallationDirectory": true
 		},
 		"directories": {
-			"buildResources": "./view/image/",
+			"buildResources": "./view/static/image/",
 			"output": "./dist/",
 			"app": "."
 		}

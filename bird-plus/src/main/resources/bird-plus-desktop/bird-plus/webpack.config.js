@@ -9,10 +9,10 @@ module.exports = {
 	mode: 'development',
 	devtool: 'cheap-module-source-map',
 	entry: {
-		openingRenderer: "./view/js/renderer/openingRenderer.js"
+		openingRenderer: "./view/static/js/renderer/openingRenderer.js"
 	},
 	output: {
 		filename: "[name].bundle.js",
-		path: path.resolve(__dirname, './view/js/dist')
+		path: path.resolve(__dirname, './view/static/js/dist')
 	}
 }

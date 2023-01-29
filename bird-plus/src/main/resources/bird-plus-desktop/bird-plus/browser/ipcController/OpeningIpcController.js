@@ -2,6 +2,7 @@ const path = require('path');
 const fs = require('fs');
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const allDirectoryPathScanning = require(path.join(__project_path, 'browser/service/AllDirectoryPathScanning.js'))
+const mainWindow = require(path.join(__project_path, 'browser/window/main/MainWindow.js'))
 
 class OpeningIpcController {
 	constructor() {
@@ -30,50 +31,23 @@ class OpeningIpcController {
 				return allDirectoryPathScanning.userDirtoryList.length;
 			});
 		})
-		
-		ipcMain.handle('getUserDirtoryList', () => {
-			return allDirectoryPathScanning.userDirtoryList.splice(0,100000);
-		})
-		ipcMain.handle('getUserDirtoryMapper', ()=> {
-			try{
-				return allDirectoryPathScanning.userDirtoryMapper.splice(0,100000);
-			}finally{
-				if(allDirectoryPathScanning.userDirtoryMapper.length == 0){
-					allDirectoryPathScanning.userDirtoryMapper = null;
-				}
-			}
-		})
-		ipcMain.handle('getUserFileMapper', () => {
-			try{
-				return allDirectoryPathScanning.userFileList.splice(0,100000);
-			}finally{
-				if(allDirectoryPathScanning.userFileList.length == 0){
-					allDirectoryPathScanning.userFileList = null;
-				}
-			}
-		})
-		ipcMain.handle('getUserFileExtensionMapper', () => {
-			try{
-				return allDirectoryPathScanning.userFileExtensionMapper.splice(0,1);
-			}finally{
-				if(allDirectoryPathScanning.userFileExtensionMapper.length == 0){
-					allDirectoryPathScanning.userFileExtensionMapper = null;
-				}
-			}
-		})
-		ipcMain.handle('getStatsMapper', () => {
-			try{
-				return allDirectoryPathScanning.statsList.splice(0,100000);
-			}finally{
-				if(allDirectoryPathScanning.statsList.length == 0){
-					allDirectoryPathScanning.statsList = null;
-				}
-			}
-		})
 
-		ipcMain.handle('getScanningProgress', (event)=>{
-			return allDirectoryPathScanning.userDirtoryList.length
-		})
+		ipcMain.handle('setMainPageDesign', async (event) => {
+			mainWindow.setSize(1024, 768, true /* maxOS 전용애니메이션 true*/);
+			mainWindow.center();
+			mainWindow.resizable = true;
+			mainWindow.movable = true;
+			mainWindow.autoHideMenuBar = false;
+			mainWindow.menuBarVisible = true;
+
+			return await mainWindow.loadFile(path.join(__project_path, 'view/html/main.html')).then(e=>{
+				mainWindow.titleBarStyle = 'visibble'
+				mainWindow.show();
+				//mainWindow.webContents.openDevTools();
+				return 'done';
+			})
+		});
+
 		//this.addIpcMainEvents()
 	}
 	/*

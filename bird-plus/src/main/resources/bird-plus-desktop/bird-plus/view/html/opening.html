@@ -4,20 +4,15 @@
 		<meta charset="UTF-8">
 		<!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
 		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
-		<link rel="stylesheet" type="text/css" href="./../css/opening.css">
-		<title>Hello RAD</title>
+		<link rel="stylesheet" type="text/css" href="./../static/css/opening.css">
+		<link rel="stylesheet" type="text/css" href="./../static/css/progress.css">
+		<script type="text/javascript" src="./../static/js/component/progress/LodingBarDefault.js"></script>
 	</head>
 	<body>
 		<main id="container">
-			<div class="loding_bar_wrapper">
-				<div class="status_wrapper">
-					<span class="status_text">파일 스캐닝 대기 중</span>
-				</div>
-				<div class="loding_bar">
-					<div class="progress"></div>
-				</div>
+			<div is="loding-bar-default" class="loding_bar_wrapper" data-is_status_text="">
 			</div>
 		</main>
-		<script src="./../js/dist/openingRenderer.bundle.js"></script>
+		<script type="text/javascript" src="./../static/js/dist/openingRenderer.bundle.js"></script>
 	</body>
 </html>

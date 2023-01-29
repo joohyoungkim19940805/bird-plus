@@ -25,15 +25,19 @@ class MainWindow extends BrowserWindow{
 			width : 800,
 			height : 300,
 			webPreferences : {
-				preload : path.join(__project_path, 'browser/preload/main/openingPreload.js')
+				preload : path.join(__project_path, 'preload.js')
 			},
 			center : true,
 			autoHideMenuBar : true,
-			titleBarStyle : 'hidden',
+			titleBarStyle: 'hidden',
 			movable : false,
-			resizable : false
+			resizable : false,
+			trafficLightPosition: {
+				x: 15,
+				y: 13,  // macOS traffic lights seem to be 14px in diameter. If you want them vertically centered, set this to `titlebar_height / 2 - 7`.
+			},
 		});
-		
+		super.setTitleBarOverlay
 		super.loadFile(path.join(__project_path, 'view/html/opening.html')).then(e=>{
 			//console.log(e)
 			super.webContents.openDevTools();
@@ -43,6 +47,10 @@ class MainWindow extends BrowserWindow{
 			event.sender.hide();
 			event.preventDefault(); // prevent quit process
 		})
+
+		super.on('resize', () => {	
+			mainWindow.webContents.send("resized", super.getSize());
+		});
 	}
 }
 

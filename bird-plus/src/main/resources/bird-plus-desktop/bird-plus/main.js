@@ -19,6 +19,7 @@ app.whenReady().then(()=>{
 	const mainTray = require(path.join(__project_path, 'browser/window/tray/MainTray.js'))
 
 	const openingIpcController = require(path.join(__project_path, 'browser/ipcController/OpeningIpcController.js'))
+	const mainIpcController = require(path.join(__project_path, 'browser/ipcController/OpeningIpcController.js'))
 /*
     let icons = new BrowserWindow({
         show: false, webPreferences: {offscreen: true}});
