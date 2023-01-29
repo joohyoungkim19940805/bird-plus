@@ -1,0 +1,7 @@
+header-default#header_content{
+	height: 50px;
+    background: linear-gradient(to bottom, #EAEAEA -166%, #000000e6 96%, #7c0000 46%);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
