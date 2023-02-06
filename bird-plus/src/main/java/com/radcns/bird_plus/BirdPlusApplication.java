@@ -5,6 +5,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.context.annotation.ComponentScan;
 
+import com.radcns.bird_plus.util.CreateRandomCodeUtil;
+
 //import com.hide_and_fps.project.entity.Customer;
 //import com.hide_and_fps.project.repository.testRepository;
 
@@ -22,22 +24,15 @@ import org.springframework.context.annotation.ComponentScan;
 public class BirdPlusApplication {
 
     public static void main(String[] args) {
-
-		/*
+    	/*
 		//System.setProperty("spring.profiles.active", "local");
         SpringApplication application = new SpringApplication(ProjectApplication.class);
         application.setWebApplicationType(WebApplicationType.REACTIVE); 
         // starter-web은 SERVLET으로 자동으로 선택한다. 이것을 강제로 REACTIVE로 바꾼다.
         application.run(args);
         *///
-		String profiles = System.getenv("MY_SERVER_PROFILES");
-		System.out.println(profiles);
-		System.out.println("test<<<<<");
-		if(profiles == null) {
-			//System.set
-		}else {
-			//System.setProperty("spring.profiles.active", "prd");
-		}
+    	System.setProperty("springbootwebfluxjjwt.password.encoder.secret", new CreateRandomCodeUtil().createCode(new byte[16]));
+		
 		SpringApplication.run(BirdPlusApplication.class, args);
 		
 	}

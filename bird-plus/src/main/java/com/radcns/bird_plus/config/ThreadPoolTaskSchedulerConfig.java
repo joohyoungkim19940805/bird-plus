@@ -7,7 +7,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
 
 @Configuration
-@ComponentScan(basePackages = "com.stock_site.project", basePackageClasses = { ThreadPoolTaskSchedulerRunner.class })
+@ComponentScan(basePackages = "com.radcns.bird_plus.*", basePackageClasses = { ThreadPoolTaskSchedulerRunner.class })
 public class ThreadPoolTaskSchedulerConfig {
     @Bean
     public ThreadPoolTaskScheduler threadPoolTaskScheduler() {
