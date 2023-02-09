@@ -3,6 +3,7 @@ package com.radcns.bird_plus.service;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.jackson.io.JacksonSerializer;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 
@@ -12,6 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.radcns.bird_plus.config.security.Role;
 import com.radcns.bird_plus.config.security.Token;
 import com.radcns.bird_plus.entity.AccountEntity;
@@ -38,7 +40,8 @@ public class AccountService implements Serializable {
 	private AccountRepository accountRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
-
+    @Autowired
+    private ObjectMapper om;
     @Value("${jjwt.password.secret}")
     private String secret;
 
@@ -46,7 +49,7 @@ public class AccountService implements Serializable {
     private String defaultExpirationTimeInSecondsConf;
 
     public Token generateAccessToken(AccountEntity user) {
-    	Map<String, List<Role>> claims = Map.ofEntries(Map.entry("role", user.getRoles()));
+    	Map<String, List<Role>> claims = Map.of("role", user.getRoles());
 
         return doGenerateToken(claims, user.getUsername(), user.getId().toString());
     }
@@ -61,12 +64,14 @@ public class AccountService implements Serializable {
     private Token doGenerateToken(Date expirationDate, Map<String, List<Role>> claims, String issuer, String subject) {
         var createdDate = new Date();
         var token = Jwts.builder()
+        		.serializeToJsonWith(new JacksonSerializer<Map<String,?>>(this.om))
                 .setClaims(claims)
                 .setIssuer(issuer)
                 .setSubject(subject)
                 .setIssuedAt(createdDate)
                 .setId(UUID.randomUUID().toString())
                 .setExpiration(expirationDate)
+                .setHeaderParams(Map.of("typ", "jwt", "alg", "HS256"))
                 .signWith(Keys.hmacShaKeyFor(secret.getBytes()), SignatureAlgorithm.HS256)
                 .compact();
 

@@ -2,19 +2,25 @@ package com.radcns.bird_plus.config.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.jackson.io.JacksonDeserializer;
+import io.jsonwebtoken.security.Keys;
 import reactor.core.publisher.Mono;
 
 import java.util.Base64;
 import java.util.Date;
+import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Value;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.radcns.bird_plus.util.exception.UnauthorizedException;
 
 public class JwtVerifyHandler {
-	@Value("${jjwt.password.secret}")
 	private String secret;
-
+    private ObjectMapper om;
+	public JwtVerifyHandler(String secret, ObjectMapper om){
+		this.secret = secret;
+		this.om = om;
+	}
+	
     public Mono<VerificationResult> check(String accessToken) {
         return Mono.just(verify(accessToken))
                 .onErrorResume(e -> Mono.error(new UnauthorizedException(e.getMessage())));
@@ -31,12 +37,17 @@ public class JwtVerifyHandler {
     }
 
     public Claims getAllClaimsFromToken(String token) {
-    	System.out.println("kjh test <<<<<<<<" + Base64.getEncoder().encodeToString(secret.getBytes()));
+    	try {
         return Jwts.parserBuilder()
-        		.setSigningKey(Base64.getEncoder().encodeToString(secret.getBytes()))
+        		.deserializeJsonWith(new JacksonDeserializer<Map<String,?>>(this.om))
+        		.setSigningKey(Keys.hmacShaKeyFor(secret.getBytes()))
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+    	}catch(Exception e) {
+    		e.printStackTrace();
+    		return null;
+    	}
     }
 
     public class VerificationResult {

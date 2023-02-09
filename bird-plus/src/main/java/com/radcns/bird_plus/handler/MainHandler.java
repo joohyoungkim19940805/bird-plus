@@ -43,6 +43,12 @@ public class MainHandler {
 				.body(accountService.authenticate(request.bodyToMono(AccountEntity.class)), Token.class);
 	}
 	
+	public Mono<ServerResponse> homeTest(ServerRequest request){
+		return ok()
+				.contentType(MediaType.APPLICATION_JSON)
+				.body(Mono.just("test"), Object.class);
+	}
+	
 	/*
     public  login(@RequestBody UserLoginDto dto) {
         return accountService.authenticate(dto.getUsername(), dto.getPassword())

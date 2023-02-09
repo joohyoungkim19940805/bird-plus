@@ -6,13 +6,7 @@ import org.springframework.security.web.server.authentication.ServerAuthenticati
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.util.function.Function;
-import java.util.function.Predicate;
-
 public class ServerHttpBearerAuthenticationConverter implements ServerAuthenticationConverter {
-    private static final String BEARER = "Bearer ";
-    private static final Predicate<String> matchBearerLength = authValue -> authValue.length() > BEARER.length();
-    private static final Function<String, Mono<String>> isolateBearerValue = authValue -> Mono.justOrEmpty(authValue.substring(BEARER.length()));
     private final JwtVerifyHandler jwtVerifier;
 
     public ServerHttpBearerAuthenticationConverter(JwtVerifyHandler jwtVerifier) {
@@ -30,8 +24,6 @@ public class ServerHttpBearerAuthenticationConverter implements ServerAuthentica
 		// TODO Auto-generated method stub
 		return Mono.justOrEmpty(serverWebExchange)
             .flatMap(ServerHttpBearerAuthenticationConverter::extract)
-            .filter(matchBearerLength)
-            .flatMap(isolateBearerValue)
             .flatMap(jwtVerifier::check)
             .flatMap(CurrentUserAuthenticationBearer::create);
 	}

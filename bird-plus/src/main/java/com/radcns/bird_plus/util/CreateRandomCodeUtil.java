@@ -52,12 +52,4 @@ public class CreateRandomCodeUtil {
 			return null;
 		}
 	}
-	public static void main(String a[]) {
-		
-		System.out.println(
-			new CreateRandomCodeUtil().createCode(new byte[32])
-		);
-		
-		
-	}
 }

@@ -1,5 +1,7 @@
 package com.radcns.bird_plus.config.security;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -15,6 +17,9 @@ import org.springframework.security.web.server.authentication.RedirectServerAuth
 import org.springframework.security.web.server.authentication.logout.RedirectServerLogoutSuccessHandler;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
+import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import reactor.core.publisher.Mono;
 
@@ -22,8 +27,13 @@ import java.net.URI;
 
 @Configuration
 @EnableReactiveMethodSecurity
+@Component
 public class WebFluxSecurityConfig {
-
+	
+	@Value("${jjwt.password.secret}")
+	private String secret;
+	@Autowired
+    private ObjectMapper om;
 	/*
 	@Bean
 	public MapReactiveUserDetailsService userDetailsService() {
@@ -77,8 +87,7 @@ public class WebFluxSecurityConfig {
     AuthenticationWebFilter bearerAuthenticationFilter(ReactiveAuthenticationManager authManager) {
         
     	AuthenticationWebFilter bearerAuthenticationFilter = new AuthenticationWebFilter(authManager);
-        
-    	bearerAuthenticationFilter.setServerAuthenticationConverter(new ServerHttpBearerAuthenticationConverter(new JwtVerifyHandler()));
+    	bearerAuthenticationFilter.setServerAuthenticationConverter(new ServerHttpBearerAuthenticationConverter(new JwtVerifyHandler(this.secret, this.om)));
         bearerAuthenticationFilter.setRequiresAuthenticationMatcher(ServerWebExchangeMatchers.pathMatchers("/**"));
 
         return bearerAuthenticationFilter;

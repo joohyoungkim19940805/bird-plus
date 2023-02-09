@@ -31,30 +31,12 @@ public class MainRouter {
 				.and(route( GET("/loginPage").and(accept(MediaType.TEXT_HTML)), webFluxHandler::loginPage ))
 				.and(route( POST("/create").and(accept(MediaType.APPLICATION_JSON)), webFluxHandler::create ))
 				.and(route( POST("/loginProc").and(accept(MediaType.APPLICATION_JSON)), webFluxHandler::loginProc ))
-				.and(route( GET("/home/test").and(accept(MediaType.TEXT_HTML)), webFluxHandler::loginPage ));
+				.and(route( GET("/home/test").and(accept(MediaType.APPLICATION_JSON)), webFluxHandler::homeTest ));
 		/*
 				.and(route(POST("/searchCorpName")
 						.and(accept(MediaType.APPLICATION_JSON)),
 						webFluxHandler::searchCorpName));
 		*/
-	}
-	
-	
-	@Bean
-	public RouterFunction<ServerResponse> index(MainHandler webFluxHandler){
-		return route(GET("/"), req -> ServerResponse.temporaryRedirect(URI.create("/admin")).build());
-	}
-
-	@Bean
-	public RouterFunction<ServerResponse> login(MainHandler webFluxHandler){
-		return route(GET("/login"), req -> ServerResponse.temporaryRedirect(URI.create("/admin")).build());
-	}
-	
-	@Bean
-	public RouterFunction<ServerResponse> loginPage(MainHandler webFluxHandler){
-		return route(GET("/loginPage")
-				.and(accept(MediaType.TEXT_HTML)),
-				webFluxHandler::loginPage);
 	}
 	
 	/*
