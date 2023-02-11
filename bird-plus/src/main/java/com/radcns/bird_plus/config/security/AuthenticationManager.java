@@ -28,7 +28,7 @@ public class AuthenticationManager implements ReactiveAuthenticationManager {
         System.out.println("kjh test22222 " + principal.getName() + " === " + principal.getId());
         return accountService.getUser(principal.getId())
                 .filter(user -> user.getIsEnabled())
-                .switchIfEmpty(Mono.error(new UnauthorizedException("User account is disabled")))
+                .switchIfEmpty(Mono.error(new UnauthorizedException(104)))
                 .map(user -> authentication);
     }
     /*

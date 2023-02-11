@@ -1,18 +1,15 @@
 package com.radcns.bird_plus.util.exception;
 
-import com.radcns.bird_plus.util.ExceptionCodeConstant;
-
 @SuppressWarnings("serial")
-public class ApiException extends RuntimeException implements ExceptionCodeConstant {
-
-	private final int statusCode;
+public class ApiException extends BirdPlusException {
 	
 	public ApiException(int statusCode) {
-		super(Error.valueOf("_"+statusCode).message());
-		this.statusCode = statusCode;
+		super(Error.valueOf("_"+statusCode).message(), statusCode);
 	}
+	
+	@Override
 	public int getStatusCode() {
-		return this.statusCode;
+		return super.statusCode;
 	}
 	@Override
 	public Error getError() {

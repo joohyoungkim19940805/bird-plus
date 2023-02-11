@@ -1,15 +1,17 @@
 package com.radcns.bird_plus.util.exception;
 
-import com.radcns.bird_plus.util.ExceptionCodeConstant;
+import io.jsonwebtoken.JwtException;
 
 @SuppressWarnings("serial")
-public class AuthException extends RuntimeException implements ExceptionCodeConstant{
-	private final int statusCode;
-	
+public class AuthException extends BirdPlusException {
 	public AuthException(int statusCode) {
-		super(Error.valueOf("_"+statusCode).message());
-		this.statusCode = statusCode;
+		super(Error.valueOf("_"+statusCode).message(), statusCode);
 	}
+	public AuthException(int statusCode, JwtException e) {
+		super(Error.valueOf("_"+statusCode).withChangeMessage(e.getMessage()).message(), statusCode);
+	}
+	
+	@Override
 	public int getStatusCode() {
 		return this.statusCode;
 	}
