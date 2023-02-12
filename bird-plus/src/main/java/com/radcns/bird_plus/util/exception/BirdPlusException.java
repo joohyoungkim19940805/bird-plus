@@ -7,11 +7,11 @@ public abstract class BirdPlusException extends RuntimeException implements Exce
 	 * 
 	 */
 	private static final long serialVersionUID = 8263859706689473805L;
-	protected final int statusCode;
+	protected final int status;
 
-	BirdPlusException(String message, int statusCode){
+	BirdPlusException(String message, int status){
 		super(message);
-		this.statusCode = statusCode;
+		this.status = status;
 	}
-	public abstract int getStatusCode();
+	public abstract int getErrorCode();
 }

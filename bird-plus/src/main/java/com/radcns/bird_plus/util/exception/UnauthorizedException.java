@@ -4,23 +4,23 @@ package com.radcns.bird_plus.util.exception;
 public class UnauthorizedException extends BirdPlusException {
 	
 	
-	public UnauthorizedException(int statusCode) {
-		super(Error.valueOf("_"+statusCode).message(), statusCode);
+	public UnauthorizedException(int status) {
+		super(Error.valueOf("_"+status).message(), status);
 	}
 	
 	@Override
-	public int getStatusCode() {
-		return super.statusCode;
+	public int getErrorCode() {
+		return super.status;
 	}
 	@Override
 	public Error getError() {
 		// TODO Auto-generated method stub
-		return Error.valueOf("_"+this.statusCode);
+		return Error.valueOf("_"+this.status);
 	}
 	@Override
-	public Error getError(int code) {
+	public Error getError(int status) {
 		// TODO Auto-generated method stub
-		return Error.valueOf("_"+code);
+		return Error.valueOf("_"+status);
 	}
 
 }
