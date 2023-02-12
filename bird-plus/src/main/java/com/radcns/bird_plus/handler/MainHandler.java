@@ -8,11 +8,14 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import com.radcns.bird_plus.config.security.Token;
 import com.radcns.bird_plus.entity.AccountEntity;
 import com.radcns.bird_plus.service.AccountService;
+import com.radcns.bird_plus.util.ResponseSuccess;
 import com.radcns.bird_plus.util.exception.UnauthorizedException;
 
 import reactor.core.publisher.Mono;
 
 import static org.springframework.web.reactive.function.server.ServerResponse.ok;
+
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -41,7 +44,8 @@ public class MainHandler {
 	public Mono<ServerResponse> loginProc(ServerRequest request){
 		return ok()
 				.contentType(MediaType.APPLICATION_JSON)
-				.body(accountService.authenticate(request.bodyToMono(AccountEntity.class)), Token.class)
+				.body(accountService.authenticate(request.bodyToMono(AccountEntity.class))
+					.map(e->Map.of("code", "00", "resultType", "success", "data", e)), Object.class)
 				.onErrorResume(e -> Mono.error(new UnauthorizedException(100)));
 	}
 	

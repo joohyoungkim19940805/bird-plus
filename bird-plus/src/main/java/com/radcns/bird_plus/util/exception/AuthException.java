@@ -4,21 +4,21 @@ import io.jsonwebtoken.JwtException;
 
 @SuppressWarnings("serial")
 public class AuthException extends BirdPlusException {
-	public AuthException(int status) {
-		super(Error.valueOf("_"+status).message(), status);
+	public AuthException(int code) {
+		super(Error.valueOf("_"+code).message(), code);
 	}
-	public AuthException(int status, JwtException e) {
-		super(Error.valueOf("_"+status).withChangeMessage(e.getMessage()).message(), status);
+	public AuthException(int code, JwtException e) {
+		super(Error.valueOf("_"+code).withChangeMessage(e.getMessage()).message(), code);
 	}
 	
 	@Override
 	public int getErrorCode() {
-		return this.status;
+		return this.code;
 	}
 	@Override
 	public Error getError() {
 		// TODO Auto-generated method stub
-		return Error.valueOf("_"+this.status);
+		return Error.valueOf("_"+this.code);
 	}
 	@Override
 	public Error getError(int status) {

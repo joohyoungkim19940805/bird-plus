@@ -83,47 +83,26 @@ public class AccountService implements Serializable {
     }
 
     public Mono<Token> authenticate(Mono<AccountEntity> accountEntityMono) {
-    	return accountEntityMono.flatMap(account -> {
-    		return accountRepository.findByUsername(account.getUsername()).flatMap(user -> {
-        		if (!user.getIsEnabled()) {
+    	return accountEntityMono.flatMap(accountInfo -> {
+    		System.out.println("kjh test <<<");
+    		System.out.println(accountInfo);
+    		return accountRepository.findByUsername(accountInfo.getUsername()).doOnSuccess(account->{
+    			System.out.println(account);
+    			if(account == null) {
+    				throw new AuthException(103);
+    			}
+    		}).flatMap(account -> {
+        		if ( ! account.getIsEnabled()) {
     				return Mono.error(new AuthException(101));
-    			}else if(!passwordEncoder.encode(account.getPassword()).equals(user.getPassword())) {
+    			}else if(!passwordEncoder.encode(accountInfo.getPassword()).equals(account.getPassword())) {
     				return Mono.error(new AuthException(102));
              	}else {
-             		return Mono.just(generateAccessToken(user).toBuilder()
-             			.userId(user.getId())
+             		return Mono.just(generateAccessToken(account).toBuilder()
+             			.userId(account.getId())
              			.build());
              	}
         	});
     	});
-    	/*
-		return accountRepository.findByUsername(accountEntityMono).flatMap(user -> {
-    		if (!user.getIsEnabled()) {
-				return Mono.error(new AuthException(101));
-			}else if(!passwordEncoder.encode("").equals(user.getPassword())) {
-				return Mono.error(new AuthException(102));
-         	}else {
-         		return Mono.just(generateAccessToken(user).toBuilder()
-         			.userId(user.getId())
-         			.build());
-         	}
-    	});
-    	*/
-    	/*
-        return accountRepository.findByUsername(username)
-            .flatMap(user -> {
-                if (!user.getIsEnabled()) {
-                    return Mono.error(new AuthException(101));
-                }else if(!passwordEncoder.encode(password).equals(user.getPassword())) {
-                    return Mono.error(new AuthException(102));
-            	}else {
-                    return Mono.just(generateAccessToken(user).toBuilder()
-                            .userId(user.getId())
-                            .build());
-            	}
-            })
-            .switchIfEmpty(Mono.error(new AuthException(103)));
-		*/
     }
     
     public Flux<AccountEntity> createUser(Mono<AccountEntity> accountMono) {
@@ -138,18 +117,6 @@ public class AccountService implements Serializable {
     			    .build()
         	)
     	);
-    	
-    	/*
-    	return accountMono.map(account->
-				accountRepository.save(account.toBuilder()
-					.password(passwordEncoder.encode(account.getPassword()))
-					.roles(List.of(Role.ROLE_USER, Role.ROLE_ACCESS))
-				    .isEnabled(true)
-				    .createAt(LocalDateTime.now())
-				    .build()
-				)
-                .doOnSuccess(u -> log.info("Created new user with ID = " + u.getId())));
-		*/
     }
 
     public Mono<AccountEntity> getUser(Long userId) {

@@ -16,6 +16,9 @@ import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
+
+import com.radcns.bird_plus.util.ExceptionCodeConstant;
+
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
@@ -39,8 +42,13 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
     private Mono<ServerResponse> renderErrorResponse(final ServerRequest request) {
 
         final Map<String, Object> errorPropertiesMap = getErrorAttributes(request, ErrorAttributeOptions.defaults());
-
-        return ServerResponse.status(HttpStatus.BAD_REQUEST)
+        HttpStatus status;
+        if(errorPropertiesMap.get("code").equals(ExceptionCodeConstant.Error._999.code())) {
+        	status = HttpStatus.INTERNAL_SERVER_ERROR;
+        }else {
+        	status = HttpStatus.OK;
+        }
+        return ServerResponse.status(status)
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(errorPropertiesMap));
     }

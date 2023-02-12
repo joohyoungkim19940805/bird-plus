@@ -13,16 +13,16 @@ public interface ExceptionCodeConstant {
 		_107(107, "signature validation fails token", "SIGNATURE VALIDATION FAILS TOKEN"),
 		_999(999, "unknown error", "SERVER NOT DEFINED THIS ERROR")
 		;
-		private int status;
+		private int code;
 		private String message;
 		private String summary;
-		Error(int status, String message, String summary) {
-			this.status=status;
+		Error(int code, String message, String summary) {
+			this.code=code;
 			this.message=message;
 			this.summary=summary;
 		}
-		public int status() {
-			return this.status;
+		public int code() {
+			return this.code;
 		}
 		public String message() {
 			return this.message;
@@ -38,7 +38,7 @@ public interface ExceptionCodeConstant {
 		public String toString() {
 			return """
 					{"code":%d,"message":"%s","detail":"%s"}
-					""".formatted(status,message,summary);
+					""".formatted(code,message,summary);
 		}
 	}
 

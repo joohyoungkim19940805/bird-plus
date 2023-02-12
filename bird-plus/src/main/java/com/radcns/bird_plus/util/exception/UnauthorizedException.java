@@ -10,17 +10,17 @@ public class UnauthorizedException extends BirdPlusException {
 	
 	@Override
 	public int getErrorCode() {
-		return super.status;
+		return super.code;
 	}
 	@Override
 	public Error getError() {
 		// TODO Auto-generated method stub
-		return Error.valueOf("_"+this.status);
+		return Error.valueOf("_"+this.code);
 	}
 	@Override
-	public Error getError(int status) {
+	public Error getError(int code) {
 		// TODO Auto-generated method stub
-		return Error.valueOf("_"+status);
+		return Error.valueOf("_"+code);
 	}
 
 }
