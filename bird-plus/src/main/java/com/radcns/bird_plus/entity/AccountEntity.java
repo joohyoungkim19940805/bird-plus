@@ -65,5 +65,10 @@ public class AccountEntity {
     
     private List<Role> roles;
 
+    @Column("is_different_ip")
+    private Boolean isDifferentIp;
+    
+    @Column("is_first_login")
+    private Boolean isFirstLogin;
 
 }

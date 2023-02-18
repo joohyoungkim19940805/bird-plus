@@ -6,13 +6,5 @@ package com.radcns.bird_plus.config.security;
  *
  */
 public enum Role {
-	ROLE_USER("ROLE_USER"), ROLE_ACCESS("ROLE_ACCESS");
-	private String role;
-	Role(String role){
-		this.role = role;
-	}
-	@Override
-	public String toString() {
-		return this.role;
-	}
+	ROLE_USER, ROLE_ACCESS;
 }

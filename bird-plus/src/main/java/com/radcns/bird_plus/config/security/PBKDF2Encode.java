@@ -9,6 +9,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+/**
+ * password 인코딩시 사용할 클래스
+ * <pre> passwordEncoder의 구현체를 만들고 컴포넌트 어노테이션을 사용하면 </pre>
+ * <pre> passwordEncoder 사용시 자동으로 이 클래스를 쓰게 된다. </pre>
+ * @author oozu1
+ *
+ */
 @Component
 public class PBKDF2Encode implements PasswordEncoder {
 	@Value("${jjwt.password.encoder.secret}")

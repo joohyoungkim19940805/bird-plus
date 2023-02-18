@@ -26,6 +26,11 @@ public class JwtVerifyHandler {
 		this.om = om;
 	}
 	
+	/**
+	 * 토큰의 유효성과 만료시간을 체크하는 함수
+	 * @param accessToken
+	 * @return
+	 */
     public Mono<VerificationResult> check(String accessToken) {
         return Mono.just(verify(accessToken))
                 .onErrorResume(e -> {

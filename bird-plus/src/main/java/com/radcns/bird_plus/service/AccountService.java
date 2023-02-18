@@ -5,7 +5,6 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.jackson.io.JacksonSerializer;
 import io.jsonwebtoken.security.Keys;
-import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,6 +16,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.radcns.bird_plus.config.security.Role;
 import com.radcns.bird_plus.config.security.Token;
 import com.radcns.bird_plus.entity.AccountEntity;
+import com.radcns.bird_plus.entity.AccountLogEntity;
+import com.radcns.bird_plus.repository.AccountLogRepository;
 import com.radcns.bird_plus.repository.AccountRepository;
 import com.radcns.bird_plus.util.exception.AuthException;
 
@@ -24,14 +25,14 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.io.Serializable;
+import java.net.InetSocketAddress;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
-@Slf4j
 @SuppressWarnings("serial")
 @Component
 @Service
@@ -41,27 +42,29 @@ public class AccountService implements Serializable {
     @Autowired
     private PasswordEncoder passwordEncoder;
     @Autowired
+    private AccountLogRepository accountLogRepository;
+    @Autowired
     private ObjectMapper om;
+    
     @Value("${jjwt.password.secret}")
     private String secret;
 
     @Value("${jjwt.password.expiration}")
     private String defaultExpirationTimeInSecondsConf;
 
-    public Token generateAccessToken(AccountEntity user) {
+    /**
+     * 엑세스 토큰을 생성하는 함수
+     * @param user
+     * @return
+     */
+    private Token generateAccessToken(AccountEntity user) {
+    	
     	Map<String, List<Role>> claims = Map.of("role", user.getRoles());
-
-        return doGenerateToken(claims, user.getUsername(), user.getId().toString());
-    }
-
-    private Token doGenerateToken(Map<String, List<Role>> claims, String issuer, String subject) {
+    	String issuer = user.getUsername();
+    	String subject = user.getId().toString();
+    	
         var expirationTimeInMilliseconds = Long.parseLong(defaultExpirationTimeInSecondsConf) * 1000;
         var expirationDate = new Date(new Date().getTime() + expirationTimeInMilliseconds);
-
-        return doGenerateToken(expirationDate, claims, issuer, subject);
-    }
-
-    private Token doGenerateToken(Date expirationDate, Map<String, List<Role>> claims, String issuer, String subject) {
         var createdDate = new Date();
         var token = Jwts.builder()
         		.serializeToJsonWith(new JacksonSerializer<Map<String,?>>(this.om))
@@ -79,15 +82,14 @@ public class AccountService implements Serializable {
                 .token(token)
                 .issuedAt(createdDate)
                 .expiresAt(expirationDate)
+                .isDifferentIp(user.getIsDifferentIp())
+                .isFirstLogin(user.getIsFirstLogin())
                 .build();
     }
 
-    public Mono<Token> authenticate(Mono<AccountEntity> accountEntityMono) {
+    public Mono<Token> authenticate(Mono<AccountEntity> accountEntityMono, Optional<InetSocketAddress> optional) {
     	return accountEntityMono.flatMap(accountInfo -> {
-    		System.out.println("kjh test <<<");
-    		System.out.println(accountInfo);
     		return accountRepository.findByUsername(accountInfo.getUsername()).doOnSuccess(account->{
-    			System.out.println(account);
     			if(account == null) {
     				throw new AuthException(103);
     			}
@@ -97,9 +99,24 @@ public class AccountService implements Serializable {
     			}else if(!passwordEncoder.encode(accountInfo.getPassword()).equals(account.getPassword())) {
     				return Mono.error(new AuthException(102));
              	}else {
-             		return Mono.just(generateAccessToken(account).toBuilder()
-             			.userId(account.getId())
-             			.build());
+             		AccountLogEntity accountLogEntity = AccountLogEntity.builder()
+             			.id(account.getId())
+             			.ip(optional.get().getAddress().getHostAddress())
+             			.build();
+             		return accountLogRepository.existsByIp(accountLogEntity.getIp()).flatMap(existsByIp->{
+             			account.setIsDifferentIp( ! existsByIp);
+             			if(account.getIsFirstLogin()) {
+             				if(existsByIp) {
+             					account.setIsFirstLogin(false);
+             				}
+             				account.setIsDifferentIp(false);
+             			}
+             			return accountRepository.save(account)
+             				.flatMap(e->accountLogRepository.save(accountLogEntity));
+             		}).flatMap(e -> Mono.just(generateAccessToken(account).toBuilder()
+                     			.userId(account.getId())
+                     			.build())
+             		);
              	}
         	});
     	});

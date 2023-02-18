@@ -8,6 +8,7 @@ import lombok.Setter;
 
 import java.util.Date;
 
+
 @Setter
 @Getter
 @Builder(toBuilder = true)
@@ -18,4 +19,6 @@ public class Token{
     private String token;
     private Date issuedAt;
     private Date expiresAt;
+    private Boolean isDifferentIp;
+    private Boolean isFirstLogin;
 }

@@ -6,6 +6,11 @@ import org.springframework.security.web.server.authentication.ServerAuthenticati
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+/**
+ * 
+ * @author oozu1
+ *
+ */
 public class ServerHttpBearerAuthenticationConverter implements ServerAuthenticationConverter {
     private final JwtVerifyHandler jwtVerifier;
 
