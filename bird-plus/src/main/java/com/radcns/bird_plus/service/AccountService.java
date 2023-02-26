@@ -60,7 +60,7 @@ public class AccountService implements Serializable {
     private Token generateAccessToken(AccountEntity user) {
     	
     	Map<String, List<Role>> claims = Map.of("role", user.getRoles());
-    	String issuer = user.getUsername();
+    	String issuer = user.getAccountName();
     	String subject = user.getId().toString();
     	
         var expirationTimeInMilliseconds = Long.parseLong(defaultExpirationTimeInSecondsConf) * 1000;
@@ -89,7 +89,7 @@ public class AccountService implements Serializable {
 
     public Mono<Token> authenticate(Mono<AccountEntity> accountEntityMono, Optional<InetSocketAddress> optional) {
     	return accountEntityMono.flatMap(accountInfo -> {
-    		return accountRepository.findByUsername(accountInfo.getUsername()).doOnSuccess(account->{
+    		return accountRepository.findByAccountName(accountInfo.getAccountName()).doOnSuccess(account->{
     			if(account == null) {
     				throw new AuthException(103);
     			}

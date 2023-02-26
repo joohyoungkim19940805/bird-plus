@@ -33,8 +33,8 @@ public class AccountEntity {
     @Column("id")
     private Long id;
     
-    @Column("username")
-    private String username;
+    @Column("account_name")
+    private String accountName;
 
     @Column("password")
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
@@ -58,10 +58,6 @@ public class AccountEntity {
     @Column("updated_by")
     @LastModifiedBy
     private String updatedBy;
-
-    @Column("version")
-    @Version
-    private Long version;
     
     private List<Role> roles;
 
