@@ -2,21 +2,24 @@ package com.radcns.bird_plus.util;
 
 public interface ExceptionCodeConstant {
 	
-	public enum Error {
-		_100(100, "token expired", "JWT TOKEN EXPIRED"),
-		_101(101, "access denied", "ACCOUNT IS DISABLED STATUS"),
-		_102(102, "invalid account password", "INVALID ACCOUNT PASSWORD"),
-		_103(103, "invalid account id", "INVALID ACCOUNT"),
-		_104(104, "account is disabled", "DISABLED ACCOUNT"),
-		_105(105, "this token is not supported", "NOT SUPPORTED TOKEN"),
-		_106(106, "this is not a valid token", "NOT A VALID TOKEN"),
-		_107(107, "signature validation fails token", "SIGNATURE VALIDATION FAILS TOKEN"),
-		_999(999, "unknown error", "SERVER NOT DEFINED THIS ERROR")
+	public enum Result {
+		_00(0, "처리에 성공하였습니다.", "SUCCESS"),
+		_01(1, "처리에 실패하였습니다.", "SERVER RESPONSE SOMETHING WRONG"),
+		_100(100, "다시 로그인을 시도해주십시오.", "JWT TOKEN EXPIRED"),
+		_101(101, "해당 기능에 권한이 없습니다.", "ACCOUNT IS DISABLED STATUS"),
+		_102(102, "잘못된 비밀번호입니다.", "INVALID ACCOUNT PASSWORD"),
+		_103(103, "존재하지 않는 계정입니다.", "INVALID ACCOUNT"),
+		_104(104, "비활성화 된 계정입니다.", "DISABLED ACCOUNT"),
+		_105(105, "로그인 정보가 잘못되었습니다. 다시 로그인을 시도해주십시오.", "NOT SUPPORTED TOKEN"),
+		_106(106, "호환되지 않은 계정 정보입니다. 다시 로그인을 시도해주십시오.", "NOT A VALID TOKEN"),
+		_107(107, "인증 할 수 없는 계정입니다. 다시 로그인을 시도해주십시오.", "SIGNATURE VALIDATION FAILS"),
+		_110(110, "회원 가입에 실패하였습니다.", "ACCOUNT REGIST FAILED"),
+		_999(999, "처리에 실패하였습니다. 잠시 후 다시 시도해주십시오.", "SERVER NOT DEFINED THIS ERROR")
 		;
 		private int code;
 		private String message;
 		private String summary;
-		Error(int code, String message, String summary) {
+		Result(int code, String message, String summary) {
 			this.code=code;
 			this.message=message;
 			this.summary=summary;
@@ -30,7 +33,7 @@ public interface ExceptionCodeConstant {
 		public String summary() {
 			return this.summary;
 		}
-		public Error withChangeMessage(String newMessage) {
+		public Result withChangeMessage(String newMessage) {
 			this.message = newMessage;
 			return this;
 		}
@@ -42,6 +45,6 @@ public interface ExceptionCodeConstant {
 		}
 	}
 
-	Error getError();
-	Error getError(int code);
+	Result getResult();
+	Result getResult(int code);
 }

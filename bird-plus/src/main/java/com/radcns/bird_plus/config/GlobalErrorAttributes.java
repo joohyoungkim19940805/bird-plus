@@ -27,15 +27,15 @@ public class GlobalErrorAttributes extends DefaultErrorAttributes {
         Class<?> superClass = throwable.getClass().getSuperclass();
         if(superClass.equals(BirdPlusException.class)) {
         	BirdPlusException exception = (BirdPlusException) superClass.cast(throwable);
-        	ExceptionCodeConstant.Error error = exception.getError();
+        	ExceptionCodeConstant.Result error = exception.getResult();
 	        map.put("code", error.code());
 	        map.put("message", error.message());
 	        map.put("summary", error.summary());
 	        map.put("resultType", "error");
         }else {
-        	map.put("message", ExceptionCodeConstant.Error._999.message());//throwable.getMessage());
-        	map.put("code", ExceptionCodeConstant.Error._999.code());
-        	map.put("summary", ExceptionCodeConstant.Error._999.summary());
+        	map.put("message", ExceptionCodeConstant.Result._999.message());//throwable.getMessage());
+        	map.put("code", ExceptionCodeConstant.Result._999.code());
+        	map.put("summary", ExceptionCodeConstant.Result._999.summary());
         	map.put("resultType", "error");
         }
         return map;

@@ -5,22 +5,22 @@ public class UnauthorizedException extends BirdPlusException {
 	
 	
 	public UnauthorizedException(int status) {
-		super(Error.valueOf("_"+status).message(), status);
+		super(Result.valueOf("_"+status).message(), status);
 	}
 	
 	@Override
-	public int getErrorCode() {
+	public int getResultCode() {
 		return super.code;
 	}
 	@Override
-	public Error getError() {
+	public Result getResult() {
 		// TODO Auto-generated method stub
-		return Error.valueOf("_"+this.code);
+		return Result.valueOf("_"+this.code);
 	}
 	@Override
-	public Error getError(int code) {
+	public Result getResult(int code) {
 		// TODO Auto-generated method stub
-		return Error.valueOf("_"+code);
+		return Result.valueOf("_"+code);
 	}
 
 }

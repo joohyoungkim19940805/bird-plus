@@ -13,5 +13,5 @@ public abstract class BirdPlusException extends RuntimeException implements Exce
 		super(message);
 		this.code = code;
 	}
-	public abstract int getErrorCode();
+	public abstract int getResultCode();
 }

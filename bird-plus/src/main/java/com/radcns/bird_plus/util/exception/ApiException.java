@@ -3,22 +3,22 @@ package com.radcns.bird_plus.util.exception;
 @SuppressWarnings("serial")
 public class ApiException extends BirdPlusException {
 	
-	public ApiException(int code) {
-		super(Error.valueOf("_"+code).message(), code);
+	public ApiException(Result result) {
+		super(result.message(), result.code());
 	}
 	
 	@Override
-	public int getErrorCode() {
+	public int getResultCode() {
 		return super.code;
 	}
 	@Override
-	public Error getError() {
+	public Result getResult() {
 		// TODO Auto-generated method stub
-		return Error.valueOf("_"+this.code);
+		return Result.valueOf("_"+this.code);
 	}
 	@Override
-	public Error getError(int status) {
+	public Result getResult(int status) {
 		// TODO Auto-generated method stub
-		return Error.valueOf("_"+status);
+		return Result.valueOf("_"+status);
 	}
 }

@@ -25,11 +25,10 @@ public class AuthenticationManager implements ReactiveAuthenticationManager {
     @Override
     public Mono<Authentication> authenticate(Authentication authentication) {
     	UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
-        System.out.println("kjh test22222 " + principal.getName() + " === " + principal.getId());
-        return accountService.getUser(principal.getId())
-                .filter(user -> user.getIsEnabled())
-                .switchIfEmpty(Mono.error(new UnauthorizedException(104)))
-                .map(user -> authentication);
+    	return accountService.getUser(principal.getId())
+            .filter(user -> user.getIsEnabled())
+            .switchIfEmpty(Mono.error(new UnauthorizedException(104)))
+            .map(user -> authentication);
     }
     /*
     @Override

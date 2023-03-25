@@ -2,17 +2,20 @@ package com.radcns.bird_plus.handler;
 
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
+
 import com.radcns.bird_plus.entity.AccountEntity;
 import com.radcns.bird_plus.service.AccountService;
+import com.radcns.bird_plus.util.Response;
+import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
 import com.radcns.bird_plus.util.exception.UnauthorizedException;
 
 import reactor.core.publisher.Mono;
 
+import static com.radcns.bird_plus.util.Response.response;
 import static org.springframework.web.reactive.function.server.ServerResponse.ok;
-
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -35,14 +38,19 @@ public class MainHandler {
 	public Mono<ServerResponse> create(ServerRequest request){
 		return ok()
 				.contentType(MediaType.APPLICATION_JSON)
-				.body(accountService.createUser(request.bodyToMono(AccountEntity.class)), AccountEntity.class);
+				.body(accountService.createUser(request.bodyToMono(AccountEntity.class))
+					.map(e -> response(Result._00, e)), Response.class
+				)
+				.onErrorResume(e -> Mono.error(new UnauthorizedException(100)));
 	}
 	
+	@ResponseBody
 	public Mono<ServerResponse> loginProc(ServerRequest request){
 		return ok()
 				.contentType(MediaType.APPLICATION_JSON)
 				.body(accountService.authenticate(request.bodyToMono(AccountEntity.class), request.remoteAddress())
-					.map(e->Map.of("code", "00", "resultType", "success", "data", e)), Object.class)
+					.map(e -> response(Result._00, e)), Response.class
+				)
 				.onErrorResume(e -> Mono.error(new UnauthorizedException(100)));
 	}
 	

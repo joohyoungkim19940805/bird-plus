@@ -43,7 +43,7 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
 
         final Map<String, Object> errorPropertiesMap = getErrorAttributes(request, ErrorAttributeOptions.defaults());
         HttpStatus status;
-        if(errorPropertiesMap.get("code").equals(ExceptionCodeConstant.Error._999.code())) {
+        if(errorPropertiesMap.get("code").equals(ExceptionCodeConstant.Result._999.code())) {
         	status = HttpStatus.INTERNAL_SERVER_ERROR;
         }else {
         	status = HttpStatus.OK;

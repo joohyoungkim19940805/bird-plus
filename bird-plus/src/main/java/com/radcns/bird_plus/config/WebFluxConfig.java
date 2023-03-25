@@ -2,6 +2,7 @@ package com.radcns.bird_plus.config;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
@@ -9,8 +10,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.http.codec.json.Jackson2JsonDecoder;
 import org.springframework.http.codec.json.Jackson2JsonEncoder;
+import org.springframework.web.reactive.accept.RequestedContentTypeResolver;
 import org.springframework.web.reactive.config.ViewResolverRegistry;
 import org.springframework.web.reactive.config.WebFluxConfigurer;
+import org.springframework.web.reactive.result.method.annotation.ResponseBodyResultHandler;
 import org.thymeleaf.spring6.ISpringWebFluxTemplateEngine;
 import org.thymeleaf.spring6.SpringWebFluxTemplateEngine;
 import org.thymeleaf.spring6.templateresolver.SpringResourceTemplateResolver;
@@ -32,6 +35,7 @@ public class WebFluxConfig implements ApplicationContextAware, WebFluxConfigurer
 	@Autowired
 	private ObjectMapper objectMapper;
 	
+	
 	@Override
 	public void configureHttpMessageCodecs(ServerCodecConfigurer configurer) {
 		configurer.defaultCodecs().jackson2JsonEncoder(
@@ -45,7 +49,7 @@ public class WebFluxConfig implements ApplicationContextAware, WebFluxConfigurer
 	}
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		this.context = context;
+		this.context = applicationContext;
 	}
 	
 	@Override

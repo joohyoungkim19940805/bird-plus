@@ -16,13 +16,14 @@
 			fetch('/loginProc',{
 			    method:'POST',
 			    body:JSON.stringify({
-			    	accountName:'test',
-			        password:'rlawngud1'
+			    	accountName:document.querySelector('[name="id"]').value,
+			        password:document.querySelector('[name="password"]').value
 			    }),
 			    headers: {
 			        'Content-Type': 'application/json',
 			    }
 			}).then(res=>{
+				console.log(res);
 			    return res.json()
 			}).then(result=>console.log(result));
 		}
