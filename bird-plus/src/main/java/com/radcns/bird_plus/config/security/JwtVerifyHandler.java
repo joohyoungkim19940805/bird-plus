@@ -10,6 +10,7 @@ import io.jsonwebtoken.security.SignatureException;
 import io.jsonwebtoken.ExpiredJwtException;
 import reactor.core.publisher.Mono;
 
+import java.security.KeyPair;
 import java.util.Base64;
 import java.util.Date;
 import java.util.Map;
@@ -19,10 +20,10 @@ import com.radcns.bird_plus.util.exception.AuthException;
 import com.radcns.bird_plus.util.exception.UnauthorizedException;
 
 public class JwtVerifyHandler {
-	private String secret;
+	private KeyPair keyPair;
     private ObjectMapper om;
-	public JwtVerifyHandler(String secret, ObjectMapper om){
-		this.secret = secret;
+	public JwtVerifyHandler(KeyPair keyPair, ObjectMapper om){
+		this.keyPair = keyPair;
 		this.om = om;
 	}
 	
@@ -55,7 +56,7 @@ public class JwtVerifyHandler {
     	try {
     		return Jwts.parserBuilder()
         		.deserializeJsonWith(new JacksonDeserializer<Map<String,?>>(this.om))
-        		.setSigningKey(Keys.hmacShaKeyFor(secret.getBytes()))
+        		.setSigningKey(keyPair.getPublic())
                 .build()
                 .parseClaimsJws(token)
                 .getBody();

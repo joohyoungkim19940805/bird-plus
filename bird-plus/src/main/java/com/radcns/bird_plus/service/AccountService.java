@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.server.ServerResponse.BodyBuilder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.radcns.bird_plus.config.security.Role;
@@ -26,6 +27,7 @@ import reactor.core.publisher.Mono;
 
 import java.io.Serializable;
 import java.net.InetSocketAddress;
+import java.security.KeyPair;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
@@ -48,7 +50,10 @@ public class AccountService implements Serializable {
     
     @Value("${jjwt.password.secret}")
     private String secret;
-
+    
+    @Autowired
+    private KeyPair keyPair;
+    
     @Value("${jjwt.password.expiration}")
     private String defaultExpirationTimeInSecondsConf;
 
@@ -74,8 +79,10 @@ public class AccountService implements Serializable {
                 .setIssuedAt(createdDate)
                 .setId(UUID.randomUUID().toString())
                 .setExpiration(expirationDate)
-                .setHeaderParams(Map.of("typ", "jwt", "alg", "HS256"))
-                .signWith(Keys.hmacShaKeyFor(secret.getBytes()), SignatureAlgorithm.HS256)
+                //.setHeaderParams(Map.of("typ", "jwt", "alg", "HS256"))
+                //.signWith(Keys.hmacShaKeyFor(secret.getBytes()), SignatureAlgorithm.HS256)
+                .setHeaderParams(Map.of("typ", "jwt", "alg", "RS256"))
+                .signWith(keyPair.getPrivate(), SignatureAlgorithm.RS256)
                 .compact();
 
         return Token.builder()
@@ -128,7 +135,7 @@ public class AccountService implements Serializable {
 			accountMono.map(account -> 
     	    	account.toBuilder()
     				.password(passwordEncoder.encode(account.getPassword()))
-    				.roles(List.of(Role.ROLE_USER, Role.ROLE_ACCESS))
+    				.roles(List.of(Role.ROLE_USER, Role.ROLE_GUEST))
     			    .isEnabled(true)
     			    .createAt(LocalDateTime.now())
     			    .build()

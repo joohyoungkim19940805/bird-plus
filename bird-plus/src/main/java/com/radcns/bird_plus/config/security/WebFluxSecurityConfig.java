@@ -16,6 +16,7 @@ import org.springframework.security.web.server.authentication.RedirectServerAuth
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.logout.RedirectServerLogoutSuccessHandler;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
+import org.springframework.security.web.server.savedrequest.CookieServerRequestCache;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
 import org.springframework.stereotype.Component;
 
@@ -24,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
+import java.security.KeyPair;
 
 @Configuration
 @EnableReactiveMethodSecurity
@@ -34,6 +36,9 @@ public class WebFluxSecurityConfig {
 	private String secret;
 	@Autowired
     private ObjectMapper om;
+	
+	@Autowired
+	private KeyPair keyPair;
 	/*
 	@Bean
 	public MapReactiveUserDetailsService userDetailsService() {
@@ -70,14 +75,16 @@ public class WebFluxSecurityConfig {
                 .authenticationFailureHandler(new RedirectServerAuthenticationFailureHandler("/loginPage?status=error"))
                 .loginPage("/login")
                 .and()
+                //.requestCache(c->c.requestCache(new CookieServerRequestCache()))
                 .httpBasic().disable()
                 //.authenticationManager(authenticationManager)
                 //.securityContextRepository(securityContextRepository)
                 .authorizeExchange()
                 .pathMatchers(HttpMethod.OPTIONS).permitAll()
-                .pathMatchers("/login").permitAll()
+                .pathMatchers("/","/**.ico").permitAll()
+                .pathMatchers("/login", "/loginPage", "/loginProc").permitAll()
                 .pathMatchers("/home/**").authenticated()
-                .pathMatchers("/**","/**.ico").permitAll()
+                .pathMatchers("/api/**").authenticated()
                 .anyExchange().authenticated()
                 .and()
                 .addFilterAt(bearerAuthenticationFilter(authManager), SecurityWebFiltersOrder.AUTHENTICATION)
@@ -87,9 +94,9 @@ public class WebFluxSecurityConfig {
     AuthenticationWebFilter bearerAuthenticationFilter(ReactiveAuthenticationManager authManager) {
         
     	AuthenticationWebFilter bearerAuthenticationFilter = new AuthenticationWebFilter(authManager);
-    	bearerAuthenticationFilter.setServerAuthenticationConverter(new ServerHttpBearerAuthenticationConverter(new JwtVerifyHandler(this.secret, this.om)));
+    	bearerAuthenticationFilter.setServerAuthenticationConverter(new ServerHttpBearerAuthenticationConverter(new JwtVerifyHandler(this.keyPair, this.om)));
         bearerAuthenticationFilter.setRequiresAuthenticationMatcher(ServerWebExchangeMatchers.pathMatchers("/**"));
-
+        
         return bearerAuthenticationFilter;
     }
 }
