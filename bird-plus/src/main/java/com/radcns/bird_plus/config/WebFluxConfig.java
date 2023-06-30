@@ -1,5 +1,7 @@
 package com.radcns.bird_plus.config;
 
+import java.security.KeyPair;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -7,10 +9,15 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.http.codec.json.Jackson2JsonDecoder;
 import org.springframework.http.codec.json.Jackson2JsonEncoder;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.reactive.CorsWebFilter;
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import org.springframework.web.reactive.accept.RequestedContentTypeResolver;
+import org.springframework.web.reactive.config.CorsRegistry;
 import org.springframework.web.reactive.config.ViewResolverRegistry;
 import org.springframework.web.reactive.config.WebFluxConfigurer;
 import org.springframework.web.reactive.result.method.annotation.ResponseBodyResultHandler;
@@ -25,6 +32,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.radcns.bird_plus.util.CommonUtil;
 import com.radcns.bird_plus.util.CreateRandomCodeUtil;
+
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 
 @Configuration
 public class WebFluxConfig implements ApplicationContextAware, WebFluxConfigurer {
@@ -96,6 +106,10 @@ public class WebFluxConfig implements ApplicationContextAware, WebFluxConfigurer
 		return new CreateRandomCodeUtil();//
 	}
 	
+	@Bean
+	public KeyPair keyPair() {
+		return Keys.keyPairFor(SignatureAlgorithm.RS256);
+	}
 }
 
 
