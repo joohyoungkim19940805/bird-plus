@@ -9,15 +9,12 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import com.radcns.bird_plus.config.security.JwtVerifyHandler;
 import com.radcns.bird_plus.entity.chatting.ChattingEntity;
 import com.radcns.bird_plus.repository.chatting.ChattingRepository;
-import com.radcns.bird_plus.util.Response;
-import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
 import com.radcns.bird_plus.util.exception.UnauthorizedException;
 
 import io.jsonwebtoken.Claims;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
-import static com.radcns.bird_plus.util.Response.response;
 import static org.springframework.web.reactive.function.server.ServerResponse.ok;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,32 +29,48 @@ public class ChattingHandler {
 	@Autowired
 	private JwtVerifyHandler jwtVerifyHandler;
 	
-	private Sinks.Many<Object> chattingSink = Sinks.many().replay().all();
+	/**
+	unicast() : 하나의 Subscriber 만 허용한다. 즉, 하나의 Client 만 연결할 수 있다.
+	multicast() : 여러 Subscriber 를 허용한다.
+	replay() : 여러 Subscriber 를 허용하되, 이전에 발행된 이벤트들을 기억해 추가로 연결되는 Subscriber 에게 전달한다.
+	multicast().onBackpressureBuffer() : Subscriber 가 없을 때 발행된 이벤트들에 대해서 그 다음 구독하는 Subscriber 에게 전달한다.
+	multicast().directAllOrNothing() : Subscriber 는 자신이 구독한 시점에서부터의 이벤트만 받는다.
+	many().multicast(): a sink that will transmit only newly pushed data to its subscribers, honoring their backpressure
+	many().unicast(): same as above, with the twist that data pushed before the first subscriber registers is buffered.
+	many().replay(): a sink that will replay a specified history size of pushed data to new subscribers then continue pushing new data live.
+	one(): a sink that will play a single element to its subscribers
+	empty(): a sink that will play a terminal signal only to its subscribers (error or complete)
+	 */
+	private Sinks.Many<ChattingEntity> chattingSink = Sinks.many().multicast().directAllOrNothing();
 	
 	public Mono<ServerResponse> addStream(ServerRequest request){
-		return request.bodyToMono(Object.class)
-				.doOnNext(chatting->{
-					System.out.println("kjh !!!! " + chatting);
+		return request.bodyToMono(String.class)
+				/*.doOnNext(chatting->{
 					chattingSink.tryEmitNext(chatting);
-				})
+				})*/
 				.map(chatting -> {
-					System.out.println("kjh ???? " + chatting);
+
 					String token = request.headers().firstHeader(HttpHeaders.AUTHORIZATION);
-					System.out.println("kjh test <<<11111");
-					System.out.println(token);
 					Claims claims = jwtVerifyHandler.getAllClaimsFromToken(token);
 					ChattingEntity chattingEntity = ChattingEntity
 							.builder()
-							.accountId(Long.parseLong(claims.getSubject()))
-							.chatting(chatting.toString())
+							//.accountId(Long.parseLong(claims.getSubject()))
+							.accountName(claims.getIssuer())
+							.chatting(chatting)
 							.build();
+					chattingSink.tryEmitNext(chattingEntity);
+					chattingEntity.setAccountId(Long.parseLong(claims.getSubject()));
 					return chattingEntity;
 				})
 				.flatMap(chattingEntity->{
-					
-					return ok().contentType(MediaType.APPLICATION_JSON).body(chattingRepository.save(chattingEntity), ChattingEntity.class);
+					return ok().contentType(MediaType.APPLICATION_JSON).body(chattingRepository.save(chattingEntity).map(e->{
+						e.setAccountId(null);
+						return e;
+					}), ChattingEntity.class);
 				})
-				.onErrorResume(e -> Mono.error(new UnauthorizedException(100)));
+				//.log()
+				.onErrorResume(e -> Mono.error(new UnauthorizedException(999)))
+				;
 				
 		/*
 		return ok()
@@ -67,7 +80,13 @@ public class ChattingHandler {
 		*/
 	}
 	public Mono<ServerResponse> getStream(ServerRequest serverRequest) {
-		return ServerResponse.ok().contentType(MediaType.APPLICATION_NDJSON)
-				.body(chattingSink.asFlux(), ChattingEntity.class).log();
+		return ServerResponse.ok().contentType(MediaType.TEXT_EVENT_STREAM)
+				.body(chattingSink.asFlux().map(e->{
+					System.out.println("kjh test <<<<<<<" + e);
+					e.setAccountId(null);
+					return e;
+				}), ChattingEntity.class)
+				//.log();
+				;
 	}
 }

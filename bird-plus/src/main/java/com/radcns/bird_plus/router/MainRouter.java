@@ -39,7 +39,7 @@ public class MainRouter {
 	public RouterFunction<ServerResponse> api(ChattingHandler chattingHandler){
 
 		return route( POST("/api/chatting/stream").and(accept(MediaType.APPLICATION_JSON)), chattingHandler::addStream )
-				.and(route( GET("api/chatting/stream/{auth}").and(accept(MediaType.TEXT_EVENT_STREAM)), chattingHandler::getStream ))
+				.and(route( GET("api/chatting/stream/{auth}"), chattingHandler::getStream ))
 		;
 	}
 	

@@ -9,6 +9,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.radcns.bird_plus.entity.customer.AccountLogEntity;
 
 import lombok.AllArgsConstructor;
@@ -16,12 +17,14 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @Builder(toBuilder = true)
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 @Table(value="ch_chatting")
 public class ChattingEntity {
 	private Long id;
@@ -29,10 +32,13 @@ public class ChattingEntity {
     @Column("account_id")
 	private Long accountId;
     
+    @Column("account_name")
+    private String accountName;
+    
     @Column("room_id")
 	private Long roomId;
     
-    @Column("chatting")
+    @Column(value="chatting")
     private String chatting;
     
     @Column("create_at")
