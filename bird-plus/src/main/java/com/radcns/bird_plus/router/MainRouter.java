@@ -4,11 +4,11 @@ package com.radcns.bird_plus.router;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.reactive.function.server.RouterFunction;
 
 import org.springframework.web.reactive.function.server.ServerResponse;
 
+import com.radcns.bird_plus.handler.ChattingHandler;
 import com.radcns.bird_plus.handler.MainHandler;
 
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
@@ -25,20 +25,22 @@ public class MainRouter {
 	
 	
 	@Bean
-	public RouterFunction<ServerResponse> index1(MainHandler webFluxHandler){
+	public RouterFunction<ServerResponse> index(MainHandler mainHandler){
 		return route( GET("/"), req -> ServerResponse.temporaryRedirect(URI.create("/loginPage")).build() )
 				.and(route( GET("/login"), req -> ServerResponse.temporaryRedirect(URI.create("/loginPage")).build() ))
-				.and(route( GET("/loginPage").and(accept(MediaType.TEXT_HTML)), webFluxHandler::loginPage ))
-				.and(route( POST("/create").and(accept(MediaType.APPLICATION_JSON)), webFluxHandler::create ))
-				.and(route( POST("/loginProc").and(accept(MediaType.APPLICATION_JSON)), webFluxHandler::loginProc ))
-				.and(route( GET("/home/test").and(accept(MediaType.APPLICATION_JSON)), webFluxHandler::homeTest ))
-				.and(route( POST("/api/test").and(accept(MediaType.APPLICATION_JSON)), webFluxHandler::test ))
+				.and(route( GET("/loginPage").and(accept(MediaType.TEXT_HTML)), mainHandler::loginPage ))
+				.and(route( POST("/create").and(accept(MediaType.APPLICATION_JSON)), mainHandler::create ))
+				.and(route( POST("/loginProc").and(accept(MediaType.APPLICATION_JSON)), mainHandler::loginProc ))
+				.and(route( POST("/api/").and(accept(MediaType.TEXT_EVENT_STREAM)), mainHandler::test ))
 				;
-		/*
-				.and(route(POST("/searchCorpName")
-						.and(accept(MediaType.APPLICATION_JSON)),
-						webFluxHandler::searchCorpName));
-		*/
+	}
+	
+	@Bean
+	public RouterFunction<ServerResponse> api(ChattingHandler chattingHandler){
+
+		return route( POST("/api/chatting/stream").and(accept(MediaType.APPLICATION_JSON)), chattingHandler::addStream )
+				.and(route( GET("api/chatting/stream/{auth}").and(accept(MediaType.TEXT_EVENT_STREAM)), chattingHandler::getStream ))
+		;
 	}
 	
 	/*

@@ -21,15 +21,34 @@ public class ServerHttpBearerAuthenticationConverter implements ServerAuthentica
     public static Mono<String> extract(ServerWebExchange serverWebExchange) {
     	//serverWebExchange.getRequest().getCookies().set("", null);
     	//
+    	/*
     	System.out.println("kjh test<<< ");
     	System.out.println(serverWebExchange.getRequest()
                 .getHeaders()
                 .getFirst(HttpHeaders.AUTHORIZATION));
     	System.out.println(serverWebExchange.getRequest().getCookies());
-    	
-        return Mono.justOrEmpty(serverWebExchange.getRequest()
+    	*/
+    	String auth = serverWebExchange.getRequest()
+                .getHeaders()
+                .getFirst(HttpHeaders.AUTHORIZATION);
+    	if(auth == null || auth.isEmpty()) {
+    		String[] paths = serverWebExchange.getRequest().getPath().pathWithinApplication().value().split("/");
+    		auth = paths[paths.length - 1];
+
+    		if(auth.contains("bearer-")) {
+    			auth = auth.replace("bearer-","");
+    		}else {
+    			auth = null;
+    		}
+    	}
+    	System.out.println("kjh test <<<");
+    	System.out.println(auth);
+    	System.out.println(serverWebExchange.getRequest()
                 .getHeaders()
                 .getFirst(HttpHeaders.AUTHORIZATION));
+    	
+    	//Authorization
+        return Mono.justOrEmpty(auth);
     }
 
 	@Override
@@ -40,4 +59,5 @@ public class ServerHttpBearerAuthenticationConverter implements ServerAuthentica
             .flatMap(jwtVerifier::check)
             .flatMap(CurrentUserAuthenticationBearer::create);
 	}
+	
 }

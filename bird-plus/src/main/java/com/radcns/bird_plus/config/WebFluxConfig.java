@@ -29,7 +29,7 @@ import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ITemplateResolver;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
+import com.radcns.bird_plus.config.security.JwtVerifyHandler;
 import com.radcns.bird_plus.util.CommonUtil;
 import com.radcns.bird_plus.util.CreateRandomCodeUtil;
 
@@ -109,6 +109,11 @@ public class WebFluxConfig implements ApplicationContextAware, WebFluxConfigurer
 	@Bean
 	public KeyPair keyPair() {
 		return Keys.keyPairFor(SignatureAlgorithm.RS256);
+	}
+	
+	@Bean
+	public JwtVerifyHandler jwtVerifyHandler(KeyPair keyPair, ObjectMapper objectMapper) {
+		return new JwtVerifyHandler(keyPair, objectMapper);
 	}
 }
 

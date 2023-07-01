@@ -34,11 +34,9 @@ public class WebFluxSecurityConfig {
 	
 	@Value("${jjwt.password.secret}")
 	private String secret;
-	@Autowired
-    private ObjectMapper om;
 	
 	@Autowired
-	private KeyPair keyPair;
+	private JwtVerifyHandler jwtVerifyHandler;
 	/*
 	@Bean
 	public MapReactiveUserDetailsService userDetailsService() {
@@ -94,7 +92,7 @@ public class WebFluxSecurityConfig {
     AuthenticationWebFilter bearerAuthenticationFilter(ReactiveAuthenticationManager authManager) {
         
     	AuthenticationWebFilter bearerAuthenticationFilter = new AuthenticationWebFilter(authManager);
-    	bearerAuthenticationFilter.setServerAuthenticationConverter(new ServerHttpBearerAuthenticationConverter(new JwtVerifyHandler(this.keyPair, this.om)));
+    	bearerAuthenticationFilter.setServerAuthenticationConverter(new ServerHttpBearerAuthenticationConverter(this.jwtVerifyHandler));
         bearerAuthenticationFilter.setRequiresAuthenticationMatcher(ServerWebExchangeMatchers.pathMatchers("/**"));
         
         return bearerAuthenticationFilter;

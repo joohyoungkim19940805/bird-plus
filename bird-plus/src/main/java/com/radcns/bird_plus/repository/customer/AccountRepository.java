@@ -1,8 +1,8 @@
-package com.radcns.bird_plus.repository;
+package com.radcns.bird_plus.repository.customer;
 
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 
-import com.radcns.bird_plus.entity.AccountEntity;
+import com.radcns.bird_plus.entity.customer.AccountEntity;
 
 import reactor.core.publisher.Mono;
 

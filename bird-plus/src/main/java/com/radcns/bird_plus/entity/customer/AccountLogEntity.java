@@ -1,4 +1,4 @@
-package com.radcns.bird_plus.entity;
+package com.radcns.bird_plus.entity.customer;
 
 import java.time.LocalDateTime;
 
