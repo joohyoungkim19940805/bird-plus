@@ -35,6 +35,7 @@ import com.radcns.bird_plus.util.CreateRandomCodeUtil;
 
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import nz.net.ultraq.thymeleaf.layoutdialect.LayoutDialect;
 
 @Configuration
 public class WebFluxConfig implements ApplicationContextAware, WebFluxConfigurer {
@@ -85,6 +86,7 @@ public class WebFluxConfig implements ApplicationContextAware, WebFluxConfigurer
 	public ISpringWebFluxTemplateEngine thymeleafTemplateEngine() {
 	    SpringWebFluxTemplateEngine templateEngine = new SpringWebFluxTemplateEngine();
 	    templateEngine.setTemplateResolver(thymeleafTemplateResolver());
+	    templateEngine.addDialect(new LayoutDialect());
 	    return templateEngine;
 	}
 	

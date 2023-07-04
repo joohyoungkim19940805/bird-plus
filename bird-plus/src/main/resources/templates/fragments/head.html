@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+    <!-- Head -->
+    <th:block th:fragment="headFragment">
+        <head>
+        	<title>testHead</title>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <!--/* css */-->
+       		<link th:href="@{css/common.css}" rel="stylesheet" />
+       		<link rel="manifest" th:href="@{manifest.json}">
+        </head>
+    </th:block>
+</html>
