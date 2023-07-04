@@ -33,7 +33,8 @@ public class ServerHttpBearerAuthenticationConverter implements ServerAuthentica
                 .getFirst(HttpHeaders.AUTHORIZATION);
     	if(auth == null || auth.isEmpty()) {
     		String[] paths = serverWebExchange.getRequest().getPath().pathWithinApplication().value().split("/");
-    		auth = paths[paths.length - 1];
+    		
+    		auth = paths.length == 0 ? "" : paths[paths.length - 1];
 
     		if(auth.contains("bearer-")) {
     			auth = auth.replace("bearer-","");
@@ -41,12 +42,7 @@ public class ServerHttpBearerAuthenticationConverter implements ServerAuthentica
     			auth = null;
     		}
     	}
-    	System.out.println("kjh test <<<");
-    	System.out.println(auth);
-    	System.out.println(serverWebExchange.getRequest()
-                .getHeaders()
-                .getFirst(HttpHeaders.AUTHORIZATION));
-    	
+
     	//Authorization
         return Mono.justOrEmpty(auth);
     }
