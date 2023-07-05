@@ -3,9 +3,21 @@
 
     <!-- Footer -->
     <footer th:fragment="footerFragment" class="sticky-footer bg-white">
-    
-        .... 하단(footer) 코드 작성<br>
-        aaaaaaaaaaaaaaaaaa
+    	<div>
+	    	<div>
+	    		<ruby>RADCNS<rp>(</rp><rt>Address</rt><rp>)</rp></ruby>
+	    		<ruby>서울시 금천구 다산디지털1로 131 BYC하이시티 A동 9층<rp>(</rp><rt>Company</rt><rp>)</rp></ruby>
+	    	</div>
+	    	<div>
+	    		<ruby>sales@radcns.com<rp>(</rp><rt>Project Request</rt><rp>)</rp></ruby>
+	    		<ruby>02-6947-5900<rp>(</rp><rt>Tel</rt><rp>)</rp></ruby>
+	    		<ruby>02-6947-5914<rp>(</rp><rt>Fax</rt><rp>)</rp></ruby>
+	    	</div>
+    	</div>
+    	<div>
+    		<a th:href="@{/mailto:sales@radcns.com}" class="footer_btn btn_inquiry">프로젝트 문의</a>
+    		<a th:href="@{/images/intro_2022.pdf}" download="라드씨엔에스회사소개_2022" class="footer_btn btn_intro">회사소개서</a>
+    	</div>
     </footer>
 
 </html>

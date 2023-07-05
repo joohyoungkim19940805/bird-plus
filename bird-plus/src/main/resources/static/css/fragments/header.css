@@ -11,6 +11,9 @@ header{
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    padding-top: 1rem;
 }
 header nav{
 	font-family: Pontano Sans;
@@ -38,7 +41,7 @@ header #header_title{
 }
 
 header #header_title rt{
-	font-size: 1rem
+	font-size: 0.7rem
 }
 
 header #header_title > *{

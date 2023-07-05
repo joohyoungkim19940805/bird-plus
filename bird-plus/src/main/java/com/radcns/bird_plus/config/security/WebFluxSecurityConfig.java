@@ -78,7 +78,7 @@ public class WebFluxSecurityConfig {
                 //.securityContextRepository(securityContextRepository)
                 .authorizeExchange()
                 .pathMatchers(HttpMethod.OPTIONS).permitAll()
-                .pathMatchers("/css/**","/js/**","/images/**","/**.ico", "/manifest.json").permitAll()
+                .pathMatchers("/files","/css/**","/js/**","/images/**","/**.ico", "/manifest.json").permitAll()
                 .pathMatchers("/login", "/loginPage", "/loginProc").permitAll()
                 .pathMatchers("/home/**").authenticated()
                 .pathMatchers("/api/**").authenticated()
@@ -89,7 +89,6 @@ public class WebFluxSecurityConfig {
                 .build();
     }
     AuthenticationWebFilter bearerAuthenticationFilter(ReactiveAuthenticationManager authManager) {
-
     	AuthenticationWebFilter bearerAuthenticationFilter = new AuthenticationWebFilter(authManager);
     	bearerAuthenticationFilter.setServerAuthenticationConverter(new ServerHttpBearerAuthenticationConverter(this.jwtVerifyHandler));
         bearerAuthenticationFilter.setRequiresAuthenticationMatcher(ServerWebExchangeMatchers.pathMatchers("/**"));
