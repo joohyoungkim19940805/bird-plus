@@ -17,6 +17,9 @@ import reactor.core.publisher.Sinks;
 
 import static org.springframework.web.reactive.function.server.ServerResponse.ok;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 
 
@@ -82,10 +85,15 @@ public class ChattingHandler {
 	public Mono<ServerResponse> getStream(ServerRequest serverRequest) {
 		return ServerResponse.ok().contentType(MediaType.TEXT_EVENT_STREAM)
 				.body(chattingSink.asFlux().map(e->{
-					System.out.println("kjh test <<<<<<<" + e);
 					e.setAccountId(null);
 					return e;
 				}), ChattingEntity.class)
+				//.log();
+				;
+	}
+	public Mono<ServerResponse> test(ServerRequest serverRequest) {
+		return ServerResponse.ok()
+				.body(Mono.just(Map.of("test", "1121")), Object.class)
 				//.log();
 				;
 	}

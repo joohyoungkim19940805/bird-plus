@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 public class CurrentUserAuthenticationBearer {
     public static Mono<Authentication> create(JwtVerifyHandler.VerificationResult verificationResult) {
     	Claims claims = verificationResult.claims;
+    	System.out.println("kjh test <<<<<" + claims.getSubject());
         String subject = claims.getSubject();
         List<String> roles = claims.get("role", List.class);
         var authorities = roles.stream()

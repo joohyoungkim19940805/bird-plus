@@ -1,5 +1,6 @@
 package com.radcns.bird_plus.config.security;
 
+import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.server.authentication.ServerAuthenticationConverter;
@@ -31,18 +32,26 @@ public class ServerHttpBearerAuthenticationConverter implements ServerAuthentica
     	String auth = serverWebExchange.getRequest()
                 .getHeaders()
                 .getFirst(HttpHeaders.AUTHORIZATION);
+    	System.out.println("head <<< " + auth);
     	if(auth == null || auth.isEmpty()) {
-    		String[] paths = serverWebExchange.getRequest().getPath().pathWithinApplication().value().split("/");
-    		
-    		auth = paths.length == 0 ? "" : paths[paths.length - 1];
-
-    		if(auth.contains("bearer-")) {
-    			auth = auth.replace("bearer-","");
+    		HttpCookie obj = serverWebExchange.getRequest().getCookies().getFirst(HttpHeaders.AUTHORIZATION);
+    		if(obj != null) {
+    			auth = obj.getValue();
+    			System.out.println("cookies <<< " + auth);
     		}else {
-    			auth = null;
+	    		String[] paths = serverWebExchange.getRequest().getPath().pathWithinApplication().value().split("/");
+	    		
+	    		auth = paths.length == 0 ? "" : paths[paths.length - 1];
+	
+	    		if(auth.contains("bearer-")) {
+	    			auth = auth.replace("bearer-","");
+	    		}else {
+	    			auth = null;
+	    		}
+	    		System.out.println("url <<< " + auth);
     		}
     	}
-
+    	System.out.println("kjh test <<<" + auth);
     	//Authorization
         return Mono.justOrEmpty(auth);
     }

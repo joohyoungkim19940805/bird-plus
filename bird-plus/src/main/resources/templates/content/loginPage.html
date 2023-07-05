@@ -1,50 +1,31 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head>
-<meta charset="UTF-8">
-<link th:href="@{css/common.css}" rel="stylesheet" />
-<link th:href="@{css/common2.css}" rel="stylesheet" />
-<!--<script type="text/javascript" th:src="@{js/client/ModalLoader.js}"></script> -->
-<title>hello word</title>
-</head>
-<body>
-	<div>
-		<h1>HELLO LOGIN</h1>
-		<input type="text" name="id"/>
-		<input type="password" name="password"/>
-		<button type="button" id="send">send</button>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default_layout}">
+	<div layout:fragment="content">
+	   <div>
+			<h1>HELLO LOGIN</h1>
+			<input type="text" name="id"/>
+			<input type="password" name="password"/>
+			<button type="button" id="send">send</button>
+		</div>
+		<script>
+			document.querySelector('#send').onclick = () => {
+				fetch('/loginProc',{
+				    method:'POST',
+				    body:JSON.stringify({
+				    	accountName:document.querySelector('[name="id"]').value,
+				        password:document.querySelector('[name="password"]').value
+				    }),
+				    headers: {
+				        'Content-Type': 'application/json',
+				    }
+				}).then(res=>{
+					console.log(res);
+				    return res.json()
+				}).then(result=>console.log(result));
+			}
+	</script> 
 	</div>
-	<script>
-		document.querySelector('#send').onclick = () => {
-			fetch('/loginProc',{
-			    method:'POST',
-			    body:JSON.stringify({
-			    	accountName:document.querySelector('[name="id"]').value,
-			        password:document.querySelector('[name="password"]').value
-			    }),
-			    headers: {
-			        'Content-Type': 'application/json',
-			    }
-			}).then(res=>{
-				console.log(res);
-			    return res.json()
-			}).then(result=>console.log(result));
-		}
-		/*
-		fetch('/create',{
-			    method:'POST',
-			    body:JSON.stringify({
-			    	accountName:'test',
-			        password:'rlawngud1'
-			    }),
-			    headers: {
-			        'Content-Type': 'application/json',
-			    }
-			}).then(res=>{
-			    return res.json()
-			}).then(result=>console.log(result));
-		*/
-	</script>
-	
-</body>
 </html>

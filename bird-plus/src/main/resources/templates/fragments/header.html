@@ -4,7 +4,103 @@
 	<th:block th:fragment="headerFragment">
 	    <header>
 		    <nav class="right_top_menu" th:fragment="topbarFragment">
+		    	<ul>
+		    		<li>
+		    			<a th:href="@{/}" class="non_color">Download</a>
+		    		</li>
+		    	</ul>
 		    </nav>
+		    <div id="header_title">
+		    	<div>
+		    		<h2>
+			    		<a th:href="@{/}" class="non_color"><ruby>RADCNS <rp>(</rp><rt>BIRD PLUS</rt><rp>)</rp></ruby></a>
+		    		</h2>
+		    	</div>
+		    </div>
+		    <button type="button" id="login">Login</button>
+		    <script type="text/javascript">
+		    	new class HeaderController{
+		    		loginButton = document.querySelector('#login');
+		    		loginContainer = Object.assign(document.createElement('div'), {
+		    			id:'login_layer',
+		    			className:'layer',
+		    			innerHTML :`
+			    			<div>
+			    				<div>
+				    				<input type="text" name="id" id="account_id" placeholder="Please enter your ID"/>
+				    			</div>
+				    			<div>
+				    				<input type="password" name="password" id="account_password" placeholder="Please enter your password"/>
+				    			</div>
+				    			<button type="button" id="login_send">login</button>
+			    			</div>
+			    		`
+		    		});
+		    		
+		    		loginSuccessPromise = new Promise(resolve => {
+		    			this.loginSuccessResolve = resolve;
+		    		});
+		    		
+		    		constructor(){
+		    			this.loginEvent();
+		    			let img = Object.assign(document.createElement('img'),{
+    						width: '1rem',
+    						src : '/images/user.png'
+    					});
+		    			this.loginButton.replaceChildren(img);
+					}
+		    		loginEvent(){
+		    			new Promise(resolve=>{
+		    				this.loginButton.onclick = (event) => {
+		    					if(this.loginContainer.isConnected){
+		    						this.loginContainer.remove();
+		    					}else{
+		    						document.body.append(this.loginContainer);
+			    					common.processingElementPosition(this.loginContainer, this.loginButton)
+		    					}
+		    					
+		    				}
+		    				
+			    			let [accountId, accountPassword, loginSendButton] = this.loginContainer.querySelectorAll('#account_id, #account_password, #login_send');
+			    			loginSendButton.onclick = (event) => {
+			    				fetch('/loginProc',{
+			    				    method:'POST',
+			    				    body:JSON.stringify({
+			    				    	accountName:accountId.value,
+			    				        password:accountPassword.value
+			    				    }),
+			    				    headers: {
+			    				        'Content-Type': 'application/json',
+			    				    }
+			    				}).then(res=>{
+			    					console.log(res);
+			    				    return res.json()
+			    				}).then(result => {
+			    					console.log(result);
+			    					if(result.code != 0){
+			    						return;
+			    					}
+			    					this.loginButton.onclick = '';
+			    					let img = Object.assign(document.createElement('img'),{
+			    						width: '1rem',
+			    						src : '/images/user.png'
+			    					});
+			    					this.loginButton.replaceChildren(img);
+			    					this.loginContainer.remove();
+			    				});
+			    			}
+			    			this.loginContainer.onkeydown = (e)=> {
+			    				if(e.key != 'Enter'){
+			    					return;
+			    				}
+			    				loginSendButton.click();
+			    				
+		    				}
+			    			resolve();
+		    			})
+		    		}
+		    	}();
+		    </script>
 	    </header>
     </th:block>
 </html>

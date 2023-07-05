@@ -40,6 +40,8 @@ public class MainRouter {
 
 		return route( POST("/api/chatting/stream").and(accept(MediaType.APPLICATION_JSON)), chattingHandler::addStream )
 				.and(route( GET("api/chatting/stream/{auth}"), chattingHandler::getStream ))
+				.and(route( GET("api/chatting/stream-test/test"), chattingHandler::test ))
+				
 		;
 	}
 	

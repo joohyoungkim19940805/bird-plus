@@ -1,6 +1,8 @@
 package com.radcns.bird_plus.handler;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -45,12 +47,25 @@ public class MainHandler {
 	}
 	
 	public Mono<ServerResponse> loginProc(ServerRequest request){
-		return ok()
-				.contentType(MediaType.APPLICATION_JSON)
-				.body(accountService.authenticate(request.bodyToMono(AccountEntity.class), request.remoteAddress())
-						.map(e -> response(Result._00, e)), Response.class
-				)
-				.onErrorResume(e -> Mono.error(new UnauthorizedException(100)));
+		return accountService.authenticate(request.bodyToMono(AccountEntity.class), request.remoteAddress())
+				.flatMap(account -> ok()
+						.cookie(ResponseCookie.fromClientResponse(HttpHeaders.AUTHORIZATION, account.getToken())
+								.httpOnly(true)
+								.secure(true)
+								.sameSite("Strict")
+								.path("/")
+		        				.build())
+						.contentType(MediaType.APPLICATION_JSON)
+						.body(Mono.just(response(Result._00, account)), Response.class));
+		/*
+		 ok()
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(accountService.authenticate(request.bodyToMono(AccountEntity.class), request.remoteAddress())
+					.map(e -> {
+						return response(Result._00, e)
+					}), Response.class)
+			)
+		*/
 	}
 
 	public Mono<ServerResponse> test(ServerRequest request){

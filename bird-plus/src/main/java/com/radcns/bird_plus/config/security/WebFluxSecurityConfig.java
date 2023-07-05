@@ -56,7 +56,6 @@ public class WebFluxSecurityConfig {
 
     @Bean
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http, ReactiveAuthenticationManager authManager) {
-    	
         return http
                 .exceptionHandling()
                 .authenticationEntryPoint((swe, e) -> 
@@ -73,14 +72,14 @@ public class WebFluxSecurityConfig {
                 .authenticationFailureHandler(new RedirectServerAuthenticationFailureHandler("/loginPage?status=error"))
                 .loginPage("/login")
                 .and()
-                //.requestCache(c->c.requestCache(new CookieServerRequestCache()))
+                .requestCache(c->c.requestCache(new CookieServerRequestCache()))
                 .httpBasic().disable()
-                //.authenticationManager(authenticationManager)
+                .authenticationManager(authManager)
                 //.securityContextRepository(securityContextRepository)
                 .authorizeExchange()
                 .pathMatchers(HttpMethod.OPTIONS).permitAll()
-                .pathMatchers("/**","/css/**","/js/**","images/**","/**.ico").permitAll()
-                // .pathMatchers("/login", "/loginPage", "/loginProc").permitAll()
+                .pathMatchers("/css/**","/js/**","/images/**","/**.ico", "/manifest.json").permitAll()
+                .pathMatchers("/login", "/loginPage", "/loginProc").permitAll()
                 .pathMatchers("/home/**").authenticated()
                 .pathMatchers("/api/**").authenticated()
                 .anyExchange().authenticated()
@@ -90,7 +89,7 @@ public class WebFluxSecurityConfig {
                 .build();
     }
     AuthenticationWebFilter bearerAuthenticationFilter(ReactiveAuthenticationManager authManager) {
-        
+
     	AuthenticationWebFilter bearerAuthenticationFilter = new AuthenticationWebFilter(authManager);
     	bearerAuthenticationFilter.setServerAuthenticationConverter(new ServerHttpBearerAuthenticationConverter(this.jwtVerifyHandler));
         bearerAuthenticationFilter.setRequiresAuthenticationMatcher(ServerWebExchangeMatchers.pathMatchers("/**"));

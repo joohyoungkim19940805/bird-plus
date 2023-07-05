@@ -116,12 +116,12 @@
 		    <artifactId>thymeleaf-layout-dialect</artifactId>
 		    <version>3.2.1</version>
 			<exclusions>
-				<!--
+				
 				<exclusion>
 					<groupId>org.thymeleaf</groupId>
 					<artifactId>thymeleaf</artifactId>
 				</exclusion>
-				-->
+				
 				<exclusion>
 					<groupId>org.slf4j</groupId>
 					<artifactId>slf4j-api</artifactId>

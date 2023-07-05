@@ -7,20 +7,39 @@
 	--arrow_right: "▶";
 }
 
-/* 전체 컴포넌트에 적용될 크기 (html의 폰트사이즈 기준)*/
-html{
-	font-size: 0.9vmax;
-	overflow: hidden;
-	width: 100%;
-	height: 100%;
-}
 body{
-	-webkit-user-select:none;
-	-moz-user-select:none;
-	-ms-user-select:none;
-	user-select:none
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+	display: inline-flex;
+	flex-direction: column;
+	-ms-overflow-style: none;
+	scrollbar-width: none;
+}
+body::-webkit-scrollbar {
+	display: none;
+}
+
+main{
+	display: inline-flex;
+	height: 100%;
+	width: 100%;
+	overflow: auto;
+	overflow-wrap: revert-layer;
+	-ms-overflow-style: none;
+	scrollbar-width: none;
+}
+main::-webkit-scrollbar{
+	display: none;
+}
+main > *{
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	width: 100%;
 }
 /* 가로 모드 강제 적용 */
+/*
 @media( orientation: portrait ){
   html {
     transform: rotate(-90deg);
@@ -32,12 +51,14 @@ body{
     height: 100vw;
   }
 }
+*/
 
 /* a태그 색상 검은색 */
-a{
+a.non_color{
 	text-decoration: none;
     color: black;
 }
+
 
 /* summary 마크 화살표 제거 */
 summary::marker {
@@ -80,33 +101,17 @@ ul.sidebar{
 	position: absolute;
 }
 
-.side_menu{
+aside{
 	position: absolute;
 }
-#left_menu{
+aside#left_side{
 	left: 0rem;
 	top: 50%;
 }
 
-#right_menu{
+aside#right_side{
 	right: 0rem;
 	top: 50%;
-}
-
-#wrapper{
-	position:
-	absolute; top:0; bottom:0; right:0; left:0;
-	display: flex;
-	flex-direction: column;
-}
-
-#content-wrapper{
-	display: flex;
-	align-content: space-around;
-	justify-content: center;
-    width:100%;
-    height:100%;
-	align-items: center;
 }
 
 textarea {
@@ -133,15 +138,6 @@ input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
 
 p {
     font-size: 0.9vmax;
-}
-
-main#content{
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
 }
 
 .direction_up{
