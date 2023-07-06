@@ -3,3 +3,29 @@
 .layer{
 	position: absolute;
 }
+
+#login_layer{
+	background: #4b4b4b;
+	padding: 1%;
+}
+
+#login_layer > *{
+	display: grid;
+}
+#login_layer > * > *{
+	margin-bottom: 11%;
+}
+
+#login_layer button{
+    border: outset;
+    border-color: black;
+    font-family: cursive;
+}
+
+#login_layer span.status_text{
+	color: white;
+}
+
+#login_layer input{
+	width: 100%;
+}
