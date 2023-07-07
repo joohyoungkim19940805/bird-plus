@@ -6,6 +6,27 @@
     position: relative;
 }
 
+.content_wrapper .content_container{
+    margin-top: 4%;
+    margin-left: 2%;
+    font-size: 5rem;
+    font-weight: bold;
+    font-family: serif;
+}
+.content_wrapper .content_container > .content_item {
+	margin-bottom: 2%;
+}
+.content_wrapper .content_container > *:first-child{
+	transition: all 3s;
+	visibility: hidden;
+	opacity: 0;
+}
+.content_wrapper .content_container *{
+	transition: all 3s;
+	visibility: hidden;
+	opacity: 0;
+}
+
 .content_wrapper .get_start_wrapper{
     position: absolute;
     height: inherit;
@@ -17,7 +38,8 @@
 
 .content_wrapper .get_start_wrapper .get_start_container{
 	padding: 5px;
-    transition: all 3s, width 1.7s cubic-bezier(0.47, 0.48, 1, 0.85), height 3s;
+    transition: all 3s, width 1.7s cubic-bezier(0.47, 0.48, 1, 0.85), height 3s cubic-bezier(0.4, 0.32, 0.66, 0.92);
+	overflow: hidden;
 }
 
 .content_wrapper .get_start_wrapper .get_start_container.start{
