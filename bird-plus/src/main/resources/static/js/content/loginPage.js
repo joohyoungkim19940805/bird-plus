@@ -7,7 +7,7 @@ const getStart = new class GetStart{
 	
 	getStartWrapper = this.contentWrappper.querySelector('.get_start_wrapper');
 	getStartContainer = this.getStartWrapper.querySelector('.get_start_container');
-	//getStartButton = this.getStartContainer.querySelector('.get_start');
+	getStartButton = this.getStartContainer.querySelector('.get_start');
 	constructor(){
 		this.getStartContainer.style.width = '1px';
 		this.getStartContainer.style.height = '20px';
@@ -35,7 +35,6 @@ const getStart = new class GetStart{
 		
 		//this.getStartButton.remove();
 		this.getStartContainer.classList.add('start');
-		//getStartButton.onckick = () => {
 		setTimeout(()=>{
 			this.getStartContainer.style.width = '100vw';
 		}, 1)
@@ -47,7 +46,7 @@ const getStart = new class GetStart{
 			this.getStartContainer.style.maxHeight = ''
 			this.getStartContainer.style.height = '100vh';
 		}
-		//}
+
 		let intersectionObserver = new IntersectionObserver((entries, observer) => {
 			entries.forEach(entry =>{
 				if (entry.isIntersecting) {
