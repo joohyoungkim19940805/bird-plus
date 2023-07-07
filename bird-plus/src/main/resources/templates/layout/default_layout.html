@@ -16,9 +16,10 @@
 		<!-- 본문-->
 		<main id="content">
 	  		<th:block layout:fragment="content"></th:block>
+	  		<!-- 공통 하단-->
+			<th:block th:replace="fragments/footer :: footerFragment"></th:block>
 		</main>
 		
-		<!-- 공통 하단-->
-		<th:block th:replace="fragments/footer :: footerFragment"></th:block>
+		
     </body>
 </html>

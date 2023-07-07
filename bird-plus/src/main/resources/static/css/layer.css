@@ -7,6 +7,11 @@
 #login_layer{
 	background: #4b4b4b;
 	padding: 1%;
+    width: 14vw;
+    height: 25vh;
+    min-width: 300px;
+    min-height: 235px;
+    max-height: max-content;
 }
 
 #login_layer > *{
@@ -22,7 +27,7 @@
     font-family: cursive;
 }
 
-#login_layer span.status_text{
+#login_layer .status_text{
 	color: white;
 }
 

@@ -18,7 +18,7 @@
 		    	</div>
 		    </div>
 		    <button type="button" id="login">Login</button>
-		    <script type="text/javascript">
+		    <script type="text/javascript" th:inline="javascript">
 		    	new class HeaderController{
 		    		loginButton = document.querySelector('#login');
 		    		loginContainer = Object.assign(document.createElement('div'), {
@@ -33,7 +33,7 @@
 				    				<input type="password" name="password" id="account_password" placeholder="Please enter your password"/>
 				    			</div>
 				    			<button type="button" id="login_send">login</button>
-				    			<span class='status_text'></span>
+				    			<div class='status_text'></span>
 			    			</div>
 			    		`
 		    		});
@@ -68,6 +68,9 @@
 		    				
 			    			let [accountId, accountPassword, loginSendButton, statusText] = this.loginContainer.querySelectorAll('#account_id, #account_password, #login_send, .status_text');
 			    			loginSendButton.onclick = (event) => {
+			    				statusText.textContent = '';
+			    				let loading = common.createLoadingRotate();
+			    				statusText.append(loading);
 			    				fetch('/loginProc',{
 			    				    method:'POST',
 			    				    body:JSON.stringify({
@@ -81,6 +84,9 @@
 			    					console.log(res);
 			    				    return res.json()
 			    				}).then(response=> {
+			    					
+			    					loading.remove();
+			    					
 			    					console.log(response);
 			    					let {code} = response;
 			    					if(code == '00'){
@@ -104,11 +110,16 @@
 			    					}else{
 			    						statusText.textContent = '서버로부터 응답이 없습니다.';
 			    					}
+			    					statusText.classList.add('shake');
+			    					setTimeout(()=>{statusText.classList.remove('shake')},150)
 			    					common.processingElementPosition(this.loginContainer, this.loginButton)
+			    				}).catch(error=>{
+			    					loading.remove();
 			    				});
 			    			}
 			    			this.loginContainer.onkeydown = (e)=> {
 			    				if(e.key != 'Enter'){
+			    					statusText.textContent = '';
 			    					return;
 			    				}
 			    				loginSendButton.click();

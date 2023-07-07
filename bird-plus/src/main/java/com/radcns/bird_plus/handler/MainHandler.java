@@ -18,6 +18,9 @@ import reactor.core.publisher.Mono;
 import static com.radcns.bird_plus.util.Response.response;
 import static org.springframework.web.reactive.function.server.ServerResponse.ok;
 
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Component
@@ -32,9 +35,9 @@ public class MainHandler {
 	}
 	
 	public Mono<ServerResponse> loginPage(ServerRequest request){
-		return ok().contentType(MediaType.parseMediaType("text/html;charset=UTF-8")).render("content/loginPage.html"/*, Map.ofEntries(
-				Map.entry("data", new TestRecord("a", (long)9999, "asasas", (int)10, 100, 100))
-			)*/);
+		return ok().contentType(MediaType.parseMediaType("text/html;charset=UTF-8")).render("content/loginPage.html", Map.ofEntries(
+				Map.entry("resourcesNameList", List.of("loginPage"))
+			));
 	}
 	
 	public Mono<ServerResponse> create(ServerRequest request){
@@ -51,7 +54,6 @@ public class MainHandler {
 				.flatMap(account -> ok()
 						.cookie(ResponseCookie.fromClientResponse(HttpHeaders.AUTHORIZATION, account.getToken())
 								.httpOnly(true)
-								.secure(true)
 								.sameSite("Strict")
 								.path("/")
 		        				.build())

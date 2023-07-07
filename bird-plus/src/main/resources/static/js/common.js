@@ -1,10 +1,12 @@
-const common = new class{
+const common = new class Common{
+	
 	globalMouseEvent = undefined;
 	lastClickElementPath = undefined;
 	globalClickEventPromiseResolve;
 	globalClickEventPromise = new Promise(resolve=>{
 		this.globalClickEventPromiseResolve = resolve;
 	});
+	
 	constructor(){
 		document.addEventListener('mousemove', (event) => {
 			//mousePos = { x: event.clientX, y: event.clientY };
@@ -19,6 +21,7 @@ const common = new class{
 			})
 		})
 	}
+	
 	processingElementPosition(element, target){
 		let {x, y, height, width} = target.getBoundingClientRect();
 		
@@ -38,13 +41,16 @@ const common = new class{
 		}
 		//element.style.left = x + 'px';
 	}
+	
 	isMouseInnerElement(element){
+		if( ! this.globalMouseEvent) return;
 		let {clientX, clientY} = this.globalMouseEvent;
 		let {x, y, width, height} = element.getBoundingClientRect();
 		let isMouseInnerX = ((x + width) >= clientX && x <= clientX);
 		let isMouseInnerY = ((y + height) >= clientY && y <= clientY);
 		return (isMouseInnerX && isMouseInnerY);
 	}
+	
 	outClickElementListener(element, callBack = ({oldEvent, newEvent})=>{}){
 
 		if(element == undefined || element?.nodeType != Node.ELEMENT_NODE){
@@ -63,5 +69,14 @@ const common = new class{
 			})
 		}
 		simpleObserver();
+	}
+	
+	createLoadingRotate(width = 15, height = 15){
+		let div = Object.assign(document.createElement('div'),{
+			className: 'loading_rotate'
+		});
+		div.style.width = 15 + 'px';
+		div.style.height = 15 + 'px';
+		return div;
 	}
 }();

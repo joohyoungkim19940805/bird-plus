@@ -12,8 +12,16 @@
        		<link th:href="@{css/layer.css}" rel="stylesheet" />
      		<link th:href="@{css/fragments/footer.css}" rel="stylesheet" />
 			<link th:href="@{css/fragments/header.css}" rel="stylesheet" />
-       		<link rel="manifest" th:href="@{manifest.json}">
+			<link th:href="@{manifest.json}" rel="manifest">
 			<script type="text/javascript" th:src="@{js/common.js}"></script>
+			
+			<th:block th:each="resourcesName : ${resourcesNameList}">
+				
+				<link th:href="@{css/content/{cssName}.css(cssName=${resourcesName})}" rel="stylesheet"/>
+	       		<script defer type="text/javascript" th:src=@{js/content/{jsName}.js(jsName=${resourcesName})}></script>
+       		
+			</th:block>
+			
         </head>
     </th:block>
 </html>

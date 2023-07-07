@@ -1,0 +1,74 @@
+@charset "UTF-8";
+
+/* 빠른 시작 컨텐츠 영역 */
+.content_wrapper{
+	height: 100vh;
+    position: relative;
+}
+
+.content_wrapper .get_start_wrapper{
+    position: absolute;
+    height: inherit;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.content_wrapper .get_start_wrapper .get_start_container{
+	padding: 5px;
+    transition: all 3s, width 1.7s cubic-bezier(0.47, 0.48, 1, 0.85), height 3s;
+}
+
+.content_wrapper .get_start_wrapper .get_start_container.start{
+	background: linear-gradient(to bottom, #EAEAEA -274%, #2B2B2B 96%, #7c0000 99%);
+}
+
+.content_wrapper .get_start_wrapper .get_start_container .get_start{
+	color: white;
+	border: solid;
+    border-radius: 100%;
+    padding: 5px;
+	background: linear-gradient(to bottom, #EAEAEA -274%, #2B2B2B 96%, #7c0000 99%);
+}
+
+/* 최하단 프로젝트 문의 및 인력 모집 영역 */
+.request_list{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    padding-bottom: 1rem;
+}
+
+.request_list .request_item:not(:last-child){
+	margin-right:10vw;
+}
+
+.request_title{
+	font-size: xxx-large;
+}
+
+.request_description{
+	font-size: x-large;
+}
+
+.request_link{
+	color: black;
+    font-size: x-large;
+}
+
+.background_slide{
+	height: 250px;
+    background-image: url(./../../../images/bg_bgSlide.jpg);
+    animation: 100s background_slide_horizontal infinite linear;
+    background-size: auto 100%;
+    margin-bottom: 1%;
+}
+@keyframes background_slide_horizontal{
+	0% {
+	    background-position: 0 0;
+	}
+	100% {
+	    background-position: -3500px 0;
+	}
+}

@@ -37,7 +37,9 @@ public class ServerHttpBearerAuthenticationConverter implements ServerAuthentica
     		HttpCookie obj = serverWebExchange.getRequest().getCookies().getFirst(HttpHeaders.AUTHORIZATION);
     		if(obj != null) {
     			auth = obj.getValue();
-    			System.out.println("cookies <<< " + auth);
+    			if(auth.isEmpty()) {
+    				auth = null;
+    			}
     		}else {
 	    		String[] paths = serverWebExchange.getRequest().getPath().pathWithinApplication().value().split("/");
 	    		
