@@ -5,6 +5,18 @@ footer{
     flex-direction: row;
     justify-content: space-around;
     padding-bottom: 1rem;
+    flex-wrap: wrap;
+    overflow-wrap: anywhere;
+    
+}
+@media( orientation: portrait ){
+	footer{
+		gap: 2rem;
+		flex-direction: column-reverse;
+	}
+	footer .footer_info_wrapper:last-child {
+		display: flex;
+	}
 }
 
 footer .footer_info_wrapper{
@@ -20,7 +32,7 @@ footer .footer_info_wrapper > *{
 }
 
 footer .footer_info_wrapper ruby{
-	font-size: 11px;
+	font-size: 0.7rem;
 	margin-right: 5rem;
 	color: #939393;
 	font-weight: 600;
@@ -29,14 +41,14 @@ footer .footer_info_wrapper ruby{
 }
 
 footer .footer_info_wrapper rt{
-	font-size: 14px;
+	font-size: 0.8rem;
 	padding-top: 0.5rem;
 	display: flex;
 	color: black;
 }
 
 footer .footer_info_wrapper a{
-	padding: 8%;
+	padding: 1rem;
     text-align: center;
     color: #222222;
     border-color: #babdbf;
@@ -50,21 +62,21 @@ footer .footer_info_wrapper a{
 footer .footer_info_wrapper a.btn_inquiry:after{
     content: '';
     background: url(../../images/ico_footer_01.png) no-repeat;
-	width: 19px;
-    height: 19px;
+    width: 2rem;
+    height: 2rem;
     position: absolute;
-    top: 27px;
-    right: 40px;
+    top: 1rem;
+    right: 2rem;
 }
 
 footer .footer_info_wrapper a.btn_intro:after{
     content: '';
     background: url(../../images/ico_footer_02.png) no-repeat;
-    width: 19px;
-    height: 19px;
+    width: 2rem;
+    height: 2rem;
     position: absolute;
-    top: 19px;
-    right: 37px;
+    top: 1rem;
+    right: 2rem;
 }
 .footer_details::after {
 	content: var(--arrow_down);

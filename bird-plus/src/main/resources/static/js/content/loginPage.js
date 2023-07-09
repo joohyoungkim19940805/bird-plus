@@ -9,18 +9,12 @@ const getStart = new class GetStart{
 	getStartContainer = this.getStartWrapper.querySelector('.get_start_container');
 	getStartButton = this.getStartContainer.querySelector('.get_start');
 	constructor(){
-		this.getStartContainer.style.width = '1px';
-		this.getStartContainer.style.height = '20px';
 		
-		let styleMap = window.getComputedStyle(this.getStartContainer); 
-		//this.getStartContainer.style.height = styleMap.height;
-		//this.getStartContainer.style.maxHeight = styleMap.height;
-		this.addEvent();
-		
+		this.addOpeningEvent();
 
 	}
 	
-	addEvent(){
+	addOpeningEvent(){
 
 		let widthTransitionEndResolve;
 		let widthTransitionEndPromise = new Promise(resolve=>{
@@ -31,13 +25,31 @@ const getStart = new class GetStart{
 		let padeEndResolve;
 		let padeEndProise = new Promise(resolve => {
 			padeEndResolve = resolve
-		})
-		
-		//this.getStartButton.remove();
+		});
+				
+		padeEndProise.then(()=>{
+			Promise.all(padeEndPromiseList).then(()=>{
+				let delay = 100;
+				[...this.contentContainer.children].reverse().forEach(item=>{
+					[...item.children].forEach((e, i)=>{
+						setTimeout(()=>{
+							e.style.color = 'rgb(240 248 255 / 0.95)';
+						}, i * delay)
+					});
+				});
+			});
+		});
+
 		this.getStartContainer.classList.add('start');
-		setTimeout(()=>{
-			this.getStartContainer.style.width = '100vw';
-		}, 1)
+				
+		let lodingDelay = setInterval(()=>{
+			if(this.getStartContainer.isConnected){
+				console.log('start!!')
+				this.getStartContainer.style.width = '100vw';
+				clearInterval(lodingDelay);
+			}
+		},50)
+
 		this.getStartContainer.ontransitionend = (event) => {
 			if(event.propertyName == 'height'){
 				padeEndResolve();
@@ -78,19 +90,6 @@ const getStart = new class GetStart{
 			root: this.getStartContainer
 		});
 		
-		padeEndProise.then(()=>{
-			Promise.all(padeEndPromiseList).then(()=>{
-				let delay = 100;
-				[...this.contentContainer.children].reverse().forEach(item=>{
-					[...item.children].forEach((e, i)=>{
-						setTimeout(()=>{
-							e.style.color = 'aliceblue';
-						}, i * delay)
-					});
-				});
-			});
-		});
-		
 		new Promise(res=>{
 			[...this.contentContainer.children].reverse().forEach((item, i)=>{
 				intersectionObserver.observe(item);
@@ -106,6 +105,7 @@ const getStart = new class GetStart{
 			});
 			res();
 		})
+		
 	}
 	
 }();

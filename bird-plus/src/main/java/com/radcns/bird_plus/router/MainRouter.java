@@ -9,6 +9,7 @@ import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
 import com.radcns.bird_plus.handler.ChattingHandler;
+import com.radcns.bird_plus.handler.LoginHandler;
 import com.radcns.bird_plus.handler.MainHandler;
 
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
@@ -34,9 +35,14 @@ public class MainRouter {
 				.and(route( POST("/api/").and(accept(MediaType.TEXT_EVENT_STREAM)), mainHandler::test ))
 				;
 	}
+
+	@Bean
+	public RouterFunction<ServerResponse> apiLogin(LoginHandler loginHandler){
+		return route( GET("/api/login/isLogin").and(accept(MediaType.APPLICATION_JSON)), loginHandler::isLogin);
+	}
 	
 	@Bean
-	public RouterFunction<ServerResponse> api(ChattingHandler chattingHandler){
+	public RouterFunction<ServerResponse> apiChatting(ChattingHandler chattingHandler){
 
 		return route( POST("/api/chatting/stream").and(accept(MediaType.APPLICATION_JSON)), chattingHandler::addStream )
 				.and(route( GET("api/chatting/stream/{auth}"), chattingHandler::getStream ))
@@ -44,6 +50,8 @@ public class MainRouter {
 				
 		;
 	}
+	
+	
 	
 	/*
 	public Mono<ServerResponse> admin(ServerRequest request){

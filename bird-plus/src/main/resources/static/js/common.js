@@ -79,4 +79,35 @@ const common = new class Common{
 		div.style.height = 15 + 'px';
 		return div;
 	}
+	
+	isLogin(callBack = () => {}){
+		return fetch('/api/isLogin', {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		}).then(response => {
+			if( ! response.ok){
+				return callBack({
+					isLogin: false,
+					status: response.status,
+					statusText: response.statusText
+				});
+			}else{
+				let result = async() => await response.json()
+				if(result.code == '00'){
+					result.isLogin = true;	
+				}else{
+					result.isLogin = false;
+				}
+				return callBack(result);
+			}
+		}).catch(error=>{
+			return callBack({
+				isLogin: false,
+				message: error.message,
+				stack: error.stack
+			});
+		});
+	}
 }();

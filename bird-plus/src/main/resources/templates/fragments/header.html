@@ -19,7 +19,7 @@
 		    </div>
 		    <button type="button" id="login">Login</button>
 		    <script type="text/javascript" th:inline="javascript">
-		    	new class HeaderController{
+		    	const headerController = new class HeaderController{
 		    		loginButton = document.querySelector('#login');
 		    		loginContainer = Object.assign(document.createElement('div'), {
 		    			id:'login_layer',
@@ -27,12 +27,12 @@
 		    			innerHTML :`
 			    			<div>
 			    				<div>
-				    				<input type="text" name="id" id="account_id" placeholder="Please enter your ID"/>
+				    				<input type="text" name="id" class="account_id" placeholder="Please enter your ID"/>
 				    			</div>
 				    			<div>
-				    				<input type="password" name="password" id="account_password" placeholder="Please enter your password"/>
+				    				<input type="password" name="password" class="account_password" placeholder="Please enter your password"/>
 				    			</div>
-				    			<button type="button" id="login_send">login</button>
+				    			<button type="button" class="login_send">login</button>
 				    			<div class='status_text'></span>
 			    			</div>
 			    		`
@@ -43,7 +43,7 @@
 		    		});
 		    		
 		    		constructor(){
-		    			this.loginEvent();
+		    			this.loginEvent(this.loginContainer);
 		    			common.outClickElementListener(this.loginContainer, ({oldEvent, newEvent, isMouseOut})=>{
 		    				if(isMouseOut && this.loginContainer.isConnected && ! common.isMouseInnerElement(this.loginButton)){
 		    					this.loginContainer.remove();
@@ -55,22 +55,27 @@
 				            }
 						})
 					}
-		    		loginEvent(){
+		    		
+		    		loginEvent(container, {isContainerLayer = true, loginStartButton = this.loginButton} = {}){
 		    			new Promise(resolve=>{
-		    				this.loginButton.onclick = (event) => {
-		    					if(this.loginContainer.isConnected){
-		    						this.loginContainer.remove();
-		    					}else{
-		    						document.body.append(this.loginContainer);
-			    					common.processingElementPosition(this.loginContainer, this.loginButton)
-		    					}
+		    				if(isContainerLayer){
+		    					loginStartButton.onclick = (event) => {
+			    					if(container.isConnected){
+			    						container.remove();
+			    					}else{
+			    						document.body.append(container);
+				    					common.processingElementPosition(container, loginStartButton)
+			    					}
+			    				}
 		    				}
-		    				
-			    			let [accountId, accountPassword, loginSendButton, statusText] = this.loginContainer.querySelectorAll('#account_id, #account_password, #login_send, .status_text');
+		    				console.log(container);
+			    			let [accountId, accountPassword, loginSendButton, statusText] = container.querySelectorAll('.account_id, .account_password, .login_send, .status_text');
+			    			console.log(loginSendButton);
 			    			loginSendButton.onclick = (event) => {
 			    				statusText.textContent = '';
 			    				let loading = common.createLoadingRotate();
-			    				statusText.append(loading);
+			    				statusText.replaceChildren(loading);
+			    				statusText.style.paddingRight = '100%';
 			    				fetch('/loginProc',{
 			    				    method:'POST',
 			    				    body:JSON.stringify({
@@ -86,17 +91,18 @@
 			    				}).then(response=> {
 			    					
 			    					loading.remove();
+			    					statusText.style.paddingRight = '';
 			    					
-			    					console.log(response);
 			    					let {code} = response;
 			    					if(code == '00'){
+			    						loginStartButton.onclick = '';
 			    						this.loginButton.onclick = '';
 				    					let img = Object.assign(document.createElement('img'),{
 				    						width: '1rem',
 				    						src : '/images/user.png'
 				    					});
 				    					this.loginButton.replaceChildren(img);
-				    					this.loginContainer.remove();
+				    					container.remove();
 			    					}else if(code == 101){
 			    						statusText.textContent = '해당 기능에 권한이 없습니다.'
 			    					}else if(code == 102){
@@ -112,18 +118,19 @@
 			    					}
 			    					statusText.classList.add('shake');
 			    					setTimeout(()=>{statusText.classList.remove('shake')},150)
-			    					common.processingElementPosition(this.loginContainer, this.loginButton)
+			    					if(isContainerLayer){
+			    						common.processingElementPosition(container, loginStartButton)
+			    					}
 			    				}).catch(error=>{
 			    					loading.remove();
 			    				});
 			    			}
-			    			this.loginContainer.onkeydown = (e)=> {
+			    			container.onkeydown = (e)=> {
 			    				if(e.key != 'Enter'){
 			    					statusText.textContent = '';
 			    					return;
 			    				}
 			    				loginSendButton.click();
-			    				
 		    				}
 			    			resolve();
 		    			})
