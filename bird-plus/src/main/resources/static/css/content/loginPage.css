@@ -76,7 +76,7 @@
 	height: 100%;
 	visibility: hidden;
 	opacity: 0;
-    transition: all 1s;
+    transition: all 1s, opacity 3s;
     margin-left: 80%;
     overflow: hidden;
     overflow-wrap: normal;
@@ -88,14 +88,6 @@
 	margin-left: 0%;
 }
 
-.content_wrapper .create_room_wrapper .create_room_container *{
-	visibility: hidden;
-	opacity: 0;
-}
-.content_wrapper .create_room_wrapper .create_room_container.start *{
-	visibility: visible;
-	opacity: 1;
-}
 .content_wrapper .login_page > form > div{
 	width: 100%;
 }
