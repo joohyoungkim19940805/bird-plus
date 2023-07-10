@@ -135,7 +135,11 @@ button{
 
 label{
 	font-family: serif;
-	font-size: 1vmax;
+	font-size: 1.2rem;
+}
+
+input, button{
+	outline: none;
 }
 
 input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
