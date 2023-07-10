@@ -25,16 +25,18 @@
 		    			id:'login_layer',
 		    			className:'layer',
 		    			innerHTML :`
-			    			<div>
-			    				<div>
-				    				<input type="text" name="id" class="account_id" placeholder="Please enter your ID"/>
-				    			</div>
+		    				<form id="fast_login_form" class="login_form">
 				    			<div>
-				    				<input type="password" name="password" class="account_password" placeholder="Please enter your password"/>
+				    				<div>
+					    				<input type="text" name="id" id="fast_login_id" class="account_id" placeholder="Please enter your ID" autocomplete="username"/>
+					    			</div>
+					    			<div>
+				    					<input type="password" name="password" id="fast_login_password" class="account_password" placeholder="Please enter your password" autocomplete="current-password"/>
+					    			</div>
+					    			<button type="button" class="login_send">login</button>
+					    			<div class='status_text'></span>
 				    			</div>
-				    			<button type="button" class="login_send">login</button>
-				    			<div class='status_text'></span>
-			    			</div>
+			    			</form>
 			    		`
 		    		});
 		    		
@@ -68,9 +70,9 @@
 			    					}
 			    				}
 		    				}
-		    				console.log(container);
+
 			    			let [accountId, accountPassword, loginSendButton, statusText] = container.querySelectorAll('.account_id, .account_password, .login_send, .status_text');
-			    			console.log(loginSendButton);
+
 			    			loginSendButton.onclick = (event) => {
 			    				statusText.textContent = '';
 			    				let loading = common.createLoadingRotate();

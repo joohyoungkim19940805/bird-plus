@@ -14,10 +14,10 @@
     max-height: max-content;
 }
 
-#login_layer > *{
+#login_layer form > *{
 	display: grid;
 }
-#login_layer > * > *{
+#login_layer form > * > *{
 	margin-bottom: 11%;
 }
 

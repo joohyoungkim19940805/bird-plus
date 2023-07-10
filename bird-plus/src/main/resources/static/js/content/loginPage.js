@@ -8,10 +8,46 @@ const getStart = new class GetStart{
 	getStartWrapper = this.contentWrappper.querySelector('.get_start_wrapper');
 	getStartContainer = this.getStartWrapper.querySelector('.get_start_container');
 	getStartButton = this.getStartContainer.querySelector('.get_start');
+	
+	createRoomWrapper = this.getStartContainer.querySelector('.create_room_wrapper');
+	createRoomContainer = this.createRoomWrapper.querySelector('.create_room_container');
+	
+	#loginPage = Object.assign(document.createElement('div'), {
+		className: 'login_page',
+		innerHTML: `
+			<form id="get_start_login_form" class="login_form">
+				<div>
+					<div>
+						<label for="get_start_id">ID</label>
+					</div>
+					<input type="text" name="id" id="get_start_id" class="account_id" placeholder="Please enter your ID" autocomplete="username"/>
+				</div>
+				<div>
+					<div>
+						<label for="get_start_password">Password</label>
+					</div>
+					<input type="password" id="get_start_password" name="password" class="account_password" placeholder="Please enter your password" autocomplete="current-password"/>
+				</div>
+				<div class="find_wrapper">
+					<a href="/" id="forgot_password">Forgot password?</a>
+					<a href="/" id="sign_up">sign up</a>
+				</div>
+				<div>
+					<button type="button" class="login_send test">login</button>
+				</div>
+				<div class='status_text'>
+				</div>
+			</form>
+		`
+	});
+	
+	
 	constructor(){
 		
 		this.addOpeningEvent();
-
+		console.log(headerController);
+		headerController.loginEvent(this.#loginPage, {isContainerLayer: false});
+		
 	}
 	
 	addOpeningEvent(){
@@ -26,25 +62,11 @@ const getStart = new class GetStart{
 		let padeEndProise = new Promise(resolve => {
 			padeEndResolve = resolve
 		});
-				
-		padeEndProise.then(()=>{
-			Promise.all(padeEndPromiseList).then(()=>{
-				let delay = 100;
-				[...this.contentContainer.children].reverse().forEach(item=>{
-					[...item.children].forEach((e, i)=>{
-						setTimeout(()=>{
-							e.style.color = 'rgb(240 248 255 / 0.95)';
-						}, i * delay)
-					});
-				});
-			});
-		});
 
 		this.getStartContainer.classList.add('start');
-				
+
 		let lodingDelay = setInterval(()=>{
 			if(this.getStartContainer.isConnected){
-				console.log('start!!')
 				this.getStartContainer.style.width = '100vw';
 				clearInterval(lodingDelay);
 			}
@@ -89,7 +111,6 @@ const getStart = new class GetStart{
 			threshold: 0.1, 
 			root: this.getStartContainer
 		});
-		
 		new Promise(res=>{
 			[...this.contentContainer.children].reverse().forEach((item, i)=>{
 				intersectionObserver.observe(item);
@@ -105,7 +126,36 @@ const getStart = new class GetStart{
 			});
 			res();
 		})
+
+		padeEndProise.then(()=>{
+			this.showLoginPage();
+			return Promise.all(padeEndPromiseList).then(()=>{
+				let delay = 100;
+				
+				let colorChangePromiseList = [...this.contentContainer.children].reverse().map( item=>{
+					return Promise.all([...item.children].map( async (e, i)=>{
+						return new Promise(res=>{
+							setTimeout(()=>{
+								e.style.color = 'rgb(240 248 255 / 0.95)';
+								res();
+							}, i * delay)
+						});
+					}));
+				});
+				return Promise.all(colorChangePromiseList);
+			});
+		}).then(() => {
+			this.createRoomContainer.classList.add('start');
+		});
 		
+	}
+	
+	showContainer(){
+
+	}
+
+	showLoginPage(){
+		this.createRoomContainer.replaceChildren(this.#loginPage);
 	}
 	
 }();
