@@ -29,9 +29,6 @@ import java.net.URI;
 @Component
 public class WebFluxSecurityConfig {
 	
-	@Value("${jjwt.password.secret}")
-	private String secret;
-	
 	@Autowired
 	private JwtVerifyHandler jwtVerifyHandler;
 	/*

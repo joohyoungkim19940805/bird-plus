@@ -1,4 +1,4 @@
-package com.radcns.bird_plus.handler;
+package com.radcns.bird_plus.web.handler;
 
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -19,6 +19,6 @@ public class LoginHandler {
 	public Mono<ServerResponse> isLogin(ServerRequest request){
 		return ok()
 				.contentType(MediaType.APPLICATION_JSON)
-				.body(response(Result._00, null), Response.class);
+				.body(Mono.just(response(Result._00, null)), Response.class);
 	}
 }

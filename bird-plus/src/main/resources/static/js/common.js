@@ -81,7 +81,7 @@ const common = new class Common{
 	}
 	
 	isLogin(callBack = () => {}){
-		return fetch('/api/isLogin', {
+		return fetch('/api/login/isLogin', {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json'
@@ -94,13 +94,14 @@ const common = new class Common{
 					statusText: response.statusText
 				});
 			}else{
-				let result = async() => await response.json()
-				if(result.code == '00'){
-					result.isLogin = true;	
-				}else{
-					result.isLogin = false;
-				}
-				return callBack(result);
+				return response.json().then(json=>{
+					if(json.code == 0){
+						json.isLogin = true;	
+					}else{
+						json.isLogin = false;
+					}
+					return callBack(json);
+				});
 			}
 		}).catch(error=>{
 			return callBack({

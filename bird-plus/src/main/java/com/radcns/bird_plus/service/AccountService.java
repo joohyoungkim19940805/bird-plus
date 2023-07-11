@@ -47,15 +47,11 @@ public class AccountService implements Serializable {
     private AccountLogRepository accountLogRepository;
     @Autowired
     private ObjectMapper om;
-    
-    @Value("${jjwt.password.secret}")
-    private String secret;
-    
+
     @Autowired
     private KeyPair keyPair;
     
-    @Value("${jjwt.password.expiration}")
-    private String defaultExpirationTimeInSecondsConf;
+    private int defaultExpirationTimeInSecondsConf = 28800;
 
     /**
      * 엑세스 토큰을 생성하는 함수
@@ -68,7 +64,7 @@ public class AccountService implements Serializable {
     	String issuer = user.getAccountName();
     	String subject = user.getId().toString();
     	
-        var expirationTimeInMilliseconds = Long.parseLong(defaultExpirationTimeInSecondsConf) * 1000;
+        var expirationTimeInMilliseconds = defaultExpirationTimeInSecondsConf * 1000;
         var expirationDate = new Date(new Date().getTime() + expirationTimeInMilliseconds);
         var createdDate = new Date();
         var token = Jwts.builder()

@@ -31,7 +31,7 @@ public class BirdPlusApplication {
         // starter-web은 SERVLET으로 자동으로 선택한다. 이것을 강제로 REACTIVE로 바꾼다.
         application.run(args);
         *///
-    	System.setProperty("springbootwebfluxjjwt.password.encoder.secret", new CreateRandomCodeUtil().createCode(new byte[16]));
+    	//System.setProperty("springbootwebfluxjjwt.password.encoder.secret", new CreateRandomCodeUtil().createCode(new byte[16]));
 		
 		SpringApplication.run(BirdPlusApplication.class, args);
 		

@@ -18,22 +18,22 @@ const getStart = new class GetStart{
 			<form id="get_start_login_form" class="login_form">
 				<div>
 					<div>
-						<label for="get_start_id">ID</label>
+						<label for="get_start_login_id">ID</label>
 					</div>
-					<input type="text" name="id" id="get_start_id" class="account_id" placeholder="Please enter your ID" autocomplete="username"/>
+					<input type="text" name="id" id="get_start_login_id" class="account_id" placeholder="Please enter your ID" autocomplete="username"/>
 				</div>
 				<div>
 					<div>
-						<label for="get_start_password">Password</label>
+						<label for="get_start_login_password">Password</label>
 					</div>
-					<input type="password" id="get_start_password" name="password" class="account_password" placeholder="Please enter your password" autocomplete="current-password"/>
+					<input type="password" id="get_start_login_password" name="password" class="account_password" placeholder="Please enter your password" autocomplete="current-password"/>
 				</div>
 				<div class="find_wrapper">
-					<a href="/" id="forgot_password">Forgot password?</a>
-					<a href="/" id="sign_up">sign up</a>
+					<a href="/" id="get_start_forgot_password">Forgot password?</a>
+					<a href="/" id="get_start_sign_up">sign up</a>
 				</div>
 				<div>
-					<button type="button" class="login_send test">login</button>
+					<button type="button" class="login_send">login</button>
 				</div>
 				<div class='status_text'>
 				</div>
@@ -41,6 +41,22 @@ const getStart = new class GetStart{
 		`
 	});
 	
+	#forgotPasswordPage = Object.assign(document.createElement('div'), {
+		className: 'forgot_password_page',
+		innerHTML: `
+			<form id="forgot_password_form" class="">
+				<div>
+					<label for="get_start_forgot_password_email">Enter your email address and we’ll send you a recovery link.</label>
+				</div>
+				<div>
+					<input type="email" name="email" id="get_start_forgot_password_email" placeholder="Please enter your Email" required/>
+				</div>
+				<div>
+					<button type="submit">Send recovery email</button>
+				</div>
+			<form>
+		`
+	})
 	
 	constructor(){
 		
@@ -128,7 +144,8 @@ const getStart = new class GetStart{
 		})
 
 		padeEndProise.then(()=>{
-			this.showLoginPage();
+			//this.showLoginPage();
+			this.showForgotPasswordPage();
 			return Promise.all(padeEndPromiseList).then(()=>{
 				let delay = 100;
 				
@@ -158,4 +175,14 @@ const getStart = new class GetStart{
 		this.createRoomContainer.replaceChildren(this.#loginPage);
 	}
 	
+	showForgotPasswordPage(){
+		this.createRoomContainer.replaceChildren(this.#forgotPasswordPage);
+	}
+	
+	forgotPasswordPageEvent(forgotPassworPage){
+		let form = forgotPassworPage.querySelector('#forgot_password_form');
+		form.onsubmit = (event) => {
+			event.preventDefault();
+		}
+	}
 }();

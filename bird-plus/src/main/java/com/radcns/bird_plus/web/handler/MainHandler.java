@@ -1,4 +1,4 @@
-package com.radcns.bird_plus.handler;
+package com.radcns.bird_plus.web.handler;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;

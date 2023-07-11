@@ -88,11 +88,14 @@
 	margin-left: 0%;
 }
 
-.content_wrapper .login_page > form > div{
-	width: 100%;
+/* 빠른 시작 컨텐츠 영역 - 우측 영역 - 자식요소 공통 영역 */
+
+.create_room_container form > div{
+	width: 70%;
 }
-/* 빠른 시작 컨텐츠 영역 - 우측 영역 - 로그인 페이지 */
-.content_wrapper .login_page, .content_wrapper .login_page > form{
+
+.create_room_container > div, .create_room_container form{
+	padding-left: 5%;
     width: 100%;
     display: flex;
     height: 100%;
@@ -101,39 +104,40 @@
     gap: 2rem;
     justify-content: center;
 }
-.content_wrapper .login_page input, .login_page button, .login_page select{
+.create_room_container input, .create_room_container button, .create_room_container select{
 	background-color: dimgray;
 	font-size: 2.5rem;
 }
-.content_wrapper .login_page input, .login_page select{
+.create_room_container input, .create_room_container select{
     width: 100%;
     border: none;
     border-bottom: solid 1px #80008059;
     border-left: ridge 1px #ffffff0f;
     background: none;    
 }
-.content_wrapper .login_page button{
+.create_room_container button{
 	width: 100%;
 	border: outset #757575;
 	color: #f0f8ffad;
 }
-.content_wrapper .login_page input::placeholder{
+.create_room_container input::placeholder{
 	color: #f0f8ffad;
 }
-.content_wrapper .login_page label{
+.create_room_container label{
 	color: #a9a9a985;
     font-weight: bold;
     font-size: 2rem;
 }
-.content_wrapper .login_page .find_wrapper{
+.create_room_container .find_wrapper{
     display: flex;
     justify-content: space-around;
 }
-.content_wrapper .login_page .find_wrapper a{
+.create_room_container .find_wrapper a{
     color: hsl(206,100%,52%);
     text-decoration: underline;
     font-size: 1.2rem;
 }
+
 
 /* 최하단 프로젝트 문의 및 인력 모집 영역 */
 .request_list{

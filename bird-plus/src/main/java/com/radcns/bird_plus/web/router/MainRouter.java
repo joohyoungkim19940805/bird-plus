@@ -1,4 +1,4 @@
-package com.radcns.bird_plus.router;
+package com.radcns.bird_plus.web.router;
 
 
 import org.springframework.context.annotation.Bean;
@@ -8,9 +8,9 @@ import org.springframework.web.reactive.function.server.RouterFunction;
 
 import org.springframework.web.reactive.function.server.ServerResponse;
 
-import com.radcns.bird_plus.handler.ChattingHandler;
-import com.radcns.bird_plus.handler.LoginHandler;
-import com.radcns.bird_plus.handler.MainHandler;
+import com.radcns.bird_plus.web.handler.ChattingHandler;
+import com.radcns.bird_plus.web.handler.LoginHandler;
+import com.radcns.bird_plus.web.handler.MainHandler;
 
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
@@ -38,7 +38,9 @@ public class MainRouter {
 
 	@Bean
 	public RouterFunction<ServerResponse> apiLogin(LoginHandler loginHandler){
-		return route( GET("/api/login/isLogin").and(accept(MediaType.APPLICATION_JSON)), loginHandler::isLogin);
+		return route( GET("/api/login/isLogin").and(accept(MediaType.APPLICATION_JSON)), loginHandler::isLogin)
+				.and(route( GET("api/login/forgot-password/email").and(accept(MediaType.APPLICATION_JSON)), loginHandler::isLogin ))
+				;
 	}
 	
 	@Bean
