@@ -4,16 +4,15 @@ package com.radcns.bird_plus.service;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.jackson.io.JacksonSerializer;
-import io.jsonwebtoken.security.Keys;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.server.ServerResponse.BodyBuilder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.radcns.bird_plus.config.security.JwtIssuerType;
 import com.radcns.bird_plus.config.security.Role;
 import com.radcns.bird_plus.config.security.Token;
 import com.radcns.bird_plus.entity.customer.AccountEntity;
@@ -67,11 +66,13 @@ public class AccountService implements Serializable {
         var expirationTimeInMilliseconds = defaultExpirationTimeInSecondsConf * 1000;
         var expirationDate = new Date(new Date().getTime() + expirationTimeInMilliseconds);
         var createdDate = new Date();
+        
         var token = Jwts.builder()
         		.serializeToJsonWith(new JacksonSerializer<Map<String,?>>(this.om))
                 .setClaims(claims)
                 .setIssuer(issuer)
                 .setSubject(subject)
+                .setHeaderParam("jwtIssuerType", JwtIssuerType.ACCOUNT)
                 .setIssuedAt(createdDate)
                 .setId(UUID.randomUUID().toString())
                 .setExpiration(expirationDate)
