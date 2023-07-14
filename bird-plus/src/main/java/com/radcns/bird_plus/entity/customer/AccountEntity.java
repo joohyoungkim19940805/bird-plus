@@ -67,6 +67,9 @@ public class AccountEntity {
     @Column("is_first_login")
     private Boolean isFirstLogin;
     
+    @Column("name")
+    private String name;
+    
     @Column("email")
     private String email;
 

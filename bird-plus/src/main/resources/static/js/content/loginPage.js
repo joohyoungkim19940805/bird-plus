@@ -63,7 +63,7 @@ const getStart = new class GetStart{
 		this.addOpeningEvent();
 		console.log(headerController);
 		headerController.loginEvent(this.#loginPage, {isContainerLayer: false});
-		
+		this.forgotPasswordPageEvent(this.#forgotPasswordPage)
 	}
 	
 	addOpeningEvent(){
@@ -180,9 +180,24 @@ const getStart = new class GetStart{
 	}
 	
 	forgotPasswordPageEvent(forgotPassworPage){
+		console.log('???');
 		let form = forgotPassworPage.querySelector('#forgot_password_form');
+		console.log(form);
 		form.onsubmit = (event) => {
 			event.preventDefault();
+			fetch('/forgot-password-send-email', {
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			}).then(response => {
+				if( ! response.ok){
+					console.log(response);	
+				}
+				return response.json();
+			}).then(result=>{
+				console.log(result);
+			})
 		}
 	}
 }();

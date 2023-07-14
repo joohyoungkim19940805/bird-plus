@@ -80,7 +80,7 @@
 			    				let loading = common.createLoadingRotate();
 			    				statusText.replaceChildren(loading);
 			    				statusText.style.paddingRight = '100%';
-			    				fetch('/loginProc',{
+			    				fetch('/login-processing',{
 			    				    method:'POST',
 			    				    body:JSON.stringify({
 			    				    	accountName:accountId.value,

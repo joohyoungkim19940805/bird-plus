@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 @Data
 @ToString
 @Configuration
-@ConfigurationProperties(prefix = "app.mail")
+@ConfigurationProperties(prefix = "mail")
 public class EmailProperties {
 
     private String from;

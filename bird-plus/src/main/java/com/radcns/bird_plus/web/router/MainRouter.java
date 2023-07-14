@@ -37,7 +37,7 @@ import static org.springframework.web.reactive.function.server.RequestPredicates
 public class MainRouter {
 	
     @RouterOperations({
-    	@RouterOperation(path = "/loginProc", produces = {MediaType.APPLICATION_JSON_VALUE },
+    	@RouterOperation(path = "/default/login-processing", produces = {MediaType.APPLICATION_JSON_VALUE },
     			beanClass = MainHandler.class,  beanMethod = "isAuthenticated",
                 operation = @Operation(operationId = "isAuthenticated",
                         responses = {
@@ -48,19 +48,20 @@ public class MainRouter {
 	
 	@Bean
 	public RouterFunction<ServerResponse> index(MainHandler mainHandler){
-		return route( GET("/"), req -> ServerResponse.temporaryRedirect(URI.create("/loginPage")).build() )
-				.and(route( GET("/login"), req -> ServerResponse.temporaryRedirect(URI.create("/loginPage")).build() ))
-				.and(route( GET("/loginPage").and(accept(MediaType.TEXT_HTML)), mainHandler::loginPage ))
+
+    	return route( GET("/"), req -> ServerResponse.temporaryRedirect(URI.create("/login-page")).build() )
+				.and(route( GET("/login"), req -> ServerResponse.temporaryRedirect(URI.create("/login-page")).build() ))
+				.and(route( GET("/login-page").and(accept(MediaType.TEXT_HTML)), mainHandler::loginPage ))
 				.and(route( POST("/create").and(accept(MediaType.APPLICATION_JSON)), mainHandler::create ))
-				.and(route( POST("/loginProc").and(accept(MediaType.APPLICATION_JSON)), mainHandler::loginProc ))
+				.and(route( POST("/login-processing").and(accept(MediaType.APPLICATION_JSON)), mainHandler::loginProc ))
+				.and(route( GET("/forgot-password-send-email").and(accept(MediaType.APPLICATION_JSON)), mainHandler::forgotPassword ))
 				;
 	}
 
 	@Bean
-	public RouterFunction<ServerResponse> apiLogin(LoginHandler loginHandler){
-		return route().nest(path("/api/login"), builder -> builder
-				.GET("/isLogin", accept(MediaType.APPLICATION_JSON), loginHandler::isLogin)
-				.GET("/forgot-password/email", accept(MediaType.APPLICATION_JSON), loginHandler::isLogin)
+	public RouterFunction<ServerResponse> apiAccount(LoginHandler loginHandler){
+		return route().nest(path("/api/account"), builder -> builder
+				.GET("/is-login", accept(MediaType.APPLICATION_JSON), loginHandler::isLogin)
 				)
 				.build();
 		/*return route( GET("/api/login/isLogin").and(accept(MediaType.APPLICATION_JSON)), loginHandler::isLogin)

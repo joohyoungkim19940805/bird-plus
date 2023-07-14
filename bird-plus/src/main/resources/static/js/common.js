@@ -80,8 +80,8 @@ const common = new class Common{
 		return div;
 	}
 	
-	isLogin(callBack = () => {}){
-		return fetch('/api/login/isLogin', {
+	async isLogin(callBack = () => {}){
+		return fetch('/api/account/is-login', {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json'

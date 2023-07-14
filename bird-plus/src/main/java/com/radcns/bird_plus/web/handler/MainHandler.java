@@ -9,6 +9,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 
 import com.radcns.bird_plus.entity.customer.AccountEntity;
 import com.radcns.bird_plus.service.AccountService;
+import com.radcns.bird_plus.service.MailService;
 import com.radcns.bird_plus.util.Response;
 import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
 import com.radcns.bird_plus.util.exception.UnauthorizedException;
@@ -29,7 +30,9 @@ public class MainHandler {
 	@Autowired
 	private AccountService accountService;
 	
-
+	@Autowired
+	private MailService mailService;
+	
 	public Mono<ServerResponse> index(ServerRequest request){
 		return ok().contentType(MediaType.TEXT_HTML).render("/index.html");
 	}
@@ -76,7 +79,14 @@ public class MainHandler {
 				.body(request.bodyToMono(String.class).map(e->response(Result._00, e)), Response.class)
 				.onErrorResume(e -> Mono.error(new UnauthorizedException(100)));
 	}
-
+	
+	public Mono<ServerResponse> forgotPassword(ServerRequest request){
+		return ok()
+				.contentType(MediaType.APPLICATION_JSON)
+				.body(Mono.just(response(Result._00, null)).doOnNext(e->
+					mailService.sendForgotPasswordEmail(AccountEntity.builder().email("oozu1994@gmail.com").name("kimjoohyoung").build(), "content/mail/forgotPasswordTemplate", "Hello World")
+				), Response.class);
+	}
 	
 	/*
     public  login(@RequestBody UserLoginDto dto) {

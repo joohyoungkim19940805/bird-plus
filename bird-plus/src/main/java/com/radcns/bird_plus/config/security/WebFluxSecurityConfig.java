@@ -94,7 +94,7 @@ public class WebFluxSecurityConfig {
                 .authorizeExchange(authSpec->
 	                authSpec.pathMatchers(HttpMethod.OPTIONS).permitAll()
 			                .pathMatchers("/files/**","/css/**","/js/**","/images/**","/**.ico", "/manifest.json").permitAll() // resources/static
-			                .pathMatchers("/","/login", "/loginPage", "/loginProc").permitAll() // login
+			                .pathMatchers("/*").permitAll() // auth 검사 안 할 url path
 			                .pathMatchers("/v3/webjars/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll() // api doc
 			                .pathMatchers("/home/**").authenticated()
 			                .pathMatchers("/api/**").authenticated()
