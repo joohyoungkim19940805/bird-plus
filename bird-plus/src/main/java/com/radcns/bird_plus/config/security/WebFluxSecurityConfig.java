@@ -1,7 +1,7 @@
 package com.radcns.bird_plus.config.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -16,7 +16,8 @@ import org.springframework.security.web.server.authentication.RedirectServerAuth
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.logout.RedirectServerLogoutSuccessHandler;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
-
+import org.springframework.security.web.server.header.ReferrerPolicyServerHttpHeadersWriter;
+import org.springframework.security.web.server.header.XFrameOptionsServerHttpHeadersWriter.Mode;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
 import org.springframework.stereotype.Component;
 
@@ -51,35 +52,57 @@ public class WebFluxSecurityConfig {
     @Bean
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http, ReactiveAuthenticationManager authManager) {
         return http
-                .exceptionHandling()
-                .authenticationEntryPoint((swe, e) -> 
-                    Mono.fromRunnable(() -> swe.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED))
+                .exceptionHandling(exceptionSpec -> exceptionSpec
+                		.authenticationEntryPoint((swe, e) -> 
+		                    Mono.fromRunnable(() -> swe.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED))
+		                ).accessDeniedHandler((swe, e) -> 
+		                    Mono.fromRunnable(() -> swe.getResponse().setStatusCode(HttpStatus.FORBIDDEN))
+		                )
                 )
-                .accessDeniedHandler((swe, e) -> 
-                    Mono.fromRunnable(() -> swe.getResponse().setStatusCode(HttpStatus.FORBIDDEN))
+
+                .headers(headersSpec -> headersSpec
+                		.contentSecurityPolicy(contentSecuritySpec->contentSecuritySpec
+                				.policyDirectives("default-src 'self'; frame-src 'self' data:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://storage.googleapis.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:")
+                		)
+	                	.referrerPolicy(referrerSpec -> referrerSpec
+	                			.policy(ReferrerPolicyServerHttpHeadersWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
+	                	.permissionsPolicy(permissionsSpec -> permissionsSpec
+	                			.policy("camera=(), fullscreen=(self), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), sync-xhr=()")
+	                	)
+	                	.frameOptions(frameSprc -> frameSprc
+	                			.mode(Mode.DENY)
+	                	)
                 )
-                .and()
-                .csrf().disable()
-                .logout().logoutUrl("/logout").logoutSuccessHandler(logoutSuccessHandler("/loginPage?status=logout")).and()
-                .formLogin()
-                .authenticationSuccessHandler(new RedirectServerAuthenticationSuccessHandler("/"))
-                .authenticationFailureHandler(new RedirectServerAuthenticationFailureHandler("/loginPage?status=error"))
-                .loginPage("/login")
-                .and()
+                
+                .csrf(csrfSpec -> csrfSpec
+                		.disable()
+                )
+                
+                .logout(logoutSpec -> logoutSpec
+	            		.logoutUrl("/logout")
+	            		.logoutSuccessHandler(logoutSuccessHandler("/loginPage?status=logout"))
+                )
+                
+                .formLogin(formLoginSpec -> formLoginSpec
+	            		.authenticationSuccessHandler(new RedirectServerAuthenticationSuccessHandler("/"))
+	                    .authenticationFailureHandler(new RedirectServerAuthenticationFailureHandler("/loginPage?status=error"))
+	                    .loginPage("/login")
+                )
+
                 //.requestCache(c->c.requestCache(new CookieServerRequestCache()))
-                .httpBasic().disable()
                 .authenticationManager(authManager)
-                //.securityContextRepository(securityContextRepository)
-                .authorizeExchange()
-                .pathMatchers(HttpMethod.OPTIONS).permitAll()
-                .pathMatchers("/files/**","/css/**","/js/**","/images/**","/**.ico", "/manifest.json").permitAll()
-                .pathMatchers("/","/login", "/loginPage", "/loginProc").permitAll()
-                .pathMatchers("/home/**").authenticated()
-                .pathMatchers("/api/**").authenticated()
-                .anyExchange().authenticated()
-                .and()
+                .authorizeExchange(authSpec->
+	                authSpec.pathMatchers(HttpMethod.OPTIONS).permitAll()
+			                .pathMatchers("/files/**","/css/**","/js/**","/images/**","/**.ico", "/manifest.json").permitAll() // resources/static
+			                .pathMatchers("/","/login", "/loginPage", "/loginProc").permitAll() // login
+			                .pathMatchers("/v3/webjars/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll() // api doc
+			                .pathMatchers("/home/**").authenticated()
+			                .pathMatchers("/api/**").authenticated()
+			                .anyExchange().authenticated()
+                )
+                
                 .addFilterAt(bearerAuthenticationFilter(authManager), SecurityWebFiltersOrder.AUTHENTICATION)
-                //.addFilterAt(cookieAuthenticationFilter(authManager), SecurityWebFiltersOrder.AUTHENTICATION)
+                
                 .build();
     }
     AuthenticationWebFilter bearerAuthenticationFilter(ReactiveAuthenticationManager authManager) {

@@ -17,7 +17,6 @@ import reactor.core.publisher.Sinks;
 
 import static org.springframework.web.reactive.function.server.ServerResponse.ok;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;

@@ -11,10 +11,11 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 
-import org.apache.commons.codec.binary.Base32;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+
+import com.google.common.io.BaseEncoding;
 
 @Component
 public class CreateRandomCodeUtil {
@@ -46,7 +47,7 @@ public class CreateRandomCodeUtil {
 	public String createCode(byte[] keySize) {
 		random.nextBytes(keySize);
 		try {
-			return new Base32().encodeToString(cipher.doFinal(keySize));
+			return BaseEncoding.base32().omitPadding().encode(cipher.doFinal(keySize));
 		} catch (IllegalBlockSizeException | BadPaddingException e) {
 			logger.error(e.getMessage(), e);
 			return null;

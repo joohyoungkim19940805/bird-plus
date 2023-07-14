@@ -1,6 +1,8 @@
 package com.radcns.bird_plus.web.router;
 
 
+import org.springdoc.core.annotations.RouterOperation;
+import org.springdoc.core.annotations.RouterOperations;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
@@ -12,18 +14,37 @@ import com.radcns.bird_plus.web.handler.ChattingHandler;
 import com.radcns.bird_plus.web.handler.LoginHandler;
 import com.radcns.bird_plus.web.handler.MainHandler;
 
-import static org.springframework.web.reactive.function.server.RouterFunctions.route;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 import java.net.URI;
+
+import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
+import com.radcns.bird_plus.util.Response;
+
+import static org.springframework.web.reactive.function.server.RouterFunctions.route;
+import static org.springframework.web.reactive.function.server.RequestPredicates.path;
 
 import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
 import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
 import static org.springframework.web.reactive.function.server.RequestPredicates.accept;
 
 
+
 @Configuration
 public class MainRouter {
 	
+    @RouterOperations({
+    	@RouterOperation(path = "/loginProc", produces = {MediaType.APPLICATION_JSON_VALUE },
+    			beanClass = MainHandler.class,  beanMethod = "isAuthenticated",
+                operation = @Operation(operationId = "isAuthenticated",
+                        responses = {
+                        @ApiResponse(responseCode = "200", description = "get current user.", content = @Content(schema = @Schema(implementation = Response.class)))
+                })
+    	)
+    })
 	
 	@Bean
 	public RouterFunction<ServerResponse> index(MainHandler mainHandler){
@@ -32,25 +53,35 @@ public class MainRouter {
 				.and(route( GET("/loginPage").and(accept(MediaType.TEXT_HTML)), mainHandler::loginPage ))
 				.and(route( POST("/create").and(accept(MediaType.APPLICATION_JSON)), mainHandler::create ))
 				.and(route( POST("/loginProc").and(accept(MediaType.APPLICATION_JSON)), mainHandler::loginProc ))
-				.and(route( POST("/api/").and(accept(MediaType.TEXT_EVENT_STREAM)), mainHandler::test ))
 				;
 	}
 
 	@Bean
 	public RouterFunction<ServerResponse> apiLogin(LoginHandler loginHandler){
-		return route( GET("/api/login/isLogin").and(accept(MediaType.APPLICATION_JSON)), loginHandler::isLogin)
+		return route().nest(path("/api/login"), builder -> builder
+				.GET("/isLogin", accept(MediaType.APPLICATION_JSON), loginHandler::isLogin)
+				.GET("/forgot-password/email", accept(MediaType.APPLICATION_JSON), loginHandler::isLogin)
+				)
+				.build();
+		/*return route( GET("/api/login/isLogin").and(accept(MediaType.APPLICATION_JSON)), loginHandler::isLogin)
 				.and(route( GET("api/login/forgot-password/email").and(accept(MediaType.APPLICATION_JSON)), loginHandler::isLogin ))
 				;
+				*/
 	}
 	
 	@Bean
 	public RouterFunction<ServerResponse> apiChatting(ChattingHandler chattingHandler){
-
+		return route().nest(path("/api/chatting"), builder -> builder
+					.POST("/stream", accept(MediaType.APPLICATION_JSON), chattingHandler::addStream)
+					.GET("/stream/{auth}", chattingHandler::getStream)
+				).build();
+		/*
 		return route( POST("/api/chatting/stream").and(accept(MediaType.APPLICATION_JSON)), chattingHandler::addStream )
 				.and(route( GET("api/chatting/stream/{auth}"), chattingHandler::getStream ))
 				.and(route( GET("api/chatting/stream-test/test"), chattingHandler::test ))
 				
 		;
+		*/
 	}
 	
 	

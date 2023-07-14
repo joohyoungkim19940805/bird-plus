@@ -9,9 +9,6 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
-import com.radcns.bird_plus.entity.customer.AccountLogEntity;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

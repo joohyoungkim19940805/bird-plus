@@ -8,7 +8,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.annotation.Version;
+
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
@@ -66,5 +66,8 @@ public class AccountEntity {
     
     @Column("is_first_login")
     private Boolean isFirstLogin;
+    
+    @Column("email")
+    private String email;
 
 }

@@ -2,9 +2,7 @@ package com.radcns.bird_plus.util;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
@@ -22,25 +20,22 @@ import java.nio.file.StandardOpenOption;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
+
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
+
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import reactor.core.publisher.Flux;
-import com.radcns.bird_plus.util.Converter;
+
 @Component
 public class CommonUtil {//extends AwsCliCommand{
 	

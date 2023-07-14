@@ -71,7 +71,7 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
         if(request.headers().accept().stream().filter(e->e.equals(MediaType.TEXT_HTML)).findFirst().isPresent()) {
         	return bodyBuilder
         			.contentType(MediaType.parseMediaType("text/html;charset=UTF-8"))
-        			.render("content/loginPage.html", Map.of("loginStatus", "FAILED"));
+        			.render("/content/loginPage.html", Map.of("loginStatus", "FAILED"));
         }
         
         return bodyBuilder

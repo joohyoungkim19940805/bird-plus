@@ -4,23 +4,19 @@ import java.security.KeyPair;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpHeaders;
+
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.http.codec.json.Jackson2JsonDecoder;
 import org.springframework.http.codec.json.Jackson2JsonEncoder;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.reactive.CorsWebFilter;
-import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
-import org.springframework.web.reactive.accept.RequestedContentTypeResolver;
 import org.springframework.web.reactive.config.CorsRegistry;
 import org.springframework.web.reactive.config.ViewResolverRegistry;
 import org.springframework.web.reactive.config.WebFluxConfigurer;
-import org.springframework.web.reactive.result.method.annotation.ResponseBodyResultHandler;
+
 import org.thymeleaf.spring6.ISpringWebFluxTemplateEngine;
 import org.thymeleaf.spring6.SpringWebFluxTemplateEngine;
 import org.thymeleaf.spring6.templateresolver.SpringResourceTemplateResolver;
@@ -37,7 +33,15 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import nz.net.ultraq.thymeleaf.layoutdialect.LayoutDialect;
 
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.info.Info;
+
 @Configuration
+@OpenAPIDefinition(info = @Info(
+        title = "Spring Webflux Otp",
+        version = "1.0",
+        description = "swagger documentation using open api."
+))
 public class WebFluxConfig implements ApplicationContextAware, WebFluxConfigurer {
 	
 	@Autowired
@@ -67,6 +71,11 @@ public class WebFluxConfig implements ApplicationContextAware, WebFluxConfigurer
 	public void configureViewResolvers(ViewResolverRegistry registry) {
 	    registry.viewResolver(thymeleafReactiveViewResolver());
 	}
+	
+	@Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**").allowedOrigins("*").allowedMethods("*").allowedHeaders("*");
+    }
 	
 	@Bean
 	public ITemplateResolver thymeleafTemplateResolver() {
