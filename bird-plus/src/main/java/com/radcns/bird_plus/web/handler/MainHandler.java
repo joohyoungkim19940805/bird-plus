@@ -86,6 +86,14 @@ public class MainHandler {
 				.body(Mono.just(response(Result._00, null)).doOnNext(e->
 					mailService.sendForgotPasswordEmail(AccountEntity.builder().email("oozu1994@gmail.com").name("kimjoohyoung").build(), "content/mail/forgotPasswordTemplate", "Hello World")
 				), Response.class);
+		/*
+		return ok()
+				.contentType(MediaType.APPLICATION_JSON)
+				.body(mailService.sendForgotPasswordEmail(
+						AccountEntity.builder().email("oozu1994@gmail.com").name("kimjoohyoung").build(), "content/mail/forgotPasswordTemplate", "Hello World"
+						).map(e->response(Result._00, e)), Response.class
+					);
+		*/
 	}
 	
 	/*

@@ -16,4 +16,6 @@ public class EmailProperties {
     private String from;
 
     private String baseUrl;
+    
+    private String apiKey;
 }
