@@ -9,6 +9,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import com.radcns.bird_plus.config.security.JwtVerifyHandler;
 import com.radcns.bird_plus.entity.chatting.ChattingEntity;
 import com.radcns.bird_plus.repository.chatting.ChattingRepository;
+import com.radcns.bird_plus.repository.customer.AccountRepository;
 import com.radcns.bird_plus.util.exception.UnauthorizedException;
 
 import io.jsonwebtoken.Claims;
@@ -31,6 +32,9 @@ public class ChattingHandler {
 	@Autowired
 	private JwtVerifyHandler jwtVerifyHandler;
 	
+	@Autowired
+	private AccountRepository accountRepository;
+	
 	/**
 	unicast() : 하나의 Subscriber 만 허용한다. 즉, 하나의 Client 만 연결할 수 있다.
 	multicast() : 여러 Subscriber 를 허용한다.
@@ -50,8 +54,7 @@ public class ChattingHandler {
 				/*.doOnNext(chatting->{
 					chattingSink.tryEmitNext(chatting);
 				})*/
-				.map(chatting -> {
-
+				.flatMap(chatting -> {
 					String token = request.headers().firstHeader(HttpHeaders.AUTHORIZATION);
 					Claims claims = jwtVerifyHandler.getAllClaimsFromToken(token);
 					ChattingEntity chattingEntity = ChattingEntity
@@ -61,14 +64,14 @@ public class ChattingHandler {
 							.chatting(chatting)
 							.build();
 					chattingSink.tryEmitNext(chattingEntity);
-					chattingEntity.setAccountId(Long.parseLong(claims.getSubject()));
-					return chattingEntity;
+					
+					return accountRepository.findByAccountNameAndEmail(claims.getIssuer(), claims.getSubject())
+							.map(e->chattingEntity.withAccountId(e.getId()));
 				})
 				.flatMap(chattingEntity->{
-					return ok().contentType(MediaType.APPLICATION_JSON).body(chattingRepository.save(chattingEntity).map(e->{
-						e.setAccountId(null);
-						return e;
-					}), ChattingEntity.class);
+					return ok().contentType(MediaType.APPLICATION_JSON).body(
+							chattingRepository.save(chattingEntity).map(e->e.withAccountId(null)), ChattingEntity.class
+					);
 				})
 				//.log()
 				.onErrorResume(e -> Mono.error(new UnauthorizedException(999)))

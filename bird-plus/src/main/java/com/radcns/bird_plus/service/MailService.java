@@ -36,10 +36,6 @@ public class MailService {
 
 	
 	private static final Logger logger = LoggerFactory.getLogger(MailService.class);
-	
-    private static final String USER = "user";
-
-    private static final String BASE_URL = "baseUrl";
 
     private static final String DEFAULT_LANGUAGE = "ko";
 
@@ -74,17 +70,18 @@ public class MailService {
         }
     }
 
-    private void sendEmailFromTemplate(AccountEntity account, String templateName, String title) {
+    @Async
+    private void sendEmailFromTemplate(AccountEntity account, String templateName) {
         if (account.getEmail() == null) {
         	logger.debug("Email doesn't exist for user '{}'", account.getEmail());
             return;
         }
         Locale locale = Locale.forLanguageTag(DEFAULT_LANGUAGE);
         Context context = new Context(locale);
-        context.setVariable(USER, account.getName());
-        context.setVariable(BASE_URL, emailProperties.getBaseUrl());
+        context.setVariable("account", account);
+        context.setVariable("baseUrl", emailProperties.getBaseUrl());
         String content = thymeleafTemplateEngine.process(templateName, context);
-        String subject = title;//messageSource.getMessage(titleKey, null, locale);
+        String subject = "Account Recovery - RADCNS";//messageSource.getMessage(titleKey, null, locale);
 
         sendEmail(ForgotEmailDto.builder()
                 .content(content).subject(subject).to(account.getEmail())
@@ -92,10 +89,11 @@ public class MailService {
                 .build());
     }
 
-    @Async
-    public void sendForgotPasswordEmail(AccountEntity account, String templateName, String title) {
-        logger.debug("Sending login OTP email to '{}'", account.getEmail());
-        sendEmailFromTemplate(account, templateName, title);
+    public AccountEntity sendForgotPasswordEmail(AccountEntity account, String templateName) {
+        System.out.println(account);
+    	logger.debug("Sending login OTP email to '{}'", account.getEmail());
+        sendEmailFromTemplate(account, templateName);
+        return account;
     }
 
 

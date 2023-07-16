@@ -50,44 +50,41 @@ public class AccountService implements Serializable {
     @Autowired
     private KeyPair keyPair;
     
-    private int defaultExpirationTimeInSecondsConf = 28800;
-
     /**
      * 엑세스 토큰을 생성하는 함수
      * @param user
      * @return
      */
-    private Token generateAccessToken(AccountEntity user) {
+    private Token generateAccessToken(AccountEntity account, JwtIssuerType type) {
     	
-    	Map<String, List<Role>> claims = Map.of("role", user.getRoles());
-    	String issuer = user.getAccountName();
-    	String subject = user.getId().toString();
+    	Map<String, List<Role>> claims = Map.of("role", account.getRoles());
     	
-        var expirationTimeInMilliseconds = defaultExpirationTimeInSecondsConf * 1000;
+        var expirationTimeInMilliseconds = type.getSecond() * 1000;
         var expirationDate = new Date(new Date().getTime() + expirationTimeInMilliseconds);
         var createdDate = new Date();
         
         var token = Jwts.builder()
         		.serializeToJsonWith(new JacksonSerializer<Map<String,?>>(this.om))
                 .setClaims(claims)
-                .setIssuer(issuer)
-                .setSubject(subject)
-                .setHeaderParam("jwtIssuerType", JwtIssuerType.ACCOUNT)
+                .setIssuer(account.getAccountName())
+                .setSubject(account.getEmail())
+                .setHeaderParams(Map.of("jwtIssuerType", type.name()))
                 .setIssuedAt(createdDate)
                 .setId(UUID.randomUUID().toString())
-                .setExpiration(expirationDate)
                 //.setHeaderParams(Map.of("typ", "jwt", "alg", "HS256"))
                 //.signWith(Keys.hmacShaKeyFor(secret.getBytes()), SignatureAlgorithm.HS256)
                 .setHeaderParams(Map.of("typ", "jwt", "alg", "RS256"))
-                .signWith(keyPair.getPrivate(), SignatureAlgorithm.RS256)
-                .compact();
-
+                .signWith(keyPair.getPrivate(), SignatureAlgorithm.RS256);
+                
+        if( ! type.equals(JwtIssuerType.BOT)) {
+        	token.setExpiration(expirationDate);
+        }
         return Token.builder()
-                .token(token)
+                .token(token.compact())
                 .issuedAt(createdDate)
                 .expiresAt(expirationDate)
-                .isDifferentIp(user.getIsDifferentIp())
-                .isFirstLogin(user.getIsFirstLogin())
+                .isDifferentIp(account.getIsDifferentIp())
+                .isFirstLogin(account.getIsFirstLogin())
                 .build();
     }
 
@@ -117,7 +114,7 @@ public class AccountService implements Serializable {
              			}
              			return accountRepository.save(account)
              				.flatMap(e->accountLogRepository.save(accountLogEntity));
-             		}).flatMap(e -> Mono.just(generateAccessToken(account).toBuilder()
+             		}).flatMap(e -> Mono.just(generateAccessToken(account, JwtIssuerType.ACCOUNT).toBuilder()
                      			.userId(account.getId())
                      			.build())
              		);

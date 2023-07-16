@@ -10,4 +10,9 @@ public interface AccountRepository extends ReactiveCrudRepository<AccountEntity,
 
 	Mono<AccountEntity> findByAccountName(String accountName);
 	
+	Mono<AccountEntity> findByEmail(String email);
+
+	Mono<AccountEntity> findByAccountNameAndEmail(String accountName, String email);
+	
+	
 }

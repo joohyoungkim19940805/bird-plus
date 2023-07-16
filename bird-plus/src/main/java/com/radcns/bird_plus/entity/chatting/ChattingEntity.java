@@ -15,6 +15,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.With;
 
 @Builder(toBuilder = true)
 @Getter
@@ -22,6 +23,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
+@With
 @Table(value="ch_chatting")
 public class ChattingEntity {
 	private Long id;

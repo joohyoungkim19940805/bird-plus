@@ -8,6 +8,7 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
 import com.radcns.bird_plus.entity.customer.AccountEntity;
+import com.radcns.bird_plus.repository.customer.AccountRepository;
 import com.radcns.bird_plus.service.AccountService;
 import com.radcns.bird_plus.service.MailService;
 import com.radcns.bird_plus.util.Response;
@@ -19,6 +20,7 @@ import reactor.core.publisher.Mono;
 import static com.radcns.bird_plus.util.Response.response;
 import static org.springframework.web.reactive.function.server.ServerResponse.ok;
 
+import java.nio.file.FileSystemNotFoundException;
 import java.util.List;
 import java.util.Map;
 
@@ -33,14 +35,17 @@ public class MainHandler {
 	@Autowired
 	private MailService mailService;
 	
+	@Autowired
+	private AccountRepository accountRepository;
+	
 	public Mono<ServerResponse> index(ServerRequest request){
 		return ok().contentType(MediaType.TEXT_HTML).render("/index.html");
 	}
 	
 	public Mono<ServerResponse> loginPage(ServerRequest request){
-		return ok().contentType(MediaType.parseMediaType("text/html;charset=UTF-8")).render("content/loginPage.html", Map.ofEntries(
-				Map.entry("resourcesNameList", List.of("loginPage"))
-			));
+		return ok()
+				.contentType(MediaType.parseMediaType("text/html;charset=UTF-8"))
+				.render("content/loginPage.html", Map.of("resourcesNameList", List.of("loginPage")));
 	}
 	
 	public Mono<ServerResponse> create(ServerRequest request){
@@ -81,11 +86,29 @@ public class MainHandler {
 	}
 	
 	public Mono<ServerResponse> forgotPassword(ServerRequest request){
-		return ok()
-				.contentType(MediaType.APPLICATION_JSON)
-				.body(Mono.just(response(Result._00, null)).doOnNext(e->
-					mailService.sendForgotPasswordEmail(AccountEntity.builder().email("oozu1994@gmail.com").name("kimjoohyoung").build(), "content/mail/forgotPasswordTemplate", "Hello World")
-				), Response.class);
+		
+		return request.bodyToMono(AccountEntity.class)
+				.flatMap(account -> accountRepository.findByEmail(account.getEmail())
+						.doOnSuccess(e->mailService.sendForgotPasswordEmail(account, "content/mail/forgotPasswordTemplate"))
+				)
+				.flatMap(account ->
+					ok()
+					.contentType(MediaType.APPLICATION_JSON)
+					.body(Mono.just(response(Result._00, account)), Response.class)
+				);
+
+		/*
+		return request.bodyToMono(AccountEntity.class)
+				.flatMap(account -> accountRepository.findByEmail(account.getEmail())
+						.doOnSuccess(e->mailService.sendForgotPasswordEmail(account, "content/mail/forgotPasswordTemplate"))
+				)
+				.flatMap(account -> 
+					ok()
+					.contentType(MediaType.APPLICATION_JSON)
+					.body(Mono.just(response(Result._00, null)), Response.class)
+				);
+		*/
+		
 		/*
 		return ok()
 				.contentType(MediaType.APPLICATION_JSON)

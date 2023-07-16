@@ -32,7 +32,6 @@ public class ServerHttpBearerAuthenticationConverter implements ServerAuthentica
     	String auth = serverWebExchange.getRequest()
                 .getHeaders()
                 .getFirst(HttpHeaders.AUTHORIZATION);
-    	System.out.println("head <<< " + auth);
     	if(auth == null || auth.isEmpty()) {
     		HttpCookie obj = serverWebExchange.getRequest().getCookies().getFirst(HttpHeaders.AUTHORIZATION);
     		if(obj != null) {
@@ -50,10 +49,8 @@ public class ServerHttpBearerAuthenticationConverter implements ServerAuthentica
 	    		}else {
 	    			auth = null;
 	    		}
-	    		System.out.println("url <<< " + auth);
     		}
     	}
-    	System.out.println("kjh test <<<" + auth);
     	//Authorization
         return Mono.justOrEmpty(auth);
     }

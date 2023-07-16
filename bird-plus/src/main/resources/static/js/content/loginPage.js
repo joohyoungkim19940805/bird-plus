@@ -186,14 +186,16 @@ const getStart = new class GetStart{
 		form.onsubmit = (event) => {
 			event.preventDefault();
 			fetch('/forgot-password-send-email', {
-				method: 'GET',
+				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
-				}
+				},
+				body: JSON.stringify({email: form.email.value})
 			}).then(response => {
 				if( ! response.ok){
 					console.log(response);	
 				}
+				console.log(response.text());
 				return response.json();
 			}).then(result=>{
 				console.log(result);
