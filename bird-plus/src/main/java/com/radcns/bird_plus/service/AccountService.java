@@ -55,8 +55,10 @@ public class AccountService implements Serializable {
      * @param user
      * @return
      */
-    private Token generateAccessToken(AccountEntity account, JwtIssuerType type) {
-    	
+    public Token generateAccessToken(AccountEntity account, JwtIssuerType type) {
+    	System.out.println("kjh test222 <<<");
+    	System.out.println(account);
+    	System.out.println(account.getRoles());
     	Map<String, List<Role>> claims = Map.of("role", account.getRoles());
     	
         var expirationTimeInMilliseconds = type.getSecond() * 1000;

@@ -16,6 +16,7 @@ import org.thymeleaf.context.Context;
 
 import org.thymeleaf.spring6.ISpringWebFluxTemplateEngine;
 
+import com.radcns.bird_plus.config.security.JwtIssuerType;
 import com.radcns.bird_plus.entity.customer.AccountEntity;
 import com.radcns.bird_plus.entity.dto.ForgotEmailDto;
 import com.radcns.bird_plus.util.CommonUtil;
@@ -26,6 +27,7 @@ import jakarta.mail.internet.MimeMessage;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 @Service
@@ -47,6 +49,8 @@ public class MailService {
     private ISpringWebFluxTemplateEngine thymeleafTemplateEngine;
     @Autowired
     private EmailProperties emailProperties;
+    @Autowired
+    private AccountService accountService;
     
     //from: no-reply@test.com
     //base-url: http://localhost:8080
@@ -78,8 +82,10 @@ public class MailService {
         }
         Locale locale = Locale.forLanguageTag(DEFAULT_LANGUAGE);
         Context context = new Context(locale);
+        account.setEmail(URLEncoder.encode(account.getEmail(), StandardCharsets.UTF_8));
         context.setVariable("account", account);
         context.setVariable("baseUrl", emailProperties.getBaseUrl());
+        context.setVariable("token", accountService.generateAccessToken(account, JwtIssuerType.FORGOT_PASSWORD));
         String content = thymeleafTemplateEngine.process(templateName, context);
         String subject = "Account Recovery - RADCNS";//messageSource.getMessage(titleKey, null, locale);
 
