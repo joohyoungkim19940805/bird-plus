@@ -3,8 +3,8 @@ package com.radcns.bird_plus.util;
 public interface ExceptionCodeConstant {
 	
 	public enum Result {
-		_00(0, "처리에 성공하였습니다.", "SUCCESS"),
-		_01(1, "처리에 실패하였습니다.", "SERVER RESPONSE SOMETHING WRONG"),
+		_0(0, "처리에 성공하였습니다.", "SUCCESS"),
+		_1(1, "처리에 실패하였습니다.", "SERVER RESPONSE SOMETHING WRONG"),
 		_100(100, "다시 로그인을 시도해주십시오.", "JWT TOKEN EXPIRED"),
 		_101(101, "해당 기능에 권한이 없습니다.", "ACCOUNT IS DISABLED STATUS"),
 		_102(102, "로그인 정보가 잘못되었습니다.", "INVALID ACCOUNT"), //"잘못된 비밀번호입니다.", "INVALID ACCOUNT PASSWORD"),

@@ -6,23 +6,32 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.http.MediaType;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.server.ServerResponse;
 import org.thymeleaf.context.Context;
 
 import org.thymeleaf.spring6.ISpringWebFluxTemplateEngine;
 
+import com.radcns.bird_plus.config.security.JwtIssuerType;
 import com.radcns.bird_plus.entity.customer.AccountEntity;
 import com.radcns.bird_plus.entity.dto.ForgotEmailDto;
 import com.radcns.bird_plus.util.CommonUtil;
+import com.radcns.bird_plus.util.Response;
+import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
 import com.radcns.bird_plus.util.properties.EmailProperties;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import reactor.core.publisher.Mono;
+
+import static com.radcns.bird_plus.util.Response.response;
+import static org.springframework.web.reactive.function.server.ServerResponse.ok;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -47,6 +56,9 @@ public class MailService {
     private ISpringWebFluxTemplateEngine thymeleafTemplateEngine;
     @Autowired
     private EmailProperties emailProperties;
+    
+    @Autowired
+    private AccountService accountService;
     
     //from: no-reply@test.com
     //base-url: http://localhost:8080
@@ -80,6 +92,7 @@ public class MailService {
         Context context = new Context(locale);
         context.setVariable("account", account);
         context.setVariable("baseUrl", emailProperties.getBaseUrl());
+        context.setVariable("token", accountService.generateAccessToken(account, JwtIssuerType.FORGOT_PASSWORD).getToken());
         String content = thymeleafTemplateEngine.process(templateName, context);
         String subject = "Account Recovery - RADCNS";//messageSource.getMessage(titleKey, null, locale);
 
@@ -89,11 +102,13 @@ public class MailService {
                 .build());
     }
 
-    public AccountEntity sendForgotPasswordEmail(AccountEntity account, String templateName) {
+    public void sendForgotPasswordEmail(AccountEntity account, String templateName) {
         System.out.println(account);
     	logger.debug("Sending login OTP email to '{}'", account.getEmail());
         sendEmailFromTemplate(account, templateName);
-        return account;
+        /*return ServerResponse.ok()
+    			.contentType(MediaType.APPLICATION_JSON)
+    			.body(Mono.just(response(Result._00, null)), Response.class);*/
     }
 
 

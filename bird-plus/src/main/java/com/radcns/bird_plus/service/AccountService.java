@@ -27,7 +27,12 @@ import reactor.core.publisher.Mono;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.security.KeyPair;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Year;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -55,7 +60,7 @@ public class AccountService implements Serializable {
      * @param user
      * @return
      */
-    private Token generateAccessToken(AccountEntity account, JwtIssuerType type) {
+    public Token generateAccessToken(AccountEntity account, JwtIssuerType type) {
     	
     	Map<String, List<Role>> claims = Map.of("role", account.getRoles());
     	
@@ -77,7 +82,7 @@ public class AccountService implements Serializable {
                 .signWith(keyPair.getPrivate(), SignatureAlgorithm.RS256);
                 
         if( ! type.equals(JwtIssuerType.BOT)) {
-        	token.setExpiration(expirationDate);
+        	token.setExpiration( new Date(new Date().getTime() + LocalDate.of(9000, 12, 31).atStartOfDay(ZoneOffset.systemDefault()).toInstant().toEpochMilli()));
         }
         return Token.builder()
                 .token(token.compact())
@@ -90,11 +95,9 @@ public class AccountService implements Serializable {
 
     public Mono<Token> authenticate(Mono<AccountEntity> accountEntityMono, Optional<InetSocketAddress> optional) {
     	return accountEntityMono.flatMap(accountInfo -> {
-    		return accountRepository.findByAccountName(accountInfo.getAccountName()).doOnSuccess(account->{
-    			if(account == null) {
-    				throw new AuthException(103);
-    			}
-    		}).flatMap(account -> {
+    		return accountRepository.findByAccountName(accountInfo.getAccountName()).switchIfEmpty(
+    			Mono.error(new AuthException(103))
+    		).flatMap(account -> {
         		if ( ! account.getIsEnabled()) {
     				return Mono.error(new AuthException(101));
     			}else if(!passwordEncoder.encode(accountInfo.getPassword()).equals(account.getPassword())) {
@@ -141,5 +144,4 @@ public class AccountService implements Serializable {
         return accountRepository.findById(userId);
     }
     
-   
 }

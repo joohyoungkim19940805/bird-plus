@@ -21,7 +21,7 @@ public class LoginHandler {
 	public Mono<ServerResponse> isLogin(ServerRequest request){
 		return ok()
 				.contentType(MediaType.APPLICATION_JSON)
-				.body(Mono.just(response(Result._00, null)), Response.class);
+				.body(Mono.just(response(Result._0, null)), Response.class);
 	}
 
 }
