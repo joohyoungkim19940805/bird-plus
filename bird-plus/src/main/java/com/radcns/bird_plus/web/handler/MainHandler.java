@@ -101,7 +101,7 @@ public class MainHandler {
 		/*
 		return request.bodyToMono(AccountEntity.class)
 				.flatMap(account -> accountRepository.findByEmail(account.getEmail())
-						.doOnSuccess(e->mailService.sendForgotPasswordEmail(account, "content/mail/forgotPasswordTemplate"))
+						.map(e->mailService.sendForgotPasswordEmail(account, "content/mail/forgotPasswordTemplate"))
 				)
 				.flatMap(account ->
 					ok()

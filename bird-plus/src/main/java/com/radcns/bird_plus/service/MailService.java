@@ -6,14 +6,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
-import org.springframework.http.MediaType;
+
 import org.springframework.mail.MailException;
-import org.springframework.mail.SimpleMailMessage;
+
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.scheduling.annotation.Async;
+
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.server.ServerResponse;
+
 import org.thymeleaf.context.Context;
 
 import org.thymeleaf.spring6.ISpringWebFluxTemplateEngine;
@@ -21,20 +21,14 @@ import org.thymeleaf.spring6.ISpringWebFluxTemplateEngine;
 import com.radcns.bird_plus.config.security.JwtIssuerType;
 import com.radcns.bird_plus.entity.customer.AccountEntity;
 import com.radcns.bird_plus.entity.dto.ForgotEmailDto;
-import com.radcns.bird_plus.util.CommonUtil;
-import com.radcns.bird_plus.util.Response;
-import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
+
 import com.radcns.bird_plus.util.properties.EmailProperties;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import reactor.core.publisher.Mono;
 
-import static com.radcns.bird_plus.util.Response.response;
-import static org.springframework.web.reactive.function.server.ServerResponse.ok;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 @Service
@@ -56,7 +50,6 @@ public class MailService {
     private ISpringWebFluxTemplateEngine thymeleafTemplateEngine;
     @Autowired
     private EmailProperties emailProperties;
-    
     @Autowired
     private AccountService accountService;
     
@@ -82,7 +75,6 @@ public class MailService {
         }
     }
 
-    @Async
     private void sendEmailFromTemplate(AccountEntity account, String templateName) {
         if (account.getEmail() == null) {
         	logger.debug("Email doesn't exist for user '{}'", account.getEmail());
@@ -90,9 +82,12 @@ public class MailService {
         }
         Locale locale = Locale.forLanguageTag(DEFAULT_LANGUAGE);
         Context context = new Context(locale);
+        account.setEmail(URLEncoder.encode(account.getEmail(), StandardCharsets.UTF_8));
         context.setVariable("account", account);
         context.setVariable("baseUrl", emailProperties.getBaseUrl());
+
         context.setVariable("token", accountService.generateAccessToken(account, JwtIssuerType.FORGOT_PASSWORD).getToken());
+
         String content = thymeleafTemplateEngine.process(templateName, context);
         String subject = "Account Recovery - RADCNS";//messageSource.getMessage(titleKey, null, locale);
 
