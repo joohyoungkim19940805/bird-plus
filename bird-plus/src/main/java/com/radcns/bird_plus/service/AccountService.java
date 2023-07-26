@@ -15,8 +15,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.radcns.bird_plus.config.security.JwtIssuerType;
 import com.radcns.bird_plus.config.security.Role;
 import com.radcns.bird_plus.config.security.Token;
-import com.radcns.bird_plus.entity.customer.AccountEntity;
-import com.radcns.bird_plus.entity.customer.AccountLogEntity;
+import com.radcns.bird_plus.entity.account.AccountEntity;
+import com.radcns.bird_plus.entity.account.AccountLogEntity;
 import com.radcns.bird_plus.repository.customer.AccountLogRepository;
 import com.radcns.bird_plus.repository.customer.AccountRepository;
 import com.radcns.bird_plus.util.exception.AuthException;
@@ -73,12 +73,16 @@ public class AccountService implements Serializable {
                 .setClaims(claims)
                 .setIssuer(account.getAccountName())
                 .setSubject(account.getEmail())
-                .setHeaderParams(Map.of("jwtIssuerType", type.name()))
                 .setIssuedAt(createdDate)
                 .setId(UUID.randomUUID().toString())
                 //.setHeaderParams(Map.of("typ", "jwt", "alg", "HS256"))
                 //.signWith(Keys.hmacShaKeyFor(secret.getBytes()), SignatureAlgorithm.HS256)
-                .setHeaderParams(Map.of("typ", "jwt", "alg", "RS256"))
+                .setHeaderParams(Map.of(
+                		"typ", "jwt", 
+                		"alg", "RS256", 
+                		"name", account.getName(),
+                		"jwtIssuerType", type.name())
+                )
                 .signWith(keyPair.getPrivate(), SignatureAlgorithm.RS256);
                 
         if( ! type.equals(JwtIssuerType.BOT)) {

@@ -37,7 +37,7 @@ import static org.springframework.web.reactive.function.server.RequestPredicates
 public class MainRouter {
 	
     @RouterOperations({
-    	@RouterOperation(path = "/default/login-processing", produces = {MediaType.APPLICATION_JSON_VALUE },
+    	@RouterOperation(path = "/login-processing", produces = {MediaType.APPLICATION_JSON_VALUE },
     			beanClass = MainHandler.class,  beanMethod = "isAuthenticated",
                 operation = @Operation(operationId = "isAuthenticated",
                         responses = {
@@ -55,6 +55,8 @@ public class MainRouter {
 				.and(route( POST("/create").and(accept(MediaType.APPLICATION_JSON)), mainHandler::create ))
 				.and(route( POST("/login-processing").and(accept(MediaType.APPLICATION_JSON)), mainHandler::loginProc ))
 				.and(route( POST("/forgot-password-send-email").and(accept(MediaType.APPLICATION_JSON)), mainHandler::forgotPassword ))
+				.and(route( GET("/change-password-page/{token}").and(accept(MediaType.TEXT_HTML)), mainHandler::changePasswordPage ))
+				.and(route( POST("/change-password").and(accept(MediaType.APPLICATION_JSON)), mainHandler::changePassword ))
 				;
 	}
 
@@ -74,7 +76,7 @@ public class MainRouter {
 	public RouterFunction<ServerResponse> apiChatting(ChattingHandler chattingHandler){
 		return route().nest(path("/api/chatting"), builder -> builder
 					.POST("/stream", accept(MediaType.APPLICATION_JSON), chattingHandler::addStream)
-					.GET("/stream/{auth}", chattingHandler::getStream)
+					.GET("/stream/{auth}", chattingHandler::emissionStream)
 				).build();
 		/*
 		return route( POST("/api/chatting/stream").and(accept(MediaType.APPLICATION_JSON)), chattingHandler::addStream )

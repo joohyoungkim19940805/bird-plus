@@ -15,12 +15,12 @@ public class UnauthorizedException extends BirdPlusException {
 	@Override
 	public Result getResult() {
 		// TODO Auto-generated method stub
-		return Result.valueOf("_"+this.code);
+		return Result.valueOf("_" + this.code);
 	}
 	@Override
 	public Result getResult(int code) {
 		// TODO Auto-generated method stub
-		return Result.valueOf("_"+code);
+		return Result.valueOf("_" + code);
 	}
 
 }

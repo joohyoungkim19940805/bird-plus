@@ -3,7 +3,7 @@ package com.radcns.bird_plus.repository.customer;
 
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 
-import com.radcns.bird_plus.entity.customer.AccountLogEntity;
+import com.radcns.bird_plus.entity.account.AccountLogEntity;
 
 import reactor.core.publisher.Mono;
 

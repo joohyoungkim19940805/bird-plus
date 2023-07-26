@@ -180,9 +180,7 @@ const getStart = new class GetStart{
 	}
 	
 	forgotPasswordPageEvent(forgotPassworPage){
-		console.log('???');
 		let form = forgotPassworPage.querySelector('#forgot_password_form');
-		console.log(form);
 		form.onsubmit = (event) => {
 			event.preventDefault();
 			fetch('/forgot-password-send-email', {
@@ -195,7 +193,6 @@ const getStart = new class GetStart{
 				if( ! response.ok){
 					console.log(response);	
 				}
-				console.log(response.text());
 				return response.json();
 			}).then(result=>{
 				console.log(result);

@@ -1,4 +1,4 @@
-package com.radcns.bird_plus.entity.customer;
+package com.radcns.bird_plus.entity.account;
 
 import java.time.LocalDateTime;
 
@@ -25,6 +25,7 @@ public class AccountLogEntity {
 	
 	private Long id;
 	
+    @Column("ip")
 	private String ip;
 	
     @Column("create_at")

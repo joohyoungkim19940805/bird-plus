@@ -1,4 +1,4 @@
-package com.radcns.bird_plus.entity.customer;
+package com.radcns.bird_plus.entity.account;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -11,22 +11,24 @@ import org.springframework.data.annotation.LastModifiedDate;
 
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
+import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.radcns.bird_plus.config.security.Role;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+import org.mapstruct.InheritInverseConfiguration;
+import org.mapstruct.Mapper;
+
+@Data
 @Builder(toBuilder = true)
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @ToString
 @Table(value="cu_account")
 public class AccountEntity {
@@ -74,5 +76,6 @@ public class AccountEntity {
     
     @Column("email")
     private String email;
+    
 
 }

@@ -84,7 +84,7 @@ public class ChattingHandler {
 				.onErrorResume(e -> Mono.error(new UnauthorizedException(100)));
 		*/
 	}
-	public Mono<ServerResponse> getStream(ServerRequest serverRequest) {
+	public Mono<ServerResponse> emissionStream(ServerRequest serverRequest) {
 		return ServerResponse.ok().contentType(MediaType.TEXT_EVENT_STREAM)
 				.body(chattingSink.asFlux().map(e->{
 					e.setAccountId(null);
@@ -93,10 +93,5 @@ public class ChattingHandler {
 				//.log();
 				;
 	}
-	public Mono<ServerResponse> test(ServerRequest serverRequest) {
-		return ServerResponse.ok()
-				.body(Mono.just(Map.of("test", "1121")), Object.class)
-				//.log();
-				;
-	}
+
 }

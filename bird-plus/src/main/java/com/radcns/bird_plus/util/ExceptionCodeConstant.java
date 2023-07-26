@@ -20,9 +20,9 @@ public interface ExceptionCodeConstant {
 		private String message;
 		private String summary;
 		Result(int code, String message, String summary) {
-			this.code=code;
-			this.message=message;
-			this.summary=summary;
+			this.code = code;
+			this.message = message;
+			this.summary = summary;
 		}
 		public int code() {
 			return this.code;

@@ -19,7 +19,7 @@ import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.ISpringWebFluxTemplateEngine;
 
 import com.radcns.bird_plus.config.security.JwtIssuerType;
-import com.radcns.bird_plus.entity.customer.AccountEntity;
+import com.radcns.bird_plus.entity.account.AccountEntity;
 import com.radcns.bird_plus.entity.dto.ForgotEmailDto;
 
 import com.radcns.bird_plus.util.properties.EmailProperties;
