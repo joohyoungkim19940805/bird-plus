@@ -18,9 +18,13 @@ import com.radcns.bird_plus.service.MailService;
 import com.radcns.bird_plus.util.Response;
 import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
 import com.radcns.bird_plus.util.exception.AuthException;
+import com.radcns.bird_plus.util.exception.ForgotPasswordException;
 import com.radcns.bird_plus.util.exception.UnauthorizedException;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.JwsHeader;
+import io.jsonwebtoken.Jwt;
 import reactor.core.publisher.Mono;
 
 import static com.radcns.bird_plus.util.Response.response;
@@ -63,7 +67,7 @@ public class MainHandler {
 				.body(accountService.createUser(request.bodyToMono(AccountEntity.class))
 					.map(e -> response(Result._0, e)), Response.class
 				)
-				.onErrorResume(e -> Mono.error(new UnauthorizedException(110)));
+				.onErrorResume(e -> Mono.error(new UnauthorizedException(Result._110)));
 	}
 	
 	public Mono<ServerResponse> loginProc(ServerRequest request){
@@ -91,60 +95,77 @@ public class MainHandler {
 		return ok()
 				.contentType(MediaType.APPLICATION_JSON)
 				.body(request.bodyToMono(String.class).map(e->response(Result._0, e)), Response.class)
-				.onErrorResume(e -> Mono.error(new UnauthorizedException(999)));
+				.onErrorResume(e -> Mono.error(new UnauthorizedException(Result._999)));
 	}
 	
 	public Mono<ServerResponse> forgotPassword(ServerRequest request){
 		return request.bodyToMono(AccountEntity.class)
 				.flatMap(account -> accountRepository.findByEmail(account.getEmail()))
-				.switchIfEmpty(Mono.error(new AuthException(1)))
+				.switchIfEmpty(Mono.error(new AuthException(Result._108)))
 				.doOnNext(e->{
 					mailService.sendForgotPasswordEmail(e, "content/mail/forgotPasswordTemplate");
 				})
 				.flatMap(account -> 
 					ok()
 					.contentType(MediaType.APPLICATION_JSON)
-					.body(Mono.just(response(Result._0, account)), Response.class)
+					.body(Mono.just(response(Result._0, null)), Response.class)
 				);
 	}
 	
 	public Mono<ServerResponse> changePasswordPage(ServerRequest request){
-		return request.bodyToMono(AccountEntity.class)
-			.flatMap(account -> {
-				String token = request.pathVariable("token");
-				System.out.println("kjh test <<< token");
-				System.out.println(token);
+		return Mono.just(request.queryParam("email"))
+			.flatMap(emial -> {
+				String token = request.pathVariable("token").replace("bearer-", "");
 				
-				Claims claims = jwtVerifyHandler.getAllClaimsFromToken(token);
+				Jws<Claims> jws = jwtVerifyHandler.getJwt(token);
+				Claims claims = jws.getBody();
+				JwsHeader<?> header = jws.getHeader();
 				Date expiration = claims.getExpiration();
-				if( ! JwtIssuerType.FORGOT_PASSWORD.name().equals( String.valueOf(claims.get("jwtIssuerType")) )) {
-					return Mono.error( new UnauthorizedException(107) );
+
+				if( ! JwtIssuerType.FORGOT_PASSWORD.name().equals( String.valueOf(header.get("jwtIssuerType")) )) {
+					return ok()
+							.contentType(MediaType.parseMediaType("text/html;charset=UTF-8"))
+							//.render("content/loginPage.html", Map.of("resourcesNameList", List.of("loginPage")));
+							.render("content/account/changePasswordExpired.html");
 				}else if(expiration.before(new Date())) {
 					return ok()
 							.contentType(MediaType.parseMediaType("text/html;charset=UTF-8"))
 							//.render("content/loginPage.html", Map.of("resourcesNameList", List.of("loginPage")));
 							.render("content/account/changePasswordExpired.html");
 				}
-				account.setAccountName(claims.getIssuer());
-				account.setName((String)claims.get("name"));
+
 				return ok()
 						.contentType(MediaType.parseMediaType("text/html;charset=UTF-8"))
 						.render("content/account/changePassword.html", Map.of(
-								"account", account,
+								"email", claims.getSubject(),
 								"token", token
 						));
+			})
+			.onErrorResume(e->{
+				return Mono.error(new UnauthorizedException(Result._104));
 			});
 	}
 	
 	public Mono<ServerResponse> changePassword(ServerRequest request){
-		request.bodyToMono(AccountVo.class).flatMap(account -> accountRepository.findByEmail(account.getEmail()))
-		.switchIfEmpty(Mono.error(new AuthException(1)))
-		.doOnNext(account->{
-			accountRepository.save(account);
-		})
-		.flatMap(null)
-		;
-		return null;
+		return request.bodyToMono(AccountVo.class)
+			.flatMap(accountVo ->
+				accountRepository.findByEmail(accountVo.getEmail())
+				.switchIfEmpty(Mono.error(new AuthException(Result._1)))
+				.map(e->{
+					e.setPassword(accountService.passwordEncoder.encode(accountVo.getPassword()));
+					return e;
+				})
+			)
+			.flatMap(account->
+				accountRepository.save(account)
+			)
+			.switchIfEmpty(Mono.error(new ForgotPasswordException(Result._108)))
+			.flatMap(e->
+				ok()
+				.contentType(MediaType.APPLICATION_JSON)
+				.body(Mono.just(response(Result._0, null)), Response.class)
+			)
+			;
 	}
 	
 	/*

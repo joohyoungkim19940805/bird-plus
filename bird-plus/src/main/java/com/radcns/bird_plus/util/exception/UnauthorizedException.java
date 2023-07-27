@@ -3,9 +3,8 @@ package com.radcns.bird_plus.util.exception;
 @SuppressWarnings("serial")
 public class UnauthorizedException extends BirdPlusException {
 	
-	
-	public UnauthorizedException(int status) {
-		super(Result.valueOf("_"+status).message(), status);
+	public UnauthorizedException(Result result) {
+		super(result);
 	}
 	
 	@Override

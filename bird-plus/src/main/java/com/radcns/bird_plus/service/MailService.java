@@ -82,8 +82,8 @@ public class MailService {
         }
         Locale locale = Locale.forLanguageTag(DEFAULT_LANGUAGE);
         Context context = new Context(locale);
-        account.setEmail(URLEncoder.encode(account.getEmail(), StandardCharsets.UTF_8));
-        context.setVariable("account", account);
+        //account.setEmail(URLEncoder.encode(account.getEmail(), StandardCharsets.UTF_8));
+        context.setVariable("email", account.getEmail());
         context.setVariable("baseUrl", emailProperties.getBaseUrl());
 
         context.setVariable("token", accountService.generateAccessToken(account, JwtIssuerType.FORGOT_PASSWORD).getToken());

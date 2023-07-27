@@ -8,6 +8,8 @@ import io.jsonwebtoken.jackson.io.JacksonDeserializer;
 
 import io.jsonwebtoken.security.SignatureException;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.JwtParserBuilder;
 import reactor.core.publisher.Mono;
 
 import java.security.KeyPair;
@@ -16,6 +18,7 @@ import java.util.Date;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
 import com.radcns.bird_plus.util.exception.AuthException;
 import com.radcns.bird_plus.util.exception.UnauthorizedException;
 
@@ -35,40 +38,47 @@ public class JwtVerifyHandler {
     public Mono<VerificationResult> check(String accessToken) {
         return Mono.just(verify(accessToken))
                 .onErrorResume(e -> {
-                	return Mono.error(new UnauthorizedException(100));
+                	return Mono.error(new UnauthorizedException(Result._100));
                 });
     }
 
     private VerificationResult verify(String token) {
-        var claims = getAllClaimsFromToken(token);
+        var claims = getJwt(token).getBody();
         final Date expiration = claims.getExpiration();
         /**
          * Jwts 라이브러리에서 만료 시간 확인 후 throw 중인데 필요한 로직인지?
          */
         if (expiration.before(new Date())) {
-            throw new UnauthorizedException(100);
+            throw new UnauthorizedException(Result._100);
         }
 
         return new VerificationResult(claims, token);
     }
 
-    public Claims getAllClaimsFromToken(String token) {
+    public Jws<Claims> getJwt(String token) {
     	try {
     		return Jwts.parserBuilder()
         		.deserializeJsonWith(new JacksonDeserializer<Map<String,?>>(this.om))
         		.setSigningKey(keyPair.getPublic())
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseClaimsJws(token);
     	}catch(ExpiredJwtException e) {
-    		throw new AuthException(100, e);
+    		//e.printStackTrace();
+    		throw new AuthException(Result._100);
     	}catch(UnsupportedJwtException e) {
-    		throw new AuthException(105, e);
+    		//e.printStackTrace();
+    		throw new AuthException(Result._105);
     	}catch(MalformedJwtException e) {
-    		throw new AuthException(106, e);
-    	}catch( SignatureException e) {
-    		throw new AuthException(107, e);
+    		//e.printStackTrace();
+    		throw new AuthException(Result._106);
+    	}catch(SignatureException e) {
+    		//e.printStackTrace();
+    		throw new AuthException(Result._107);
     	}
+    }
+    
+    public void getHaders(String token) {
+    	
     }
 
     public class VerificationResult {

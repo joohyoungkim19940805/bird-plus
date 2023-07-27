@@ -19,6 +19,7 @@ import com.radcns.bird_plus.entity.account.AccountEntity;
 import com.radcns.bird_plus.entity.account.AccountLogEntity;
 import com.radcns.bird_plus.repository.customer.AccountLogRepository;
 import com.radcns.bird_plus.repository.customer.AccountRepository;
+import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
 import com.radcns.bird_plus.util.exception.AuthException;
 
 import reactor.core.publisher.Flux;
@@ -46,7 +47,7 @@ public class AccountService implements Serializable {
     @Autowired
 	private AccountRepository accountRepository;
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    public PasswordEncoder passwordEncoder;
     @Autowired
     private AccountLogRepository accountLogRepository;
     @Autowired
@@ -99,34 +100,35 @@ public class AccountService implements Serializable {
 
     public Mono<Token> authenticate(Mono<AccountEntity> accountEntityMono, Optional<InetSocketAddress> optional) {
     	return accountEntityMono.flatMap(accountInfo -> {
-    		return accountRepository.findByAccountName(accountInfo.getAccountName()).switchIfEmpty(
-    			Mono.error(new AuthException(103))
-    		).flatMap(account -> {
-        		if ( ! account.getIsEnabled()) {
-    				return Mono.error(new AuthException(101));
-    			}else if(!passwordEncoder.encode(accountInfo.getPassword()).equals(account.getPassword())) {
-    				return Mono.error(new AuthException(102));
-             	}else {
-             		AccountLogEntity accountLogEntity = AccountLogEntity.builder()
-             			.id(account.getId())
-             			.ip(optional.get().getAddress().getHostAddress())
-             			.build();
-             		return accountLogRepository.existsByIp(accountLogEntity.getIp()).flatMap(existsByIp->{
-             			account.setIsDifferentIp( ! existsByIp);
-             			if(account.getIsFirstLogin()) {
-             				if(existsByIp) {
-             					account.setIsFirstLogin(false);
-             				}
-             				account.setIsDifferentIp(false);
-             			}
-             			return accountRepository.save(account)
-             				.flatMap(e->accountLogRepository.save(accountLogEntity));
-             		}).flatMap(e -> Mono.just(generateAccessToken(account, JwtIssuerType.ACCOUNT).toBuilder()
-                     			.userId(account.getId())
-                     			.build())
-             		);
-             	}
-        	});
+    		return accountRepository.findByAccountName(accountInfo.getAccountName())
+	    		.switchIfEmpty(
+	    			Mono.error(new AuthException(Result._103))
+	    		).flatMap(account -> {
+	        		if ( ! account.getIsEnabled()) {
+	    				return Mono.error(new AuthException(Result._101));
+	    			}else if(!passwordEncoder.encode(accountInfo.getPassword()).equals(account.getPassword())) {
+	    				return Mono.error(new AuthException(Result._102));
+	             	}else {
+	             		AccountLogEntity accountLogEntity = AccountLogEntity.builder()
+	             			.id(account.getId())
+	             			.ip(optional.get().getAddress().getHostAddress())
+	             			.build();
+	             		return accountLogRepository.existsByIp(accountLogEntity.getIp()).flatMap(existsByIp->{
+	             			account.setIsDifferentIp( ! existsByIp);
+	             			if(account.getIsFirstLogin()) {
+	             				if(existsByIp) {
+	             					account.setIsFirstLogin(false);
+	             				}
+	             				account.setIsDifferentIp(false);
+	             			}
+	             			return accountRepository.save(account)
+	             				.flatMap(e->accountLogRepository.save(accountLogEntity));
+	             		}).flatMap(e -> Mono.just(generateAccessToken(account, JwtIssuerType.ACCOUNT).toBuilder()
+	                     			.userId(account.getId())
+	                     			.build())
+	             		);
+	             	}
+	        	});
     	});
     }
     
@@ -146,6 +148,9 @@ public class AccountService implements Serializable {
 
     public Mono<AccountEntity> getUser(Long userId) {
         return accountRepository.findById(userId);
+    }
+    public Mono<AccountEntity> getUser(String email) {
+        return accountRepository.findByEmail(email);
     }
     
 }

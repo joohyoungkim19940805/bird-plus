@@ -26,9 +26,12 @@ import lombok.ToString;
 
 import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
 
 @Data
 @Builder(toBuilder = true)
+@NoArgsConstructor
+@AllArgsConstructor
 @ToString
 @Table(value="cu_account")
 public class AccountEntity {
@@ -77,5 +80,27 @@ public class AccountEntity {
     @Column("email")
     private String email;
     
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AccountVo {
+    	private String email;
+    	private String password;
+    	private String token;
+    }
+    
+    /**
+     * 
+     * @author kim.joohyoung
+     * BasicUserDTO dto = BasicMapper.INSTANCE.convert(user);
+     */
+    @Mapper
+    public interface AccountMapper{
+    	AccountMapper INSTANCE = Mappers.getMapper(AccountMapper.class);
 
+    	AccountEntity entity(AccountVo vo);
+
+    	AccountVo vo(AccountEntity entity);
+    }
 }

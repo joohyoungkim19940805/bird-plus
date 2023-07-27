@@ -59,7 +59,15 @@ public class WebFluxSecurityConfig {
 		                    Mono.fromRunnable(() -> swe.getResponse().setStatusCode(HttpStatus.FORBIDDEN))
 		                )
                 )
-
+                
+                .httpBasic(httpBasicSpec -> httpBasicSpec
+                		.authenticationEntryPoint((swe, e) -> 
+                        Mono.fromRunnable(() -> swe.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED))
+	                    )
+                		.authenticationManager(authManager)
+                )
+                
+                
                 .headers(headersSpec -> headersSpec
                 		.contentSecurityPolicy(contentSecuritySpec->contentSecuritySpec
                 				.policyDirectives("default-src 'self'; frame-src 'self' data:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://storage.googleapis.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:")
@@ -77,6 +85,7 @@ public class WebFluxSecurityConfig {
                 .csrf(csrfSpec -> csrfSpec
                 		.disable()
                 )
+                
                 
                 .logout(logoutSpec -> logoutSpec
 	            		.logoutUrl("/logout")
@@ -101,7 +110,7 @@ public class WebFluxSecurityConfig {
 			                .anyExchange().authenticated()
                 )
                 
-                .addFilterAt(bearerAuthenticationFilter(authManager), SecurityWebFiltersOrder.AUTHENTICATION)
+                .addFilterAt(bearerAuthenticationFilter(authManager), SecurityWebFiltersOrder.HTTP_BASIC)
                 
                 .build();
     }

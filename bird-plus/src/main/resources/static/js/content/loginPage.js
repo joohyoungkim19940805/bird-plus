@@ -29,8 +29,8 @@ const getStart = new class GetStart{
 					<input type="password" id="get_start_login_password" name="password" class="account_password" placeholder="Please enter your password" autocomplete="current-password"/>
 				</div>
 				<div class="find_wrapper">
-					<a href="/" id="get_start_forgot_password">Forgot password?</a>
-					<a href="/" id="get_start_sign_up">sign up</a>
+					<a href="javascript:void(0);" class="get_start_forgot_password">Forgot password?</a>
+					<a href="javascript:void(0);" class="get_start_sign_up">sign up</a>
 				</div>
 				<div>
 					<button type="button" class="login_send">login</button>
@@ -61,8 +61,17 @@ const getStart = new class GetStart{
 	constructor(){
 		
 		this.addOpeningEvent();
-		console.log(headerController);
 		headerController.loginEvent(this.#loginPage, {isContainerLayer: false});
+		let [forgotPassword, signUp] = this.#loginPage.querySelectorAll('.get_start_forgot_password, .get_start_sign_up');
+		forgotPassword.onclick = () => {
+			this.createRoomContainer.classList.remove('start');
+			this.createRoomContainer.ontransitionend = (event) => {
+				this.showForgotPasswordPage();
+				this.createRoomContainer.ontransitionend = '';
+				this.createRoomContainer.classList.add('start');
+			}
+		}
+		signUp.onclick = () => console.log('');
 		this.forgotPasswordPageEvent(this.#forgotPasswordPage)
 	}
 	
@@ -144,8 +153,8 @@ const getStart = new class GetStart{
 		})
 
 		padeEndProise.then(()=>{
-			//this.showLoginPage();
-			this.showForgotPasswordPage();
+			this.showLoginPage();
+			//this.showForgotPasswordPage();
 			return Promise.all(padeEndPromiseList).then(()=>{
 				let delay = 100;
 				
@@ -195,7 +204,23 @@ const getStart = new class GetStart{
 				}
 				return response.json();
 			}).then(result=>{
-				console.log(result);
+				if(result.code != 0){
+					alert(result.message);
+					console.error(result);
+				}else{
+					this.createRoomContainer.classList.remove('start');
+					this.createRoomContainer.ontransitionend = (event) => {
+						this.showLoginPage();
+						this.createRoomContainer.ontransitionend = '';
+						this.createRoomContainer.classList.add('start');
+					}
+				}
+				
+			}).catch(err => {
+				console.error(err);
+				if(err.message){
+					alert(err.message);
+				}
 			})
 		}
 	}

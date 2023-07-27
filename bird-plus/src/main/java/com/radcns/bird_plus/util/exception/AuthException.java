@@ -4,11 +4,11 @@ import io.jsonwebtoken.JwtException;
 
 @SuppressWarnings("serial")
 public class AuthException extends BirdPlusException {
-	public AuthException(int code) {
-		super(Result.valueOf("_"+code).message(), code);
+	public AuthException(Result result) {
+		super(result.message(), result.code());
 	}
-	public AuthException(int code, JwtException e) {
-		super(Result.valueOf("_"+code).withChangeMessage(e.getMessage()).message(), code);
+	public AuthException(Result result, JwtException e) {
+		super(result.withChangeMessage(e.getMessage()).message(), result.code());
 	}
 	
 	@Override

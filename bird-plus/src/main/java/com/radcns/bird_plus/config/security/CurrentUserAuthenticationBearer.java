@@ -14,21 +14,15 @@ public class CurrentUserAuthenticationBearer {
     public static Mono<Authentication> create(JwtVerifyHandler.VerificationResult verificationResult) {
     	Claims claims = verificationResult.claims;
     	String subject = claims.getSubject();
-        List<String> roles = claims.get("role", List.class);
+    	List<String> roles = claims.get("role", List.class);
         var authorities = roles.stream()
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
 
-        var principalId = 0L;
-
-        try {
-            principalId = Long.parseLong(subject);
-        } catch (NumberFormatException ignore) { }
-
-        if (principalId == 0)
+        if (subject == null)
             return Mono.empty(); // invalid value for any of jwt auth parts
 
-        var principal = new UserPrincipal(principalId, claims.getIssuer());
+        var principal = new UserPrincipal(subject, claims.getIssuer());
 
         return Mono.justOrEmpty(new UsernamePasswordAuthenticationToken(principal, null, authorities));
     }

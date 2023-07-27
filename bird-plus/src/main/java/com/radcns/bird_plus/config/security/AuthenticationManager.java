@@ -9,6 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import com.radcns.bird_plus.service.AccountService;
+import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
 import com.radcns.bird_plus.util.exception.UnauthorizedException;
 
 import reactor.core.publisher.Mono;
@@ -27,7 +28,7 @@ public class AuthenticationManager implements ReactiveAuthenticationManager {
     	UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
     	return accountService.getUser(principal.getId())
             .filter(user -> user.getIsEnabled())
-            .switchIfEmpty(Mono.error(new UnauthorizedException(104)))
+            .switchIfEmpty(Mono.error(new UnauthorizedException(Result._104)))
             .map(user -> authentication);
     }
     /*

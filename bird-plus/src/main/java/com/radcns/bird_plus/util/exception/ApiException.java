@@ -4,7 +4,7 @@ package com.radcns.bird_plus.util.exception;
 public class ApiException extends BirdPlusException {
 	
 	public ApiException(Result result) {
-		super(result.message(), result.code());
+		super(result);
 	}
 	
 	@Override
@@ -14,11 +14,11 @@ public class ApiException extends BirdPlusException {
 	@Override
 	public Result getResult() {
 		// TODO Auto-generated method stub
-		return Result.valueOf("_"+this.code);
+		return super.result;
 	}
 	@Override
 	public Result getResult(int status) {
 		// TODO Auto-generated method stub
-		return Result.valueOf("_"+status);
+		return super.result;
 	}
 }

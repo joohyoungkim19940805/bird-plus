@@ -10,6 +10,7 @@ import com.radcns.bird_plus.config.security.JwtVerifyHandler;
 import com.radcns.bird_plus.entity.chatting.ChattingEntity;
 import com.radcns.bird_plus.repository.chatting.ChattingRepository;
 import com.radcns.bird_plus.repository.customer.AccountRepository;
+import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
 import com.radcns.bird_plus.util.exception.UnauthorizedException;
 
 import io.jsonwebtoken.Claims;
@@ -56,7 +57,7 @@ public class ChattingHandler {
 				})*/
 				.flatMap(chatting -> {
 					String token = request.headers().firstHeader(HttpHeaders.AUTHORIZATION);
-					Claims claims = jwtVerifyHandler.getAllClaimsFromToken(token);
+					Claims claims = jwtVerifyHandler.getJwt(token).getBody();
 					ChattingEntity chattingEntity = ChattingEntity
 							.builder()
 							//.accountId(Long.parseLong(claims.getSubject()))
@@ -74,14 +75,14 @@ public class ChattingHandler {
 					);
 				})
 				//.log()
-				.onErrorResume(e -> Mono.error(new UnauthorizedException(999)))
+				.onErrorResume(e -> Mono.error(new UnauthorizedException(Result._999)))
 				;
 				
 		/*
 		return ok()
 				.contentType(MediaType.APPLICATION_JSON)
 				.body(request.bodyToMono(String.class).map(e->response(Result._00, e)), Response.class)
-				.onErrorResume(e -> Mono.error(new UnauthorizedException(100)));
+				.onErrorResume(e -> Mono.error(new UnauthorizedException(Result._100)));
 		*/
 	}
 	public Mono<ServerResponse> emissionStream(ServerRequest serverRequest) {

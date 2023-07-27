@@ -5,7 +5,7 @@ public interface ExceptionCodeConstant {
 	public enum Result {
 		_0(0, "처리에 성공하였습니다.", "SUCCESS"),
 		_1(1, "처리에 실패하였습니다.", "SERVER RESPONSE SOMETHING WRONG"),
-		_100(100, "다시 로그인을 시도해주십시오.", "JWT TOKEN EXPIRED"),
+		_100(100, "다시 로그인을 시도해주십시오.", "TOKEN EXPIRED"),
 		_101(101, "해당 기능에 권한이 없습니다.", "ACCOUNT IS DISABLED STATUS"),
 		_102(102, "로그인 정보가 잘못되었습니다.", "INVALID ACCOUNT"), //"잘못된 비밀번호입니다.", "INVALID ACCOUNT PASSWORD"),
 		_103(103, "로그인 정보가 잘못되었습니다.", "INVALID ACCOUNT"),
@@ -13,6 +13,7 @@ public interface ExceptionCodeConstant {
 		_105(105, "로그인 정보가 잘못되었습니다. 다시 로그인을 시도해주십시오.", "NOT SUPPORTED TOKEN"),
 		_106(106, "호환되지 않은 계정 정보입니다. 다시 로그인을 시도해주십시오.", "NOT A VALID TOKEN"),
 		_107(107, "인증 할 수 없는 계정입니다. 다시 로그인을 시도해주십시오.", "SIGNATURE VALIDATION FAILS"),
+		_108(108, "해당 이메일로 된 계정은 존재하지 않습니다.", "PASSWORD CHANGE IS FAILS"),
 		_110(110, "회원 가입에 실패하였습니다.", "ACCOUNT REGIST FAILED"),
 		_999(999, "처리에 실패하였습니다. 잠시 후 다시 시도해주십시오.", "SERVER NOT DEFINED THIS ERROR")
 		;

@@ -56,6 +56,18 @@
 				            	common.processingElementPosition(this.loginContainer, this.loginButton)
 				            }
 						})
+						common.isLogin(result => {
+							if(result.isLogin){
+								this.loginContainer.querySelector('.login_send').onclick = '';
+	    						this.loginButton.onclick = '';
+		    					let img = Object.assign(document.createElement('img'),{
+		    						width: '1rem',
+		    						src : '/images/user.png'
+		    					});
+		    					this.loginButton.replaceChildren(img);
+		    					this.loginSuccessResolve();
+							}
+						})
 					}
 		    		
 		    		loginEvent(container, {isContainerLayer = true, loginStartButton = this.loginButton} = {}){

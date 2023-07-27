@@ -43,14 +43,17 @@ public class ServerHttpBearerAuthenticationConverter implements ServerAuthentica
 	    		String[] paths = serverWebExchange.getRequest().getPath().pathWithinApplication().value().split("/");
 	    		
 	    		auth = paths.length == 0 ? "" : paths[paths.length - 1];
-	
+
 	    		if(auth.contains("bearer-")) {
 	    			auth = auth.replace("bearer-","");
 	    		}else {
 	    			auth = null;
 	    		}
+
     		}
     	}
+    	System.out.println("kjh test <<< auth");
+    	System.out.println(auth);
     	//Authorization
         return Mono.justOrEmpty(auth);
     }
