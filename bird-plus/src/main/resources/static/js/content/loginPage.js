@@ -20,7 +20,7 @@ const getStart = new class GetStart{
 					<div>
 						<label for="get_start_login_id">ID</label>
 					</div>
-					<input type="text" name="id" id="get_start_login_id" class="account_id" placeholder="Please enter your ID" autocomplete="username"/>
+					<input type="text" name="account_name" id="get_start_login_id" class="account_name" placeholder="Please enter your ID" autocomplete="username"/>
 				</div>
 				<div>
 					<div>
@@ -58,21 +58,68 @@ const getStart = new class GetStart{
 		`
 	})
 	
+	#signUpPage = Object.assign(document.createElement('div'),{
+		className: 'sign_up_page',
+		innerHTML : `
+			<form id="sign_up_form">
+				<div>
+					<div>
+						<label for="sign_up_account_name">your account id</label>
+					</div>
+					<input type="text" name="account_name" id="sign_up_account_name" class="account_name" placeholder="Please enter your ID" autocomplete="username" required/>
+				</div>
+				<div>
+					<div>
+						<label for="sign_up_email">your email</label>
+					</div>
+					<input type="email" name="email" id="sign_up_email" placeholder="Please enter your Email" required/>
+				</div>
+				<div>
+					<div>
+						<label for="sign_up_name">your full name</label>
+					</div>
+					<input type="text" name="full_name" id="sign_up_email" placeholder="Please enter your Email" required/>
+				</div>
+				<div>
+					<div>
+						<label for="sign_up_password">your password</label>
+					</div>
+					<input type="password" id="sign_up_password" name="password" class="account_password" placeholder="Please enter your password" autocomplete="current-password" required/>
+				</div>
+				<div>
+					<div>
+						<label for="sign_up_password_again">your password again</label>
+					</div>
+					<input type="password" id="sign_up_password_again" name="password_again" class="account_password" placeholder="Please enter your password (again)" autocomplete="current-password" required/>
+				</div>
+				<div>
+					<button type="submit" class="sign_up_button">sign up</button>
+				</div>
+			</form>
+		`	
+	})
+	
 	constructor(){
 		
 		this.addOpeningEvent();
+
+		/**
+		 * login
+		 */
 		headerController.loginEvent(this.#loginPage, {isContainerLayer: false});
 		let [forgotPassword, signUp] = this.#loginPage.querySelectorAll('.get_start_forgot_password, .get_start_sign_up');
-		forgotPassword.onclick = () => {
-			this.createRoomContainer.classList.remove('start');
-			this.createRoomContainer.ontransitionend = (event) => {
-				this.showForgotPasswordPage();
-				this.createRoomContainer.ontransitionend = '';
-				this.createRoomContainer.classList.add('start');
-			}
-		}
-		signUp.onclick = () => console.log('');
-		this.forgotPasswordPageEvent(this.#forgotPasswordPage)
+		forgotPassword.onclick = () => this.showForgotPasswordPage();
+		signUp.onclick = () => this.showSignUpPage();
+		
+		/**
+		 * forgot password
+		 */
+		this.forgotPasswordPageEvent(this.#forgotPasswordPage);
+
+		/**
+		 * sign up
+		 */
+		this.signUpPageEvent(this.#signUpPage);
 	}
 	
 	addOpeningEvent(){
@@ -153,8 +200,7 @@ const getStart = new class GetStart{
 		})
 
 		padeEndProise.then(()=>{
-			this.showLoginPage();
-			//this.showForgotPasswordPage();
+			this.createRoomContainer.replaceChildren(this.#loginPage);
 			return Promise.all(padeEndPromiseList).then(()=>{
 				let delay = 100;
 				
@@ -181,17 +227,42 @@ const getStart = new class GetStart{
 	}
 
 	showLoginPage(){
-		this.createRoomContainer.replaceChildren(this.#loginPage);
+		this.pageChange(this.#loginPage)	
 	}
 	
 	showForgotPasswordPage(){
-		this.createRoomContainer.replaceChildren(this.#forgotPasswordPage);
+		this.pageChange(this.#forgotPasswordPage)
 	}
-	
+	showSignUpPage(){
+		this.pageChange(this.#signUpPage)
+	}
+
+	/**
+	 * 
+	 * @param {HTMLDivElement} page 
+	 */
+	pageChange(page){
+		this.createRoomContainer.classList.remove('start');
+		this.createRoomContainer.ontransitionend = (event) => {
+			this.createRoomContainer.replaceChildren(page);
+			this.createRoomContainer.ontransitionend = '';
+			this.createRoomContainer.classList.add('start');
+		}			
+	}
+
+	/**
+	 * 
+	 * @param {HTMLDivElement} forgotPassworPage 
+	 */
 	forgotPasswordPageEvent(forgotPassworPage){
 		let form = forgotPassworPage.querySelector('#forgot_password_form');
+		let isClick = false;
 		form.onsubmit = (event) => {
 			event.preventDefault();
+			if(isClick){
+				return;
+			}
+			isClick = true;
 			fetch('/forgot-password-send-email', {
 				method: 'POST',
 				headers: {
@@ -204,19 +275,65 @@ const getStart = new class GetStart{
 				}
 				return response.json();
 			}).then(result=>{
+				isClick = false;
 				if(result.code != 0){
 					alert(result.message);
 					console.error(result);
-				}else{
-					this.createRoomContainer.classList.remove('start');
-					this.createRoomContainer.ontransitionend = (event) => {
-						this.showLoginPage();
-						this.createRoomContainer.ontransitionend = '';
-						this.createRoomContainer.classList.add('start');
-					}
 				}
-				
 			}).catch(err => {
+				isClick = false;
+
+				console.error(err);
+				if(err.message){
+					alert(err.message);
+				}
+			})
+		}
+	}
+
+	/**
+	 * 
+	 * @param {HTMLDivElement} signUpPage 
+	 */
+	signUpPageEvent(signUpPage){
+		let form = signUpPage.querySelector('#sign_up_form');
+		console.log(form);
+		let {
+			account_name: accountName,
+			email,
+			password,
+			password_again: passwordAgain
+		} = form
+		let isClick = false;
+		form.onsubmit = (event) => {
+			event.preventDefault();
+			if(isClick){
+				return;
+			}
+			isClick = true;
+			fetch('/create', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					accountName: accountName.value,
+					email: email.value,
+					password: password.value,
+					passwordAgain: passwordAgain.value,
+				})
+			}).then(response => {
+				if( ! response.ok){
+					console.log(response);
+				}
+				return response.json();
+			}).then(result=>{
+				isClick = false;
+
+				alert(result.message);
+			}).catch(err => {
+				isClick = false;
+
 				console.error(err);
 				if(err.message){
 					alert(err.message);

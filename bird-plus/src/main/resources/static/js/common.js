@@ -71,12 +71,12 @@ const common = new class Common{
 		simpleObserver();
 	}
 	
-	createLoadingRotate(width = 15, height = 15){
+	createLoadingRotate(width = 10, height = 10){
 		let div = Object.assign(document.createElement('div'),{
 			className: 'loading_rotate'
 		});
-		div.style.width = 15 + 'px';
-		div.style.height = 15 + 'px';
+		div.style.width = width + 'px';
+		div.style.height = height + 'px';
 		return div;
 	}
 	

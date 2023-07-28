@@ -20,5 +20,16 @@ public class EmailProperties {
 
     private String baseUrl;
     
-    private String apiKey;
+    private ForgotPasswordProperties forgotPassword;
+    
+    @Data
+    @ToString
+    @Configuration
+    @ConfigurationProperties(prefix="mail.forgot-password")
+    public static class ForgotPasswordProperties {
+    	private String templateName;
+    	private String subject;
+    }
+    
+    
 }

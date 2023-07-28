@@ -1,4 +1,4 @@
-package com.radcns.bird_plus.entity.dto;
+package com.radcns.bird_plus.entity.email.vo;
 
 import java.util.List;
 import java.util.Map;
@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ForgotEmailDto {
+public class EmailVo {
 	private String content;
 	private String to;
 	private String subject;

@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.relational.core.mapping.Column;
@@ -26,6 +27,9 @@ import lombok.With;
 @With
 @Table(value="ch_chatting")
 public class ChattingEntity {
+	
+	@Id
+	@Column("id")
 	private Long id;
 	
     @Column("account_id")
@@ -55,4 +59,7 @@ public class ChattingEntity {
     @Column("updated_by")
     @LastModifiedBy
     private String updatedBy;
+    
+    @Column("is_delete")
+    private Boolean isDelete;
 }

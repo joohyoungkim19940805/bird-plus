@@ -81,7 +81,7 @@ public class AccountService implements Serializable {
                 .setHeaderParams(Map.of(
                 		"typ", "jwt", 
                 		"alg", "RS256", 
-                		"name", account.getName(),
+                		"name", account.getFullName(),
                 		"jwtIssuerType", type.name())
                 )
                 .signWith(keyPair.getPrivate(), SignatureAlgorithm.RS256);
@@ -132,9 +132,17 @@ public class AccountService implements Serializable {
     	});
     }
     
-    public Flux<AccountEntity> createUser(Mono<AccountEntity> accountMono) {
-    	
-    	return accountRepository.saveAll(
+    public Mono<AccountEntity> createUser(Mono<AccountEntity> accountMono) {
+    	return accountMono
+    			.map(account -> account.toBuilder()
+    					.password(passwordEncoder.encode(account.getPassword()))
+        				.roles(List.of(Role.ROLE_USER, Role.ROLE_GUEST))
+        			    .isEnabled(false)
+        			    .createAt(LocalDateTime.now())
+        			    .build())
+    			.flatMap(account -> accountRepository.save(account));
+    	/*
+    			return accountRepository.saveAll(
 			accountMono.map(account -> 
     	    	account.toBuilder()
     				.password(passwordEncoder.encode(account.getPassword()))
@@ -144,6 +152,7 @@ public class AccountService implements Serializable {
     			    .build()
         	)
     	);
+    	*/
     }
 
     public Mono<AccountEntity> getUser(Long userId) {

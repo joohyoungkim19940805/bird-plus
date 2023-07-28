@@ -26,6 +26,7 @@ import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwsHeader;
 import io.jsonwebtoken.Jwt;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import static com.radcns.bird_plus.util.Response.response;
 import static org.springframework.web.reactive.function.server.ServerResponse.ok;
@@ -102,9 +103,17 @@ public class MainHandler {
 		return request.bodyToMono(AccountEntity.class)
 				.flatMap(account -> accountRepository.findByEmail(account.getEmail()))
 				.switchIfEmpty(Mono.error(new AuthException(Result._108)))
+				.publishOn(Schedulers.boundedElastic())
 				.doOnNext(e->{
-					mailService.sendForgotPasswordEmail(e, "content/mail/forgotPasswordTemplate");
+					// 이메일 전송이 오래걸리므로 응답에 3~6초씩 걸림
+					// 병목이 발생하지 않도록 별도 스레드를 통해 처리한다.
+					Mono.just(e)
+					.publishOn(Schedulers.boundedElastic())
+					.subscribe(account->{
+						mailService.sendForgotPasswordEmail(account);
+					});
 				})
+				.subscribeOn(Schedulers.boundedElastic())
 				.flatMap(account -> 
 					ok()
 					.contentType(MediaType.APPLICATION_JSON)
@@ -125,12 +134,10 @@ public class MainHandler {
 				if( ! JwtIssuerType.FORGOT_PASSWORD.name().equals( String.valueOf(header.get("jwtIssuerType")) )) {
 					return ok()
 							.contentType(MediaType.parseMediaType("text/html;charset=UTF-8"))
-							//.render("content/loginPage.html", Map.of("resourcesNameList", List.of("loginPage")));
 							.render("content/account/changePasswordExpired.html");
 				}else if(expiration.before(new Date())) {
 					return ok()
 							.contentType(MediaType.parseMediaType("text/html;charset=UTF-8"))
-							//.render("content/loginPage.html", Map.of("resourcesNameList", List.of("loginPage")));
 							.render("content/account/changePasswordExpired.html");
 				}
 
@@ -151,13 +158,13 @@ public class MainHandler {
 			.flatMap(accountVo ->
 				accountRepository.findByEmail(accountVo.getEmail())
 				.switchIfEmpty(Mono.error(new AuthException(Result._1)))
-				.map(e->{
-					e.setPassword(accountService.passwordEncoder.encode(accountVo.getPassword()));
-					return e;
+				.map(accountEntity->{
+					accountEntity.setPassword(accountService.passwordEncoder.encode(accountVo.getPassword()));
+					return accountEntity;
 				})
 			)
-			.flatMap(account->
-				accountRepository.save(account)
+			.flatMap(accountEntity->
+				accountRepository.save(accountEntity)
 			)
 			.switchIfEmpty(Mono.error(new ForgotPasswordException(Result._108)))
 			.flatMap(e->

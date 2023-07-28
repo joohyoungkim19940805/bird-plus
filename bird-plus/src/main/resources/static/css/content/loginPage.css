@@ -105,6 +105,7 @@
     flex-direction: column;
     gap: 2rem;
     justify-content: center;
+    padding-bottom: 15%
 }
 .create_room_container input, .create_room_container button, .create_room_container select{
 	background-color: dimgray;
