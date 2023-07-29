@@ -54,13 +54,13 @@
 					RADCNS - BIRD PLUS
 					</h1>
 					<div>
-						<p>We received an account recovery request on RADCNS - BIRD PLUS for [[${email}]]</p>
-						<p>If you initiated this request, <a th:href="@{{_baseUrl}/change-password-page/bearer-{_token}?email={_email}(_baseUrl=${baseUrl},_token=${token},_email=${email})}" target="_blank">set a password here.</a></p>
+						<p>We received an account verify request on RADCNS - BIRD PLUS for [[${email}]]</p>
+						<p>If you would like to verify your account <a th:href="@{{_baseUrl}/verify-account/bearer-{_token}?email={_email}(_baseUrl=${baseUrl},_token=${token},_email=${email})}" target="_blank">click here.</a></p>
 					</div>
 				</div>
 				<div class="mail_sub">
-					<p>이 계정 복구 요청을 시작하지 않았다면 이 이메일을 무시하세요. 귀하의 계정을 안전하게 보호하겠습니다.</p>
-					<p>If you did not initiate this account recovery request, just ignore this email. We’ll keep your account safe.</p>
+					<p>이 계정 인증 요청을 시작하지 않았다면 이 이메일을 무시하세요. 귀하의 계정을 안전하게 보호하겠습니다.</p>
+					<p>If you did not initiate this account verify request, just ignore this email. We’ll keep your account safe.</p>
 				</div>
 			</main>
 		</div>

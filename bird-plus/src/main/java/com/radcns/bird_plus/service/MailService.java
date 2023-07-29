@@ -25,6 +25,8 @@ import com.radcns.bird_plus.config.security.JwtIssuerType;
 import com.radcns.bird_plus.entity.account.AccountEntity;
 import com.radcns.bird_plus.entity.email.vo.EmailVo;
 import com.radcns.bird_plus.util.properties.EmailProperties;
+import com.radcns.bird_plus.util.properties.EmailProperties.AccountVerifyProperties;
+import com.radcns.bird_plus.util.properties.EmailProperties.EmailPropertiesTemplate;
 import com.radcns.bird_plus.util.properties.EmailProperties.ForgotPasswordProperties;
 
 import groovyjarjarantlr4.v4.parse.GrammarTreeVisitor.locals_return;
@@ -85,26 +87,44 @@ public class MailService {
     	return thymeleafTemplateEngine.process(templateName, context);
     }
     
-    public void sendForgotPasswordEmail(AccountEntity account) {
-        if (account.getEmail() == null) {
-        	logger.error("Email doesn't exist for user '{}'", account.getEmail());
-            return;
-        }
-    	logger.debug("Sending forgot password email to '{}'", account.getEmail());
-    	ForgotPasswordProperties forgotPassword = emailProperties.getForgotPassword();
-    	String templateName = forgotPassword.getTemplateName();
-    	String subject = forgotPassword.getSubject();
-
-        String content = createEmailTemplate(templateName, Map.of(
-        		"email", account.getEmail(),
-        		"baseUrl", emailProperties.getBaseUrl(),
-        		"token", accountService.generateAccessToken(account, JwtIssuerType.FORGOT_PASSWORD).getToken()
-        		));
-
+    private void generatorEmailProperties(AccountEntity account, EmailPropertiesTemplate emailPropertiesTemplate, Map<String, Object> data) {
+    	String templateName = emailPropertiesTemplate.getTemplateName();
+    	String subject = emailPropertiesTemplate.getSubject();
+    	
+    	String content = createEmailTemplate(templateName, data);
+    	
         sendEmail(EmailVo.builder()
                 .content(content).subject(subject).to(account.getEmail())
                 .isHtml(true).isMultipart(false)
                 .build());
+    }
+    
+    public void sendForgotPasswordEmail(AccountEntity account) {
+    	logger.debug("Sending forgot password email to '{}'", account.getEmail());
+    	if (account.getEmail() == null) {
+        	logger.error("Email doesn't exist for user '{}'", account.getEmail());
+            return;
+        }
+    	
+    	generatorEmailProperties(account, emailProperties.getForgotPassword(), Map.of(
+        		"email", account.getEmail(),
+        		"baseUrl", emailProperties.getBaseUrl(),
+        		"token", accountService.generateAccessToken(account, JwtIssuerType.FORGOT_PASSWORD).getToken()
+        		));
+    }
+    
+    public void sendAccountVerifyTemplate(AccountEntity account) {
+    	logger.debug("Sending account verify email to '{}'", account.getEmail());
+    	if (account.getEmail() == null) {
+        	logger.error("Email doesn't exist for user '{}'", account.getEmail());
+            return;
+        }
+    	
+    	generatorEmailProperties(account, emailProperties.getAccountVerify(), Map.of(
+        		"email", account.getEmail(),
+        		"baseUrl", emailProperties.getBaseUrl(),
+        		"token", accountService.generateAccessToken(account, JwtIssuerType.ACCOUNT_VERIFY).getToken()
+        		));
     }
 
 }

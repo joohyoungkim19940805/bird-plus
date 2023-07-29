@@ -70,6 +70,10 @@ public class MainHandler {
 				)
 				.onErrorResume(e -> Mono.error(new UnauthorizedException(Result._110)));
 	}
+	public Mono<ServerResponse> verifyAccount(){
+		
+		return null;
+	}
 	
 	public Mono<ServerResponse> loginProc(ServerRequest request){
 		return accountService.authenticate(request.bodyToMono(AccountEntity.class), request.remoteAddress())

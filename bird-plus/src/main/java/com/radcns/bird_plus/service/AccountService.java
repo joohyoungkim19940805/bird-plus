@@ -24,6 +24,7 @@ import com.radcns.bird_plus.util.exception.AuthException;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.io.Serializable;
 import java.net.InetSocketAddress;
@@ -50,6 +51,8 @@ public class AccountService implements Serializable {
     public PasswordEncoder passwordEncoder;
     @Autowired
     private AccountLogRepository accountLogRepository;
+	@Autowired
+	private MailService mailService;
     @Autowired
     private ObjectMapper om;
 
@@ -105,6 +108,13 @@ public class AccountService implements Serializable {
 	    			Mono.error(new AuthException(Result._103))
 	    		).flatMap(account -> {
 	        		if ( ! account.getIsEnabled()) {
+	        			// 이메일 전송이 오래걸리므로 응답에 3~6초씩 걸림
+						// 병목이 발생하지 않도록 별도 스레드를 통해 처리한다.
+						Mono.just(account)
+						.publishOn(Schedulers.boundedElastic())
+						.subscribe(e->{
+							mailService.sendForgotPasswordEmail(e);
+						});
 	    				return Mono.error(new AuthException(Result._101));
 	    			}else if(!passwordEncoder.encode(accountInfo.getPassword()).equals(account.getPassword())) {
 	    				return Mono.error(new AuthException(Result._102));

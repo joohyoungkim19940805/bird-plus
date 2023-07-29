@@ -71,93 +71,92 @@
 					}
 		    		
 		    		loginEvent(container, {isContainerLayer = true, loginStartButton = this.loginButton} = {}){
-		    				this.loginSuccessPromise.then(()=>{
-		    					container.remove();
-		    				})
-		    				if(isContainerLayer){
-		    					loginStartButton.onclick = (event) => {
-			    					if(container.isConnected){
-			    						container.remove();
-			    					}else{
-			    						document.body.append(container);
-				    					common.processingElementPosition(container, loginStartButton)
-			    					}
-			    				}
+	    				this.loginSuccessPromise.then(()=>{
+	    					container.remove();
+	    				})
+	    				if(isContainerLayer){
+	    					loginStartButton.onclick = (event) => {
+		    					if(container.isConnected){
+		    						container.remove();
+		    					}else{
+		    						document.body.append(container);
+			    					common.processingElementPosition(container, loginStartButton)
+		    					}
 		    				}
+	    				}
 
-			    			let [accountName, accountPassword, loginSendButton, statusText] = container.querySelectorAll('.account_name, .account_password, .login_send, .status_text');
-							let isClick = false;  
-			    			loginSendButton.onclick = (event) => {
-								if(isClick){
-									return;
-								}
-								isClick = true;
-			    				statusText.textContent = '';
-			    				let loading = common.createLoadingRotate();
-			    				statusText.replaceChildren(loading);
-			    				statusText.style.paddingRight = '100%';
-			    				fetch('/login-processing',{
-			    				    method:'POST',
-			    				    body:JSON.stringify({
-			    				    	accountName:accountName.value,
-			    				        password:accountPassword.value
-			    				    }),
-			    				    headers: {
-			    				        'Content-Type': 'application/json',
-			    				    }
-			    				}).then(res=>{
-			    					console.log(res);
-			    				    return res.json()
-			    				}).then(response=> {
-			    					isClick = false;
+		    			let [accountName, accountPassword, loginSendButton, statusText] = container.querySelectorAll('.account_name, .account_password, .login_send, .status_text');
+						let isClick = false;  
+		    			loginSendButton.onclick = (event) => {
+							if(isClick){
+								return;
+							}
+							isClick = true;
+		    				statusText.textContent = '';
+		    				let loading = common.createLoadingRotate();
+		    				statusText.replaceChildren(loading);
+		    				statusText.style.paddingRight = '100%';
+		    				fetch('/login-processing',{
+		    				    method:'POST',
+		    				    body:JSON.stringify({
+		    				    	accountName:accountName.value,
+		    				        password:accountPassword.value
+		    				    }),
+		    				    headers: {
+		    				        'Content-Type': 'application/json',
+		    				    }
+		    				}).then(res=>{
+		    					console.log(res);
+		    				    return res.json()
+		    				}).then(response=> {
+		    					isClick = false;
 
-			    					loading.remove();
-			    					statusText.style.paddingRight = '';
-			    					
-			    					let {code} = response;
-			    					if(code == '00'){
-			    						loginStartButton.onclick = '';
-			    						this.loginButton.onclick = '';
-				    					let img = Object.assign(document.createElement('img'),{
-				    						width: '1rem',
-				    						src : '/images/user.png'
-				    					});
-				    					this.loginButton.replaceChildren(img);
-				    					this.loginSuccessResolve();
-				    					//container.remove();
-			    					}else if(code == 101){
-			    						statusText.textContent = '해당 기능에 권한이 없습니다.'
-			    					}else if(code == 102){
-			    						statusText.textContent = '계정 정보가 잘못되었습니다.'
-			    					}else if(code == 103){
-			    						statusText.textContent = '계정 정보가 잘못되었습니다.'
-			    					}else if(code == 104){
-			    						statusText.textContent = '비활성화 된 계정입니다.'
-			    					}else if(code == 999){
-			    						statusText.textContent = '알 수 없는 오류입니다. 관리자에게 문의하십시오.';
-			    					}else{
-			    						statusText.textContent = '서버로부터 응답이 없습니다.';
-			    					}
-			    					statusText.classList.add('shake');
-			    					setTimeout(()=>{statusText.classList.remove('shake')},150)
-			    					if(isContainerLayer){
-			    						common.processingElementPosition(container, loginStartButton)
-			    					}
-			    				}).catch(error=>{
-									isClick = false;
-									
-									console.error(error);
-			    					loading.remove();
-			    				});
-			    			}
-			    			container.onkeydown = (e)=> {
-			    				if(e.key != 'Enter'){
-			    					statusText.textContent = '';
-			    					return;
-			    				}
-			    				loginSendButton.click();
+		    					loading.remove();
+		    					statusText.style.paddingRight = '';
+		    					
+		    					let {code} = response;
+		    					if(code == '00'){
+		    						loginStartButton.onclick = '';
+		    						this.loginButton.onclick = '';
+			    					let img = Object.assign(document.createElement('img'),{
+			    						width: '1rem',
+			    						src : '/images/user.png'
+			    					});
+			    					this.loginButton.replaceChildren(img);
+			    					this.loginSuccessResolve();
+			    					//container.remove();
+		    					}else if(code == 101){
+		    						statusText.textContent = '해당 기능에 권한이 없습니다.'
+		    					}else if(code == 102){
+		    						statusText.textContent = '계정 정보가 잘못되었습니다.'
+		    					}else if(code == 103){
+		    						statusText.textContent = '계정 정보가 잘못되었습니다.'
+		    					}else if(code == 104){
+		    						statusText.textContent = '비활성화 된 계정입니다.'
+		    					}else if(code == 999){
+		    						statusText.textContent = '알 수 없는 오류입니다. 관리자에게 문의하십시오.';
+		    					}else{
+		    						statusText.textContent = '서버로부터 응답이 없습니다.';
+		    					}
+		    					statusText.classList.add('shake');
+		    					setTimeout(()=>{statusText.classList.remove('shake')},150)
+		    					if(isContainerLayer){
+		    						common.processingElementPosition(container, loginStartButton)
+		    					}
+		    				}).catch(error=>{
+								isClick = false;
+								
+								console.error(error);
+		    					loading.remove();
+		    				});
+		    			}
+		    			container.onkeydown = (e)=> {
+		    				if(e.key != 'Enter'){
+		    					statusText.textContent = '';
+		    					return;
 		    				}
-
+		    				loginSendButton.click();
+	    				}
 		    		}
 		    	}();
 		    </script>

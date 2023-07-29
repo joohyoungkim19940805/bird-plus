@@ -22,14 +22,31 @@ public class EmailProperties {
     
     private ForgotPasswordProperties forgotPassword;
     
+    private AccountVerifyProperties accountVerify;
+    
+    public static interface EmailPropertiesTemplate{
+    	String getTemplateName();
+    	String getSubject();
+    	void setTemplateName(String templateName);
+    	void setSubject(String subject);
+    }
+    
     @Data
     @ToString
     @Configuration
     @ConfigurationProperties(prefix="mail.forgot-password")
-    public static class ForgotPasswordProperties {
+    public static class ForgotPasswordProperties implements EmailPropertiesTemplate{
     	private String templateName;
     	private String subject;
     }
     
+    @Data
+    @ToString
+    @Configuration
+    @ConfigurationProperties(prefix="mail.account-verify")
+    public static class AccountVerifyProperties implements EmailPropertiesTemplate{
+    	private String templateName;
+    	private String subject;
+    }
     
 }
