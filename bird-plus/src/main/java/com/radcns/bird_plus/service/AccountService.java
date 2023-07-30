@@ -113,7 +113,7 @@ public class AccountService implements Serializable {
 						Mono.just(account)
 						.publishOn(Schedulers.boundedElastic())
 						.subscribe(e->{
-							mailService.sendForgotPasswordEmail(e);
+							mailService.sendAccountVerifyTemplate(e);
 						});
 	    				return Mono.error(new AuthException(Result._101));
 	    			}else if(!passwordEncoder.encode(accountInfo.getPassword()).equals(account.getPassword())) {

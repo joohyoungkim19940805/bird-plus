@@ -63,14 +63,24 @@ public class MainHandler {
 	}
 	
 	public Mono<ServerResponse> create(ServerRequest request){
-		return ok()
+		/*return ok()
 				.contentType(MediaType.APPLICATION_JSON)
 				.body(accountService.createUser(request.bodyToMono(AccountEntity.class))
 					.map(e -> response(Result._0, e)), Response.class
 				)
 				.onErrorResume(e -> Mono.error(new UnauthorizedException(Result._110)));
+				*/
+		accountService.createUser(request.bodyToMono(AccountEntity.class))
+		.doOnNext(account -> {
+			Mono.just(account)
+			.publishOn(Schedulers.boundedElastic())
+			.subscribe(account -> {
+				mailService.sendAccountVerifyTemplate(account)
+			})
+		})
+		return null;
 	}
-	public Mono<ServerResponse> verifyAccount(){
+	public Mono<ServerResponse> accountVerify(){
 		
 		return null;
 	}
