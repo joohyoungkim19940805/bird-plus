@@ -116,7 +116,7 @@ public class MainHandler {
 				});
 	}
 	
-	public Mono<ServerResponse> loginProc(ServerRequest request){
+	public Mono<ServerResponse> loginProcessing(ServerRequest request){
 		return accountService.authenticate(request.bodyToMono(AccountEntity.class), request.remoteAddress())
 				.flatMap(account -> ok()
 						.cookie(ResponseCookie.fromClientResponse(HttpHeaders.AUTHORIZATION, account.getToken())
