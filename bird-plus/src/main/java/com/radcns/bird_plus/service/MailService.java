@@ -74,7 +74,7 @@ public class MailService {
             
             logger.debug("Sent email to User '{}'", sender.getTo());
         } catch (MailException | MessagingException e) {
-        	logger.warn("Email could not be sent to user '{}'", sender.getTo(), e);
+        	logger.error("Email could not be sent to user '{}'", sender.getTo(), e);
         }
     }
 

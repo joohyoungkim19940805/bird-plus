@@ -70,19 +70,50 @@ public class MainHandler {
 				)
 				.onErrorResume(e -> Mono.error(new UnauthorizedException(Result._110)));
 				*/
-		accountService.createUser(request.bodyToMono(AccountEntity.class))
+		return accountService.createUser(request.bodyToMono(AccountEntity.class))
 		.doOnNext(account -> {
 			Mono.just(account)
 			.publishOn(Schedulers.boundedElastic())
-			.subscribe(account -> {
-				mailService.sendAccountVerifyTemplate(account)
-			})
-		})
-		return null;
+			.subscribe(e -> {
+				mailService.sendAccountVerifyTemplate(e);
+			});
+		}).flatMap(account -> 
+			ok()
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(Mono.just(response(Result._0, null)), Response.class)
+		);
+
 	}
-	public Mono<ServerResponse> accountVerify(){
-		
-		return null;
+	public Mono<ServerResponse> accountVerify(ServerRequest request){
+		return Mono.just(request.queryParam("email"))
+				.flatMap(emial -> {
+					String token = request.pathVariable("token").replace("bearer-", "");
+					
+					Jws<Claims> jws = jwtVerifyHandler.getJwt(token);
+					Claims claims = jws.getBody();
+					JwsHeader<?> header = jws.getHeader();
+					Date expiration = claims.getExpiration();
+
+					if( ! JwtIssuerType.ACCOUNT_VERIFY.name().equals( String.valueOf(header.get("jwtIssuerType")) )) {
+						return ok()
+								.contentType(MediaType.parseMediaType("text/html;charset=UTF-8"))
+								.render("content/account/accountVerifyTemplate.html");
+					}else if(expiration.before(new Date())) {
+						return ok()
+								.contentType(MediaType.parseMediaType("text/html;charset=UTF-8"))
+								.render("content/account/accountVerifyTemplate.html");
+					}
+
+					return ok()
+							.contentType(MediaType.parseMediaType("text/html;charset=UTF-8"))
+							.render("content/account/accountVerifyTemplate.html", Map.of(
+									"email", claims.getSubject(),
+									"token", token
+							));
+				})
+				.onErrorResume(e->{
+					return Mono.error(new UnauthorizedException(Result._104));
+				});
 	}
 	
 	public Mono<ServerResponse> loginProc(ServerRequest request){
@@ -127,7 +158,7 @@ public class MainHandler {
 						mailService.sendForgotPasswordEmail(account);
 					});
 				})
-				.subscribeOn(Schedulers.boundedElastic())
+				//.subscribeOn(Schedulers.boundedElastic())
 				.flatMap(account -> 
 					ok()
 					.contentType(MediaType.APPLICATION_JSON)
