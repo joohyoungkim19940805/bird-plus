@@ -21,6 +21,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 import java.net.URI;
 
+import com.radcns.bird_plus.entity.account.AccountEntity;
 import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
 import com.radcns.bird_plus.util.Response;
 
@@ -38,10 +39,11 @@ public class MainRouter {
 	
     @RouterOperations({
     	@RouterOperation(path = "/login-processing", produces = {MediaType.APPLICATION_JSON_VALUE },
-    			beanClass = MainHandler.class,  beanMethod = "isAuthenticated",
-                operation = @Operation(operationId = "isAuthenticated",
+    			beanClass = MainHandler.class,  beanMethod = "loginProcessing",
+                operation = @Operation(operationId = "loginProcessing",
                         responses = {
-                        @ApiResponse(responseCode = "200", description = "get current user.", content = @Content(schema = @Schema(implementation = Response.class)))
+                        //@ApiResponse(responseCode = "200", description = "get current user.", content = @Content(schema = @Schema(implementation = Response.class, subTypes = AccountEntity.class)))
+                        @ApiResponse(responseCode = "200", description = "get current user.", useReturnTypeSchema = true, content = @Content(schema = @Schema(implementation = Response.class)))
                 })
     	)
     })
