@@ -38,13 +38,22 @@ import static org.springframework.web.reactive.function.server.RequestPredicates
 public class MainRouter {
 	
     @RouterOperations({
-    	@RouterOperation(path = "/login-processing", produces = {MediaType.APPLICATION_JSON_VALUE },
-    			beanClass = MainHandler.class,  beanMethod = "loginProcessing",
-                operation = @Operation(operationId = "loginProcessing",
-                        responses = {
-                        //@ApiResponse(responseCode = "200", description = "get current user.", content = @Content(schema = @Schema(implementation = Response.class, subTypes = AccountEntity.class)))
-                        @ApiResponse(responseCode = "200", description = "get current user.", useReturnTypeSchema = true, content = @Content(schema = @Schema(implementation = Response.class)))
-                })
+    	@RouterOperation(path = "/login-processing", 
+    		produces = {MediaType.APPLICATION_JSON_VALUE },
+			beanClass = MainHandler.class,  
+			beanMethod = "loginProcessing",
+            operation = @Operation(operationId = "loginProcessing",
+	        	responses = {@ApiResponse(
+	                responseCode = "200", 
+	                description = "get current user.", 
+	                useReturnTypeSchema = true, 
+	                content = @Content(
+	                	schema = @Schema(
+	                		implementation = Response.class
+	                	)
+	                )
+	        	)
+        	})
     	)
     })
 	
