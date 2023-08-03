@@ -1,8 +1,5 @@
-package com.radcns.bird_plus.web.router;
+package com.radcns.bird_plus.web.router.main;
 
-
-import org.springdoc.core.annotations.RouterOperation;
-import org.springdoc.core.annotations.RouterOperations;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
@@ -14,16 +11,7 @@ import com.radcns.bird_plus.web.handler.ChattingHandler;
 import com.radcns.bird_plus.web.handler.LoginHandler;
 import com.radcns.bird_plus.web.handler.MainHandler;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-
 import java.net.URI;
-
-import com.radcns.bird_plus.entity.account.AccountEntity;
-import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
-import com.radcns.bird_plus.util.Response;
 
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 import static org.springframework.web.reactive.function.server.RequestPredicates.path;
@@ -32,39 +20,19 @@ import static org.springframework.web.reactive.function.server.RequestPredicates
 import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
 import static org.springframework.web.reactive.function.server.RequestPredicates.accept;
 
-
-
 @Configuration
-public class MainRouter {
-	
-    @RouterOperations({
-    	@RouterOperation(path = "/login-processing", 
-    		produces = {MediaType.APPLICATION_JSON_VALUE },
-			beanClass = MainHandler.class,  
-			beanMethod = "loginProcessing",
-            operation = @Operation(operationId = "loginProcessing",
-	        	responses = {@ApiResponse(
-	                responseCode = "200", 
-	                description = "get current user.", 
-	                useReturnTypeSchema = true, 
-	                content = @Content(
-	                	schema = @Schema(
-	                		implementation = Response.class
-	                	)
-	                )
-	        	)
-        	})
-    	)
-    })
+public class MainRouter implements MainRouterSwagger{
 	
 	@Bean
+	@Override
 	public RouterFunction<ServerResponse> index(MainHandler mainHandler){
 
     	return route( GET("/"), req -> ServerResponse.temporaryRedirect(URI.create("/login-page")).build() )
 				.and(route( GET("/login"), req -> ServerResponse.temporaryRedirect(URI.create("/login-page")).build() ))
 				.and(route( GET("/login-page").and(accept(MediaType.TEXT_HTML)), mainHandler::loginPage ))
 				.and(route( POST("/create").and(accept(MediaType.APPLICATION_JSON)), mainHandler::create ))
-				.and(route( GET("/account-verify/{token}").and(accept(MediaType.TEXT_HTML)), mainHandler::accountVerify ))
+				.and(route( GET("/account-verify/{token}").and(accept(MediaType.TEXT_HTML)), mainHandler::accountVerifyPage ))
+				.and(route( POST("/account-verify").and(accept(MediaType.APPLICATION_JSON)), mainHandler::accountVerify ))
 				.and(route( POST("/login-processing").and(accept(MediaType.APPLICATION_JSON)), mainHandler::loginProcessing ))
 				.and(route( POST("/forgot-password-send-email").and(accept(MediaType.APPLICATION_JSON)), mainHandler::forgotPassword ))
 				.and(route( GET("/change-password-page/{token}").and(accept(MediaType.TEXT_HTML)), mainHandler::changePasswordPage ))

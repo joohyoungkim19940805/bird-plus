@@ -102,11 +102,11 @@ public class WebFluxSecurityConfig {
                 .authenticationManager(authManager)
                 .authorizeExchange(authSpec->
 	                authSpec.pathMatchers(HttpMethod.OPTIONS).permitAll()
-			                .pathMatchers("/files/**","/css/**","/js/**","/images/**","/**.ico", "/manifest.json").permitAll() // resources/static
-			                .pathMatchers("/*").permitAll() // auth 검사 안 할 url path
-			                .pathMatchers("/v3/webjars/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll() // api doc
+	                		.pathMatchers("/api/**").authenticated()
 			                .pathMatchers("/home/**").authenticated()
-			                .pathMatchers("/api/**").authenticated()
+			                .pathMatchers("/files/**","/css/**","/js/**","/images/**","/**.ico", "/manifest.json").permitAll() // resources/static)
+			                .pathMatchers("/*", "/account-verify/*").permitAll() // auth 검사 안 할 url path
+			                .pathMatchers("/v3/webjars/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll() // api doc
 			                .anyExchange().authenticated()
                 )
                 

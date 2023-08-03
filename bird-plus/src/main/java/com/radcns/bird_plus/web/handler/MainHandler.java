@@ -20,6 +20,7 @@ import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
 import com.radcns.bird_plus.util.exception.AuthException;
 import com.radcns.bird_plus.util.exception.ForgotPasswordException;
 import com.radcns.bird_plus.util.exception.UnauthorizedException;
+import com.radcns.bird_plus.util.properties.EmailProperties;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -52,6 +53,9 @@ public class MainHandler {
 	@Autowired
 	private JwtVerifyHandler jwtVerifyHandler;
 	
+    @Autowired
+    private EmailProperties emailProperties;
+    
 	public Mono<ServerResponse> index(ServerRequest request){
 		return ok().contentType(MediaType.TEXT_HTML).render("/index.html");
 	}
@@ -84,7 +88,8 @@ public class MainHandler {
 		);
 
 	}
-	public Mono<ServerResponse> accountVerify(ServerRequest request){
+	
+	public Mono<ServerResponse> accountVerifyPage(ServerRequest request){
 		return Mono.just(request.queryParam("email"))
 				.flatMap(emial -> {
 					String token = request.pathVariable("token").replace("bearer-", "");
@@ -93,7 +98,7 @@ public class MainHandler {
 					Claims claims = jws.getBody();
 					JwsHeader<?> header = jws.getHeader();
 					Date expiration = claims.getExpiration();
-
+					
 					if( ! JwtIssuerType.ACCOUNT_VERIFY.name().equals( String.valueOf(header.get("jwtIssuerType")) )) {
 						return ok()
 								.contentType(MediaType.parseMediaType("text/html;charset=UTF-8"))
@@ -114,6 +119,59 @@ public class MainHandler {
 				.onErrorResume(e->{
 					return Mono.error(new UnauthorizedException(Result._104));
 				});
+	}
+	
+	public Mono<ServerResponse> accountVerify(ServerRequest request){
+		return request.bodyToMono(AccountVo.class)
+				.flatMap(accountVo ->
+					accountRepository.findByEmail(accountVo.getEmail())
+					.switchIfEmpty(Mono.error(new AuthException(Result._1)))
+					.map(accountEntity->{
+						accountEntity.setPassword(accountService.passwordEncoder.encode(accountVo.getPassword()));
+						return accountEntity;
+					})
+				)
+				.flatMap(accountEntity->
+					accountRepository.save(accountEntity)
+				)
+				.switchIfEmpty(Mono.error(new ForgotPasswordException(Result._108)))
+				.flatMap(e->
+					ok()
+					.contentType(MediaType.APPLICATION_JSON)
+					.body(Mono.just(response(Result._0, null)), Response.class)
+				)
+				;
+		/*
+		return Mono.just(request.queryParam("email"))
+				.flatMap(emial -> {
+					String token = request.pathVariable("token").replace("bearer-", "");
+					
+					Jws<Claims> jws = jwtVerifyHandler.getJwt(token);
+					Claims claims = jws.getBody();
+					JwsHeader<?> header = jws.getHeader();
+					Date expiration = claims.getExpiration();
+					
+					if( ! JwtIssuerType.ACCOUNT_VERIFY.name().equals( String.valueOf(header.get("jwtIssuerType")) )) {
+						return ok()
+								.contentType(MediaType.parseMediaType("text/html;charset=UTF-8"))
+								.render("content/account/accountVerifyTemplate.html");
+					}else if(expiration.before(new Date())) {
+						return ok()
+								.contentType(MediaType.parseMediaType("text/html;charset=UTF-8"))
+								.render("content/account/accountVerifyTemplate.html");
+					}
+
+					return ok()
+							.contentType(MediaType.parseMediaType("text/html;charset=UTF-8"))
+							.render("content/account/accountVerifyTemplate.html", Map.of(
+									"email", claims.getSubject(),
+									"token", token
+							));
+				})
+				.onErrorResume(e->{
+					return Mono.error(new UnauthorizedException(Result._104));
+				});
+		*/
 	}
 	
 	public Mono<ServerResponse> loginProcessing(ServerRequest request){

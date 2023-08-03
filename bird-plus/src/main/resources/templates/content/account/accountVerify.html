@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default_layout}">
+	<div layout:fragment="content">
+		<script type="text/javascript" th:inline="javascript">/*<![CDATA[*/
+    		fetch('/account-verify', {
+    			method: 'POST',
+    			headers: {
+    				'Content-Type': 'application/json'
+    			},
+    			body: JSON.stringify({
+    				email: `/*[[${loginStatus}]]*/`,
+    			})
+    		}).then(response => {
+    			if( ! response.ok){
+    				throw new Error();
+    			}
+    			return response.json();
+    		}).then(result => {
+    			alert(result.message);
+    			if(result.code == 0){
+    				self.close();
+    			}
+    		}).catch(err=>{
+    			console.err(err);
+    			if(err.message){
+    				alert(err.message);
+    				self.close();
+    			}
+    		});
+   		/*]]>*/</script>
+	</div>
