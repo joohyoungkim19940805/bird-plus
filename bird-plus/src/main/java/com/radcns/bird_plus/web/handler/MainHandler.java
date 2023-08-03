@@ -102,16 +102,16 @@ public class MainHandler {
 					if( ! JwtIssuerType.ACCOUNT_VERIFY.name().equals( String.valueOf(header.get("jwtIssuerType")) )) {
 						return ok()
 								.contentType(MediaType.parseMediaType("text/html;charset=UTF-8"))
-								.render("content/account/accountVerifyTemplate.html");
+								.render("content/account/accountVerify.html");
 					}else if(expiration.before(new Date())) {
 						return ok()
 								.contentType(MediaType.parseMediaType("text/html;charset=UTF-8"))
-								.render("content/account/accountVerifyTemplate.html");
+								.render("content/account/accountVerify.html");
 					}
 
 					return ok()
 							.contentType(MediaType.parseMediaType("text/html;charset=UTF-8"))
-							.render("content/account/accountVerifyTemplate.html", Map.of(
+							.render("content/account/accountVerify.html", Map.of(
 									"email", claims.getSubject(),
 									"token", token
 							));
@@ -123,13 +123,21 @@ public class MainHandler {
 	
 	public Mono<ServerResponse> accountVerify(ServerRequest request){
 		return request.bodyToMono(AccountVo.class)
-				.flatMap(accountVo ->
-					accountRepository.findByEmail(accountVo.getEmail())
+				.flatMap(accountVo ->{
+					System.out.println("kjh test <<<");
+					System.out.println(accountVo);
+				
+					return accountRepository.findByEmail(accountVo.getEmail())
+					.map(e->{
+						System.out.println("kjh test 2 <<<");
+						System.out.println(e);
+						return e;
+					})
 					.switchIfEmpty(Mono.error(new AuthException(Result._1)))
 					.map(accountEntity->{
-						accountEntity.setPassword(accountService.passwordEncoder.encode(accountVo.getPassword()));
+						accountEntity.setIsEnabled(true);
 						return accountEntity;
-					})
+					});}
 				)
 				.flatMap(accountEntity->
 					accountRepository.save(accountEntity)

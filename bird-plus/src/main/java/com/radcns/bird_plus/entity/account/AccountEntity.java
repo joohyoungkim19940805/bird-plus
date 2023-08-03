@@ -87,6 +87,7 @@ public class AccountEntity {
     public static class AccountVo {
     	private String email;
     	private String password;
+    	private String newPassword;
     	private String token;
     }
     

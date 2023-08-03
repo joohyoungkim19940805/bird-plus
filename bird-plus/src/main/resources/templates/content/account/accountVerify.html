@@ -11,7 +11,7 @@
     				'Content-Type': 'application/json'
     			},
     			body: JSON.stringify({
-    				email: `/*[[${loginStatus}]]*/`,
+    				email: `[[${email}]]`,
     			})
     		}).then(response => {
     			if( ! response.ok){
