@@ -29,8 +29,8 @@ const getStart = new class GetStart{
 					<input type="password" id="get_start_login_password" name="password" class="account_password" placeholder="Please enter your password" autocomplete="current-password"/>
 				</div>
 				<div class="find_wrapper">
-					<a href="javascript:void(0);" class="get_start_forgot_password">Forgot password?</a>
-					<a href="javascript:void(0);" class="get_start_sign_up">sign up</a>
+					<a href="javascript:void(0);" data-page="forgot_password_page">Forgot password?</a>
+					<a href="javascript:void(0);" data-page="sign_up_page">Sign up</a>
 				</div>
 				<div>
 					<button type="button" class="login_send">login</button>
@@ -51,13 +51,33 @@ const getStart = new class GetStart{
 				<div>
 					<input type="email" name="email" id="get_start_forgot_password_email" placeholder="Please enter your Email" required/>
 				</div>
+				<div class="find_wrapper">
+					<a href="javascript:void(0);" data-page="login_page">Sign in</a>
+					<a href="javascript:void(0);" data-page="sign_up_page">Sign up</a>
+				</div>
 				<div>
 					<button type="submit">Send recovery email</button>
 				</div>
 			<form>
 		`
-	})
+	});
 	
+	#forgotPasswordSendEmailEndPage = Object.assign(document.createElement('div') ,{
+		className: 'forgot_password_send_email_end_page',
+		innerHTML: `
+			<form id="forgot_password_send_email_end_form">
+				<div>
+					<p>send complate your email.</p>
+					<p>plase recover try your account.</p>
+				</div>
+				<div class="find_wrapper">
+					<a href="javascript:void(0);" data-page="login_page">Sign in</a>
+					<a href="javascript:void(0);" data-page="sign_up_page">Sign up</a>
+				</div>
+			</form>
+		`		
+	})
+
 	#signUpPage = Object.assign(document.createElement('div'),{
 		className: 'sign_up_page',
 		innerHTML : `
@@ -92,13 +112,19 @@ const getStart = new class GetStart{
 					</div>
 					<input type="password" id="sign_up_password_again" name="password_again" class="account_password" placeholder="Please enter your password (again)" autocomplete="current-password" required/>
 				</div>
+				<div class="find_wrapper">
+					<a href="javascript:void(0);" data-page="login_page">Sign in</a>
+					<a href="javascript:void(0);" data-page="forgot_password_page">Forgot password?</a>
+				</div>
 				<div>
 					<button type="submit" class="sign_up_button">sign up</button>
 				</div>
 			</form>
-		`	
-	})
+		`
+	});
 	
+	
+
 	constructor(){
 		
 		this.addOpeningEvent();
@@ -107,7 +133,7 @@ const getStart = new class GetStart{
 		 * login
 		 */
 		headerController.loginEvent(this.#loginPage, {isContainerLayer: false});
-		let [forgotPassword, signUp] = this.#loginPage.querySelectorAll('.get_start_forgot_password, .get_start_sign_up');
+		let [forgotPassword, signUp] = this.#loginPage.querySelectorAll('[data-page="forgot_password_page"], [data-page="sign_up_page"]');
 		forgotPassword.onclick = () => this.showForgotPasswordPage();
 		signUp.onclick = () => this.showSignUpPage();
 		
@@ -115,7 +141,10 @@ const getStart = new class GetStart{
 		 * forgot password
 		 */
 		this.forgotPasswordPageEvent(this.#forgotPasswordPage);
-
+		/**
+		 * forgor password send email end after
+		 */
+		this.forgotPasswordSendEmailEndPageEvent(this.#forgotPasswordSendEmailEndPage);
 		/**
 		 * sign up
 		 */
@@ -227,27 +256,40 @@ const getStart = new class GetStart{
 	}
 
 	showLoginPage(){
-		this.pageChange(this.#loginPage)	
+		this.#pageChange(this.#loginPage).then(() => {
+			//... page change end callback
+		});
 	}
-	
 	showForgotPasswordPage(){
-		this.pageChange(this.#forgotPasswordPage)
+		this.#pageChange(this.#forgotPasswordPage).then(() => {
+			//... page change end callback
+		});
 	}
 	showSignUpPage(){
-		this.pageChange(this.#signUpPage)
+		this.#pageChange(this.#signUpPage).then(() => {
+			//... page change end callback
+		});
+	}
+	showForgotPasswordSendEmailEndPage(){
+		this.#pageChange(this.#forgotPasswordSendEmailEndPage).then(()=> {
+			//... page change end callback
+		});
 	}
 
 	/**
 	 * 
 	 * @param {HTMLDivElement} page 
 	 */
-	pageChange(page){
-		this.createRoomContainer.classList.remove('start');
-		this.createRoomContainer.ontransitionend = (event) => {
-			this.createRoomContainer.replaceChildren(page);
-			this.createRoomContainer.ontransitionend = '';
-			this.createRoomContainer.classList.add('start');
-		}			
+	#pageChange(page){
+		return new Promise(resolve => {
+			this.createRoomContainer.classList.remove('start');
+			this.createRoomContainer.ontransitionend = (event) => {
+				this.createRoomContainer.replaceChildren(page);
+				this.createRoomContainer.ontransitionend = '';
+				this.createRoomContainer.classList.add('start');
+				resolve();
+			}
+		});
 	}
 
 	/**
@@ -276,7 +318,9 @@ const getStart = new class GetStart{
 				return response.json();
 			}).then(result=>{
 				isClick = false;
-				if(result.code != 0){
+				if(result.code == 0){
+					this.showForgotPasswordSendEmailEndPage();
+				}else{
 					alert(result.message);
 					console.error(result);
 				}
@@ -289,15 +333,22 @@ const getStart = new class GetStart{
 				}
 			})
 		}
+		let [loginPage, signUpPage] = form.querySelectorAll('[data-page="login_page"], [data-page="sign_up_page"]');
+		loginPage.onclick = () => this.showLoginPage();
+		signUpPage.onclick = () => this.showSignUpPage();
 	}
-
+	forgotPasswordSendEmailEndPageEvent(forgotPasswordSendEmailEndPage){
+		let [loginPage, signUpPage] = forgotPasswordSendEmailEndPage.querySelectorAll('[data-page="login_page"], [data-page="sign_up_page"]');
+		loginPage.onclick = () => this.showLoginPage();
+		signUpPage.onclick = () => this.showSignUpPage();
+	}
 	/**
 	 * 
 	 * @param {HTMLDivElement} signUpPage 
 	 */
 	signUpPageEvent(signUpPage){
 		let form = signUpPage.querySelector('#sign_up_form');
-		console.log(form);
+
 		let {
 			account_name: accountName,
 			email,
@@ -340,5 +391,8 @@ const getStart = new class GetStart{
 				}
 			})
 		}
+		let [loginPage, forgotPassword] = form.querySelectorAll('[data-page="login_page"], [data-page="forgot_password_page"]');
+		loginPage.onclick = () => this.showLoginPage();
+		forgotPassword.onclick = () => this.showForgotPasswordPage();
 	}
 }();

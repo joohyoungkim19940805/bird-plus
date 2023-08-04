@@ -5,13 +5,14 @@
       layout:decorate="~{layout/default_layout}">
 	<div layout:fragment="content">
 		<script type="text/javascript" th:inline="javascript">/*<![CDATA[*/
-    		fetch('/account-verify', {
+    		let email = /*[[${email}]]*/
+			fetch('/account-verify', {
     			method: 'POST',
     			headers: {
     				'Content-Type': 'application/json'
     			},
     			body: JSON.stringify({
-    				email: `[[${email}]]`,
+    				email
     			})
     		}).then(response => {
     			if( ! response.ok){
@@ -19,8 +20,8 @@
     			}
     			return response.json();
     		}).then(result => {
-    			alert(result.message);
     			if(result.code == 0){
+    				alert(result.message);
     				self.close();
     			}
     		}).catch(err=>{

@@ -8,7 +8,7 @@
 
 /* 빠른 시작 컨텐츠 영역 - 좌측 영역*/
 .content_wrapper .content_container{
-    margin-top: 4%;
+    margin-top: 5vh;
     margin-left: 2%;
     font-size: 5rem;
     font-weight: bold;
@@ -16,7 +16,7 @@
     height: 0;
 }
 .content_wrapper .content_container > .content_item {
-	margin-bottom: 4%;
+	margin-bottom: 4vh;
 }
 .content_wrapper .content_container > *:first-child{
 	transition: all 3s;
@@ -97,7 +97,7 @@
 }
 
 .create_room_container > div, .create_room_container form{
-	padding-left: 5%;
+	padding-left: 7.5%;
     width: 100%;
     display: flex;
     height: 100%;
@@ -105,11 +105,11 @@
     flex-direction: column;
     gap: 2rem;
     justify-content: center;
-    padding-bottom: 15%
+    padding-bottom: 9vh;
 }
 .create_room_container input, .create_room_container button, .create_room_container select{
 	background-color: dimgray;
-	font-size: 2.5rem;
+	font-size: 2.2vmax;
 }
 .create_room_container input, .create_room_container select{
     width: 100%;
@@ -129,16 +129,18 @@
 .create_room_container label{
 	color: #a9a9a985;
     font-weight: bold;
-    font-size: 2rem;
+    font-size: 2vmax;
 }
 .create_room_container .find_wrapper{
     display: flex;
     justify-content: space-around;
+    margin-top: 3%;
+    margin-bottom: 3%;
 }
 .create_room_container .find_wrapper a{
     color: hsl(206,100%,52%);
     text-decoration: underline;
-    font-size: 1.2rem;
+    font-size: 2vh;
 }
 
 

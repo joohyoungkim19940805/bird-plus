@@ -22,9 +22,8 @@ import lombok.Setter;
 @Table(value="cu_account_log")
 public class AccountLogEntity {
 	
-	@Id
-    @Column("id")
-	private Long id;
+    @Column("account_id")
+	private Long accountId;
 	
     @Column("ip")
 	private String ip;

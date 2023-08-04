@@ -120,7 +120,7 @@ public class AccountService implements Serializable {
 	    				return Mono.error(new AuthException(Result._102));
 	             	}else {
 	             		AccountLogEntity accountLogEntity = AccountLogEntity.builder()
-	             			.id(account.getId())
+	             			.accountId(account.getId())
 	             			.ip(optional.get().getAddress().getHostAddress())
 	             			.build();
 	             		return accountLogRepository.existsByIp(accountLogEntity.getIp()).flatMap(existsByIp->{
