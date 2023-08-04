@@ -75,7 +75,7 @@ public class ChattingHandler {
 					);
 				})
 				//.log()
-				.onErrorResume(e -> Mono.error(new UnauthorizedException(Result._999)))
+				//.onErrorResume(e -> Mono.error(new UnauthorizedException(Result._999)))
 				;
 				
 		/*

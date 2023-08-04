@@ -229,7 +229,14 @@ const getStart = new class GetStart{
 		})
 
 		padeEndProise.then(()=>{
-			this.createRoomContainer.replaceChildren(this.#loginPage);
+			//this.createRoomContainer.replaceChildren(this.#loginPage);
+			common.isLogin(result => {
+				if(result.isLogin){
+					
+				}else {
+					this.#pageChange(this.#loginPage);
+				}
+			});
 			return Promise.all(padeEndPromiseList).then(()=>{
 				let delay = 100;
 				

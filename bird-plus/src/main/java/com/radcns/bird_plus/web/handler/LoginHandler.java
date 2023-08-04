@@ -16,8 +16,6 @@ import static org.springframework.web.reactive.function.server.ServerResponse.ok
 @Component
 public class LoginHandler {
 	
-
-	
 	public Mono<ServerResponse> isLogin(ServerRequest request){
 		return ok()
 				.contentType(MediaType.APPLICATION_JSON)

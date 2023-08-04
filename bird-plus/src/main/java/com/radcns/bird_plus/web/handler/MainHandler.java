@@ -116,17 +116,13 @@ public class MainHandler {
 									"token", token
 							));
 				})
-				.onErrorResume(e->{
-					return Mono.error(new UnauthorizedException(Result._104));
-				});
+				//.onErrorResume(e->Mono.error(new UnauthorizedException(Result._104)))
+				;
 	}
 	
 	public Mono<ServerResponse> accountVerify(ServerRequest request){
 		return request.bodyToMono(AccountVo.class)
 				.flatMap(accountVo ->{
-					System.out.println("kjh test <<<");
-					System.out.println(accountVo);
-				
 					return accountRepository.findByEmail(accountVo.getEmail())
 					.map(e->{
 						System.out.println("kjh test 2 <<<");
@@ -207,7 +203,8 @@ public class MainHandler {
 		return ok()
 				.contentType(MediaType.APPLICATION_JSON)
 				.body(request.bodyToMono(String.class).map(e->response(Result._0, e)), Response.class)
-				.onErrorResume(e -> Mono.error(new UnauthorizedException(Result._999)));
+				//.onErrorResume(e -> Mono.error(new UnauthorizedException(Result._999)))
+				;
 	}
 	
 	public Mono<ServerResponse> forgotPassword(ServerRequest request){
@@ -229,7 +226,8 @@ public class MainHandler {
 					ok()
 					.contentType(MediaType.APPLICATION_JSON)
 					.body(Mono.just(response(Result._0, null)), Response.class)
-				);
+				)
+				;
 	}
 	
 	public Mono<ServerResponse> changePasswordPage(ServerRequest request){
