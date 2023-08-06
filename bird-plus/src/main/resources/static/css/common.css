@@ -232,3 +232,9 @@ p {
     transform-origin:50% 50%;
     animation-iteration-count: infinite;
 }
+
+input[type="checkbox"]{
+	accent-color: black !important;
+    width: 2vw !important;
+    height: 3vh !important;
+}

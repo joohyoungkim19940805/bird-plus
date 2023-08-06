@@ -80,7 +80,7 @@ const getStart = new class GetStart{
 
 	#signUpPage = Object.assign(document.createElement('div'),{
 		className: 'sign_up_page',
-		innerHTML : `
+		innerHTML: `
 			<form id="sign_up_form">
 				<div>
 					<div>
@@ -123,32 +123,75 @@ const getStart = new class GetStart{
 		`
 	});
 	
-	
+	#createWorkspacePage = Object.assign(document.createElement('div'), {
+		className: 'create_workspace_page',
+		innerHTML: `
+			<form id="create_workspace_form">
+				<div> 
+					<div>
+						<label for="create_workspace_name">your workspace name</label>
+					</div>
+					<input type="text" name="workspace_name"/>
+				</div>
+				<div>
+					<div>
+						<label for="create_workspace_filter">access email filter <p style="margin:0">(if nothing is selected anyone can access)</p></label>
+						<p style="color:red;" class="description_validation"></p>
+					</div>
+					<input type="email" name="validation_email" hidden value="email" data-default_value="email"/>
+					<div class="space_between">
+						<input type="email" list="workspace_filter_list" name="workspace_filter" autocomplete="off"/>
+						<button type="button" name="workspace_filter_add" id="workspace_filter_add">+</button>
+					</div>
+					<datalist id="workspace_filter_list" name="workspace_filter_list">
+					</datalist>
+					<div>
+						<select name="workspace_filter_history">
+						</select>
+					</div>
+				</div>
+				<div>
+					<label for="workspace_finally_only_permit">access is only to the finally permit in admin
+						<input type="checkbox" id="workspace_finally_only_permit" name="workspace_finally_only_permit"/>
+					</label>
+				</div>
+				
+			</form>
+		`
+	});
 
 	constructor(){
 		
 		this.addOpeningEvent();
 
-		/**
-		 * login
-		 */
-		headerController.loginEvent(this.#loginPage, {isContainerLayer: false});
-		let [forgotPassword, signUp] = this.#loginPage.querySelectorAll('[data-page="forgot_password_page"], [data-page="sign_up_page"]');
-		forgotPassword.onclick = () => this.showForgotPasswordPage();
-		signUp.onclick = () => this.showSignUpPage();
-		
-		/**
-		 * forgot password
-		 */
-		this.forgotPasswordPageEvent(this.#forgotPasswordPage);
-		/**
-		 * forgor password send email end after
-		 */
-		this.forgotPasswordSendEmailEndPageEvent(this.#forgotPasswordSendEmailEndPage);
-		/**
-		 * sign up
-		 */
-		this.signUpPageEvent(this.#signUpPage);
+		new Promise(resolve => {
+			/**
+			 * login
+			 */
+			headerController.loginEvent(this.#loginPage, {isContainerLayer: false});
+			let [forgotPassword, signUp] = this.#loginPage.querySelectorAll('[data-page="forgot_password_page"], [data-page="sign_up_page"]');
+			forgotPassword.onclick = () => this.showForgotPasswordPage();
+			signUp.onclick = () => this.showSignUpPage();
+			
+			/**
+			 * forgot password
+			 */
+			this.forgotPasswordPageEvent(this.#forgotPasswordPage);
+			/**
+			 * forgor password send email end after
+			 */
+			this.forgotPasswordSendEmailEndPageEvent(this.#forgotPasswordSendEmailEndPage);
+			/**
+			 * sign up
+			 */
+			this.signUpPageEvent(this.#signUpPage);
+			/**
+			 * create workspace
+			 */
+			this.createWorkspaceEvent(this.#createWorkspacePage);
+			
+			resolve();
+		})
 	}
 	
 	addOpeningEvent(){
@@ -229,14 +272,15 @@ const getStart = new class GetStart{
 		})
 
 		padeEndProise.then(()=>{
+			this.createRoomContainer.replaceChildren(this.#createWorkspacePage);
 			//this.createRoomContainer.replaceChildren(this.#loginPage);
-			common.isLogin(result => {
+			/*common.isLogin(result => {
 				if(result.isLogin){
 					
 				}else {
-					this.#pageChange(this.#loginPage);
+					this.createRoomContainer.replaceChildren(this.#loginPage);
 				}
-			});
+			});*/
 			return Promise.all(padeEndPromiseList).then(()=>{
 				let delay = 100;
 				
@@ -402,4 +446,98 @@ const getStart = new class GetStart{
 		loginPage.onclick = () => this.showLoginPage();
 		forgotPassword.onclick = () => this.showForgotPasswordPage();
 	}
+
+	createWorkspaceEvent(createWorkspacePage){
+		let form = createWorkspacePage.querySelector('#create_workspace_form');
+		let {
+			workspace_name: workspaceName,
+			validation_email: validationEmail,
+			workspace_filter: workspaceFilter,
+			workspace_filter_add: workspaceFilterAdd,
+			workspace_filter_history: workspaceFilterHistory,
+			workspace_finally_only_permit: workspaceFinallyOnlyPermit
+		} = form;
+		let descriptionValidation = form.querySelector('.description_validation');
+		console.log(workspaceName, workspaceFilter, workspaceFilterAdd, workspaceFilterHistory, workspaceFinallyOnlyPermit, validationEmail);
+		let isValidationOk = false;
+		let isOneClick = false;
+		workspaceFilter.oninput = () => {
+			let domainSeparatorIndex = workspaceFilter.value.indexOf('@');
+			if(domainSeparatorIndex == 0){
+				validationEmail.value = 'example' + workspaceFilter.value.substring(workspaceFilter.value.indexOf('@'))	
+			}else if(domainSeparatorIndex > 0){
+				validationEmail.value = workspaceFilter.value
+			}else{
+				validationEmail.value = validationEmail.dataset.default_value;
+			}
+			descriptionValidation.textContent = validationEmail.validationMessage;
+		}
+		form.onsubmit = (event) => {
+			event.preventDefault();
+			if( ! isValidationOk){
+				return;
+			}
+		}
+		workspaceFilterAdd.onclick = () => {
+			console.log(workspaceFilter.value );
+			if(workspaceFilter.value == ''){
+				workspaceFilterAdd.classList.add('shake');
+				setTimeout(()=>{workspaceFilterAdd.classList.remove('shake')},150)
+				return;
+			}else if( ! validationEmail.validity.valid){
+				descriptionValidation.classList.add('shake');
+				setTimeout(()=>{descriptionValidation.classList.remove('shake')},150)
+				workspaceFilter.classList.add('shake');
+				setTimeout(()=>{workspaceFilter.classList.remove('shake')},150)
+				return;
+			} 
+			let clone = workspaceFilter.cloneNode(true);
+			clone.value = clone.value.substring(clone.value.indexOf('@'))
+			workspaceFilter.value = '';
+			let originRect = workspaceFilter.getBoundingClientRect();
+			Object.assign(clone.style,{
+				position: 'fixed',
+				width: originRect.width + 'px', height: originRect.height + 'px',
+				top: originRect.top + 'px', bottom: originRect.bottom + 'px',
+				left: originRect.left + 'px', right: originRect.right + 'px',
+				transition: 'all 0.5s'
+			});
+			workspaceFilter.parentElement.append(clone);
+			let intervar = setInterval(()=>{
+				if(clone.isConnected){
+					clone.style.top = workspaceFilterHistory.getBoundingClientRect().top + 'px';
+					clone.ontransitionend = () => {
+						let option = Object.assign(document.createElement('option'),{
+							value: clone.value 
+						})
+						new Promise(resolve => {
+							if([...workspaceFilterHistory.options].some(e=> e.value == clone.value) == false){
+								workspaceFilterHistory.prepend(option);
+							}
+							if([...workspaceFilter.list.options].some(e=> e.value == clone.value) == false){
+								workspaceFilter.list.prepend(option.cloneNode(true));
+							}
+							option.textContent = option.value;
+							option.selected = true;
+							option.disabled = true;
+							resolve();
+						}).then(()=>{
+							if(option.isConnected == false){
+								option.remove();
+							}
+						})
+						clone.remove();
+					}
+					clearInterval(intervar);					
+				}
+			}, 100);
+		}
+		workspaceFilter.onkeyup = (event) => {
+			if(event.key == 'Enter'){
+				workspaceFilterAdd.click();
+			}
+		}
+
+	}
+
 }();
