@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.radcns.bird_plus.config.security.Role;
+import com.radcns.bird_plus.entity.DefaultEntity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,13 +29,14 @@ import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
-@Data
+@Getter
+@Setter
 @Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
 @Table(value="cu_account")
-public class AccountEntity {
+public class AccountEntity extends DefaultEntity {
 	
     @Id
     @Column("id")
@@ -66,6 +68,7 @@ public class AccountEntity {
     @LastModifiedBy
     private String updatedBy;
     
+    @Column("roles")
     private List<Role> roles;
 
     @Column("is_different_ip")
@@ -84,11 +87,17 @@ public class AccountEntity {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class AccountVo {
+    public static class ChangePasswordRequest {
     	private String email;
     	private String password;
     	private String newPassword;
-    	private String token;
+    }
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AccountVerifyRequest {
+    	private String email;
     }
     
     /**
@@ -100,8 +109,11 @@ public class AccountEntity {
     public interface AccountMapper{
     	AccountMapper INSTANCE = Mappers.getMapper(AccountMapper.class);
 
-    	AccountEntity entity(AccountVo vo);
+    	AccountEntity entity(ChangePasswordRequest vo);
+    	AccountEntity entity(AccountVerifyRequest vo);
 
-    	AccountVo vo(AccountEntity entity);
+    	ChangePasswordRequest changePasswordRequest(AccountEntity entity);
+    	
+    	AccountVerifyRequest accountVerifyRequest(AccountEntity entity);
     }
 }

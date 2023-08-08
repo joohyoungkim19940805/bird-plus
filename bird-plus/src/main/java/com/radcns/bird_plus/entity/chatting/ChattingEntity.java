@@ -23,7 +23,7 @@ import lombok.With;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
+@ToString(callSuper = true)
 @With
 @Table(value="ch_chatting")
 public class ChattingEntity {

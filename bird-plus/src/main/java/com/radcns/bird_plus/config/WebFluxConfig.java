@@ -38,7 +38,7 @@ import io.swagger.v3.oas.annotations.info.Info;
 
 @Configuration
 @OpenAPIDefinition(info = @Info(
-        title = "Spring Webflux Otp",
+        title = "Spring Webflux bird-plus",
         version = "1.0",
         description = "swagger documentation using open api."
 ))

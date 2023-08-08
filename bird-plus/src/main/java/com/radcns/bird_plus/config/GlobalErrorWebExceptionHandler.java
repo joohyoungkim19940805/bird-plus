@@ -45,8 +45,6 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
     private Mono<ServerResponse> renderErrorResponse(final ServerRequest request) {
 
         final Map<String, Object> errorPropertiesMap = getErrorAttributes(request, ErrorAttributeOptions.defaults());
-        System.out.println("kjh test <<<");
-        System.out.println(errorPropertiesMap);
         HttpStatus status;
         int code = (Integer) errorPropertiesMap.get("code");
         if(code == ExceptionCodeConstant.Result._999.code()) {
@@ -73,7 +71,7 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
         if(request.headers().accept().stream().filter(e->e.equals(MediaType.TEXT_HTML)).findFirst().isPresent()) {
         	return bodyBuilder
         			.contentType(MediaType.parseMediaType("text/html;charset=UTF-8"))
-        			.render("/content/loginPage.html", Map.of("loginStatus", "FAILED"));
+        			.render("content/loginPage.html", Map.of("loginStatus", "FAILED"));
         }
         
         return bodyBuilder

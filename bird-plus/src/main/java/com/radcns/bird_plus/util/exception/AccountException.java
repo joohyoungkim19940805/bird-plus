@@ -3,11 +3,11 @@ package com.radcns.bird_plus.util.exception;
 import io.jsonwebtoken.JwtException;
 
 @SuppressWarnings("serial")
-public class AuthException extends BirdPlusException {
-	public AuthException(Result result) {
+public class AccountException extends BirdPlusException {
+	public AccountException(Result result) {
 		super(result.message(), result.code());
 	}
-	public AuthException(Result result, JwtException e) {
+	public AccountException(Result result, JwtException e) {
 		super(result.withChangeMessage(e.getMessage()).message(), result.code());
 	}
 	

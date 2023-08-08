@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class EmailVo {
+public class EmailRequest {
 	private String content;
 	private String to;
 	private String subject;

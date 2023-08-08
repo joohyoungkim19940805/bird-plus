@@ -20,9 +20,8 @@ import com.radcns.bird_plus.entity.account.AccountLogEntity;
 import com.radcns.bird_plus.repository.customer.AccountLogRepository;
 import com.radcns.bird_plus.repository.customer.AccountRepository;
 import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
-import com.radcns.bird_plus.util.exception.AuthException;
+import com.radcns.bird_plus.util.exception.AccountException;
 
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
@@ -31,10 +30,7 @@ import java.net.InetSocketAddress;
 import java.security.KeyPair;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.Year;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -105,8 +101,13 @@ public class AccountService implements Serializable {
     	return accountEntityMono.flatMap(accountInfo -> {
     		return accountRepository.findByAccountName(accountInfo.getAccountName())
 	    		.switchIfEmpty(
-	    			Mono.error(new AuthException(Result._103))
+	    			Mono.error(new AccountException(Result._103))
 	    		).flatMap(account -> {
+	    			System.out.println("kjh test <<<");
+	    			System.out.println(account);
+	    			System.out.println(account.getUpdateTime());
+	    			System.out.println(account.getCreateTime());
+	    			
 	        		if ( ! account.getIsEnabled()) {
 	        			// 이메일 전송이 오래걸리므로 응답에 3~6초씩 걸림
 						// 병목이 발생하지 않도록 별도 스레드를 통해 처리한다.
@@ -115,9 +116,9 @@ public class AccountService implements Serializable {
 						.subscribe(e->{
 							mailService.sendAccountVerifyTemplate(e);
 						});
-	    				return Mono.error(new AuthException(Result._101));
+	    				return Mono.error(new AccountException(Result._101));
 	    			}else if(!passwordEncoder.encode(accountInfo.getPassword()).equals(account.getPassword())) {
-	    				return Mono.error(new AuthException(Result._102));
+	    				return Mono.error(new AccountException(Result._102));
 	             	}else {
 	             		AccountLogEntity accountLogEntity = AccountLogEntity.builder()
 	             			.accountId(account.getId())

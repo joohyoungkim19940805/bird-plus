@@ -10,16 +10,11 @@ import com.radcns.bird_plus.config.security.JwtVerifyHandler;
 import com.radcns.bird_plus.entity.chatting.ChattingEntity;
 import com.radcns.bird_plus.repository.chatting.ChattingRepository;
 import com.radcns.bird_plus.repository.customer.AccountRepository;
-import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
-import com.radcns.bird_plus.util.exception.UnauthorizedException;
-
 import io.jsonwebtoken.Claims;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
 import static org.springframework.web.reactive.function.server.ServerResponse.ok;
-
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -93,6 +88,11 @@ public class ChattingHandler {
 				}), ChattingEntity.class)
 				//.log();
 				;
+	}
+	
+	public Mono<ServerResponse> createWorkspace(ServerRequest serverRequest){
+		//serverRequest.bodyToMono()
+		return null;
 	}
 
 }

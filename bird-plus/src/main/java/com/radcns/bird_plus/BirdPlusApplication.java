@@ -5,8 +5,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.context.annotation.ComponentScan;
 
-import com.radcns.bird_plus.util.CreateRandomCodeUtil;
-
 //import com.hide_and_fps.project.entity.Customer;
 //import com.hide_and_fps.project.repository.testRepository;
 

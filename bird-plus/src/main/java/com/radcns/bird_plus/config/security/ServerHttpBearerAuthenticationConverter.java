@@ -52,8 +52,8 @@ public class ServerHttpBearerAuthenticationConverter implements ServerAuthentica
 
     		}
     	}
-    	System.out.println("kjh test <<< auth");
-    	System.out.println(auth);
+    	//System.out.println("kjh test <<< auth");
+    	//System.out.println(auth);
     	//Authorization
         return Mono.justOrEmpty(auth);
     }

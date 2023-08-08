@@ -23,7 +23,7 @@ import org.thymeleaf.spring6.ISpringWebFluxTemplateEngine;
 
 import com.radcns.bird_plus.config.security.JwtIssuerType;
 import com.radcns.bird_plus.entity.account.AccountEntity;
-import com.radcns.bird_plus.entity.email.vo.EmailVo;
+import com.radcns.bird_plus.entity.email.vo.EmailRequest;
 import com.radcns.bird_plus.util.properties.EmailProperties;
 import com.radcns.bird_plus.util.properties.EmailProperties.AccountVerifyProperties;
 import com.radcns.bird_plus.util.properties.EmailProperties.EmailPropertiesTemplate;
@@ -59,7 +59,7 @@ public class MailService {
     //from: no-reply@test.com
     //base-url: http://localhost:8080
 
-    private void sendEmail(EmailVo sender) {
+    private void sendEmail(EmailRequest sender) {
 
         // Prepare message using a Spring helper
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
@@ -93,7 +93,7 @@ public class MailService {
     	
     	String content = createEmailTemplate(templateName, data);
     	
-        sendEmail(EmailVo.builder()
+        sendEmail(EmailRequest.builder()
                 .content(content).subject(subject).to(account.getEmail())
                 .isHtml(true).isMultipart(false)
                 .build());

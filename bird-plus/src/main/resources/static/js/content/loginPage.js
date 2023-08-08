@@ -426,7 +426,8 @@ const getStart = new class GetStart{
 				})
 			}).then(response => {
 				if( ! response.ok){
-					console.log(response);
+					console.error(response);
+					throw new Error('response is not ok');
 				}
 				return response.json();
 			}).then(result=>{
@@ -461,6 +462,7 @@ const getStart = new class GetStart{
 		console.log(workspaceName, workspaceFilter, workspaceFilterAdd, workspaceFilterHistory, workspaceFinallyOnlyPermit, validationEmail);
 		let isValidationOk = false;
 		let isOneClick = false;
+
 		workspaceFilter.oninput = () => {
 			let domainSeparatorIndex = workspaceFilter.value.indexOf('@');
 			if(domainSeparatorIndex == 0){
@@ -472,14 +474,8 @@ const getStart = new class GetStart{
 			}
 			descriptionValidation.textContent = validationEmail.validationMessage;
 		}
-		form.onsubmit = (event) => {
-			event.preventDefault();
-			if( ! isValidationOk){
-				return;
-			}
-		}
+
 		workspaceFilterAdd.onclick = () => {
-			console.log(workspaceFilter.value );
 			if(workspaceFilter.value == ''){
 				workspaceFilterAdd.classList.add('shake');
 				setTimeout(()=>{workspaceFilterAdd.classList.remove('shake')},150)
@@ -490,7 +486,7 @@ const getStart = new class GetStart{
 				workspaceFilter.classList.add('shake');
 				setTimeout(()=>{workspaceFilter.classList.remove('shake')},150)
 				return;
-			} 
+			}
 			let clone = workspaceFilter.cloneNode(true);
 			clone.value = clone.value.substring(clone.value.indexOf('@'))
 			workspaceFilter.value = '';
@@ -504,38 +500,60 @@ const getStart = new class GetStart{
 			});
 			workspaceFilter.parentElement.append(clone);
 			let intervar = setInterval(()=>{
-				if(clone.isConnected){
-					clone.style.top = workspaceFilterHistory.getBoundingClientRect().top + 'px';
-					clone.ontransitionend = () => {
-						let option = Object.assign(document.createElement('option'),{
-							value: clone.value 
-						})
-						new Promise(resolve => {
-							if([...workspaceFilterHistory.options].some(e=> e.value == clone.value) == false){
-								workspaceFilterHistory.prepend(option);
-							}
-							if([...workspaceFilter.list.options].some(e=> e.value == clone.value) == false){
-								workspaceFilter.list.prepend(option.cloneNode(true));
-							}
-							option.textContent = option.value;
-							option.selected = true;
-							option.disabled = true;
-							resolve();
-						}).then(()=>{
-							if(option.isConnected == false){
-								option.remove();
-							}
-						})
-						clone.remove();
-					}
-					clearInterval(intervar);					
+				if( ! clone.isConnected){
+					return;
 				}
+				clone.style.top = workspaceFilterHistory.getBoundingClientRect().top + 'px';
+				clone.ontransitionend = () => {
+					let option = Object.assign(document.createElement('option'),{
+						value: clone.value 
+					})
+					new Promise(resolve => {
+						if([...workspaceFilterHistory.options].some(e=> e.value == clone.value) == false){
+							workspaceFilterHistory.prepend(option);
+						}
+						if([...workspaceFilter.list.options].some(e=> e.value == clone.value) == false){
+							workspaceFilter.list.prepend(option.cloneNode(true));
+						}
+						option.textContent = option.value;
+						option.selected = true;
+						option.disabled = true;
+						resolve();
+					});
+					clone.remove();
+				}
+				clearInterval(intervar);					
 			}, 100);
 		}
+
 		workspaceFilter.onkeyup = (event) => {
 			if(event.key == 'Enter'){
 				workspaceFilterAdd.click();
 			}
+		}
+
+		form.onsubmit = (event) => {
+			event.preventDefault();
+			if( ! isValidationOk || isOneClick){
+				return;
+			}
+			isOneClick = true;
+			fetch('/api/chatting/create-workspace', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					workspaceName: workspaceName.value,
+					accessFilter: [...workspaceFilterHistory.options].map(e=>e.value),
+					isFinallyPermit: workspaceFinallyOnlyPermit.checked
+				})
+			}).then(response=>{
+				if( ! response.ok){
+					console.error(response);
+					throw new Error('response is not ok');
+				}
+			})
 		}
 
 	}

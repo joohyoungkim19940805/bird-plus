@@ -10,22 +10,20 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import com.radcns.bird_plus.config.security.JwtIssuerType;
 import com.radcns.bird_plus.config.security.JwtVerifyHandler;
 import com.radcns.bird_plus.entity.account.AccountEntity;
-import com.radcns.bird_plus.entity.account.mapper.AccountMapper;
-import com.radcns.bird_plus.entity.account.vo.AccountVo;
+import com.radcns.bird_plus.entity.account.AccountEntity.AccountVerifyRequest;
+import com.radcns.bird_plus.entity.account.AccountEntity.ChangePasswordRequest;
 import com.radcns.bird_plus.repository.customer.AccountRepository;
 import com.radcns.bird_plus.service.AccountService;
 import com.radcns.bird_plus.service.MailService;
 import com.radcns.bird_plus.util.Response;
 import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
-import com.radcns.bird_plus.util.exception.AuthException;
+import com.radcns.bird_plus.util.exception.ApiException;
+import com.radcns.bird_plus.util.exception.AccountException;
 import com.radcns.bird_plus.util.exception.ForgotPasswordException;
-import com.radcns.bird_plus.util.exception.UnauthorizedException;
-import com.radcns.bird_plus.util.properties.EmailProperties;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwsHeader;
-import io.jsonwebtoken.Jwt;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
@@ -52,10 +50,7 @@ public class MainHandler {
 	
 	@Autowired
 	private JwtVerifyHandler jwtVerifyHandler;
-	
-    @Autowired
-    private EmailProperties emailProperties;
-    
+
 	public Mono<ServerResponse> index(ServerRequest request){
 		return ok().contentType(MediaType.TEXT_HTML).render("/index.html");
 	}
@@ -121,20 +116,15 @@ public class MainHandler {
 	}
 	
 	public Mono<ServerResponse> accountVerify(ServerRequest request){
-		return request.bodyToMono(AccountVo.class)
-				.flatMap(accountVo ->{
-					return accountRepository.findByEmail(accountVo.getEmail())
-					.map(e->{
-						System.out.println("kjh test 2 <<<");
-						System.out.println(e);
-						return e;
-					})
-					.switchIfEmpty(Mono.error(new AuthException(Result._1)))
+		return request.bodyToMono(AccountVerifyRequest.class)
+				.flatMap(accountVerifyRequest ->{
+					return accountRepository.findByEmail(accountVerifyRequest.getEmail())
+					.switchIfEmpty(Mono.error(new ApiException(Result._1)))
 					.map(accountEntity->{
 						accountEntity.setIsEnabled(true);
 						return accountEntity;
-					});}
-				)
+					});
+				})
 				.flatMap(accountEntity->
 					accountRepository.save(accountEntity)
 				)
@@ -210,7 +200,7 @@ public class MainHandler {
 	public Mono<ServerResponse> forgotPassword(ServerRequest request){
 		return request.bodyToMono(AccountEntity.class)
 				.flatMap(account -> accountRepository.findByEmail(account.getEmail()))
-				.switchIfEmpty(Mono.error(new AuthException(Result._108)))
+				.switchIfEmpty(Mono.error(new AccountException(Result._108)))
 				.publishOn(Schedulers.boundedElastic())
 				.doOnNext(e->{
 					// 이메일 전송이 오래걸리므로 응답에 3~6초씩 걸림
@@ -258,17 +248,17 @@ public class MainHandler {
 						));
 			})
 			.onErrorResume(e->{
-				return Mono.error(new UnauthorizedException(Result._104));
+				return Mono.error(new AccountException(Result._104));
 			});
 	}
 	
 	public Mono<ServerResponse> changePassword(ServerRequest request){
-		return request.bodyToMono(AccountVo.class)
-			.flatMap(accountVo ->
-				accountRepository.findByEmail(accountVo.getEmail())
-				.switchIfEmpty(Mono.error(new AuthException(Result._1)))
+		return request.bodyToMono(ChangePasswordRequest.class)
+			.flatMap(changePasswordRequest ->
+				accountRepository.findByEmail(changePasswordRequest.getEmail())
+				.switchIfEmpty(Mono.error(new AccountException(Result._1)))
 				.map(accountEntity->{
-					accountEntity.setPassword(accountService.passwordEncoder.encode(accountVo.getPassword()));
+					accountEntity.setPassword(accountService.passwordEncoder.encode(changePasswordRequest.getPassword()));
 					return accountEntity;
 				})
 			)
