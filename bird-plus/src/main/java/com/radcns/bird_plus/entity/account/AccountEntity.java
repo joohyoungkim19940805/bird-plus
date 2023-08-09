@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.radcns.bird_plus.config.security.Role;
-import com.radcns.bird_plus.entity.DefaultEntity;
+import com.radcns.bird_plus.entity.DefaultFieldEntity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,6 +24,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
@@ -34,9 +35,9 @@ import org.mapstruct.factory.Mappers;
 @Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
+@ToString(callSuper = true)
 @Table(value="cu_account")
-public class AccountEntity extends DefaultEntity {
+public class AccountEntity extends DefaultFieldEntity {
 	
     @Id
     @Column("id")
@@ -51,22 +52,6 @@ public class AccountEntity extends DefaultEntity {
     
     @Column("is_enabled")
     private Boolean isEnabled;
-    
-    @Column("create_at")
-    @CreatedDate
-    private LocalDateTime createAt;
-    
-    @Column("create_by")
-    @CreatedBy
-    private String createBy;
-    
-    @Column("updated_at")
-    @LastModifiedDate
-    private LocalDateTime updatedAt;
-
-    @Column("updated_by")
-    @LastModifiedBy
-    private String updatedBy;
     
     @Column("roles")
     private List<Role> roles;

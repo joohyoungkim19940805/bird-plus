@@ -105,8 +105,8 @@ public class AccountService implements Serializable {
 	    		).flatMap(account -> {
 	    			System.out.println("kjh test <<<");
 	    			System.out.println(account);
-	    			System.out.println(account.getUpdateTime());
-	    			System.out.println(account.getCreateTime());
+	    			System.out.println(account.getUpdateMils());
+	    			System.out.println(account.getUpdateMils());
 	    			
 	        		if ( ! account.getIsEnabled()) {
 	        			// 이메일 전송이 오래걸리므로 응답에 3~6초씩 걸림
@@ -149,7 +149,6 @@ public class AccountService implements Serializable {
     					.password(passwordEncoder.encode(account.getPassword()))
         				.roles(List.of(Role.ROLE_USER, Role.ROLE_GUEST))
         			    .isEnabled(false)
-        			    .createAt(LocalDateTime.now())
         			    .build())
     			.flatMap(account -> accountRepository.save(account));
     	/*
