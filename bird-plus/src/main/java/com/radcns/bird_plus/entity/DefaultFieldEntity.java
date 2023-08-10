@@ -20,37 +20,29 @@ import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 @ToString
+@Setter
+@Getter
 public abstract class DefaultFieldEntity {
 
     @Column("create_at")
     @CreatedDate
-    @Setter
-    @Getter
     private LocalDateTime createAt;
     
     @Column("create_by")
     @CreatedBy
-    @Setter
-    @Getter
     private String createBy;
     
     @Column("updated_at")
     @LastModifiedDate
-    @Setter
-    @Getter
     private LocalDateTime updatedAt;
 
     @Column("updated_by")
     @LastModifiedBy
-    @Setter
-    @Getter
     private String updatedBy;
-	
-	@Getter
+
 	@Transient
 	Long createMils = null;
 	
-	@Getter
 	@Transient
 	Long updateMils = null;
 	
@@ -59,9 +51,26 @@ public abstract class DefaultFieldEntity {
 		this.createAt = createAt;
 		this.createMils = createAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 	}
-	public void setUpdateAt(LocalDateTime updateAt) {
+	public void setUpdatedAt(LocalDateTime updateAt) {
 		this.updatedAt = updateAt;
 		this.updateMils = updateAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 	}
 
+	public Long getCreateMils() {
+		if(this.createAt == null) {
+			return null;
+		}else if(this.createMils == null) {
+			this.createMils = createAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+			
+		}
+		return this.createMils; 
+	}
+	public Long getUpdateMils() {
+		if(this.updatedAt == null) {
+			return null;
+		}else if(this.updateMils == null) {
+			this.updateMils = updatedAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+		}
+		return this.updateMils; 
+	}
 }

@@ -170,14 +170,14 @@ public class MainHandler {
 	
 	public Mono<ServerResponse> loginProcessing(ServerRequest request){
 		return accountService.authenticate(request.bodyToMono(AccountEntity.class), request.remoteAddress())
-				.flatMap(account -> ok()
-						.cookie(ResponseCookie.fromClientResponse(HttpHeaders.AUTHORIZATION, account.getToken())
+				.flatMap(token -> ok()
+						.cookie(ResponseCookie.fromClientResponse(HttpHeaders.AUTHORIZATION, token.getToken())
 								.httpOnly(true)
 								.sameSite("Strict")
 								.path("/")
 		        				.build())
 						.contentType(MediaType.APPLICATION_JSON)
-						.body(Mono.just(response(Result._0, account)), Response.class));
+						.body(Mono.just(response(Result._0, token)), Response.class));
 		/*
 		 ok()
 			.contentType(MediaType.APPLICATION_JSON)
@@ -215,7 +215,7 @@ public class MainHandler {
 				.flatMap(account -> 
 					ok()
 					.contentType(MediaType.APPLICATION_JSON)
-					.body(Mono.just(response(Result._0, null)), Response.class)
+					.body(Mono.just(response(Result._0, account)), Response.class)
 				)
 				;
 	}

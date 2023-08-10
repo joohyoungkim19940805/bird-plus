@@ -10,6 +10,8 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+import com.radcns.bird_plus.entity.DefaultFieldEntity;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -26,7 +28,7 @@ import lombok.With;
 @ToString(callSuper = true)
 @With
 @Table(value="ch_chatting")
-public class ChattingEntity {
+public class ChattingEntity extends DefaultFieldEntity{
 	
 	@Id
 	@Column("id")
@@ -43,22 +45,6 @@ public class ChattingEntity {
     
     @Column(value="chatting")
     private String chatting;
-    
-    @Column("create_at")
-    @CreatedDate
-    private LocalDateTime createAt;
-    
-    @Column("create_by")
-    @CreatedBy
-    private String createBy;
-    
-    @Column("updated_at")
-    @LastModifiedDate
-    private LocalDateTime updatedAt;
-
-    @Column("updated_by")
-    @LastModifiedBy
-    private String updatedBy;
     
     @Column("is_delete")
     private Boolean isDelete;

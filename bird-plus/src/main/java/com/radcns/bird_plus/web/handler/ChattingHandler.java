@@ -81,7 +81,7 @@ public class ChattingHandler {
 		*/
 	}
 	public Mono<ServerResponse> emissionStream(ServerRequest serverRequest) {
-		return ServerResponse.ok().contentType(MediaType.TEXT_EVENT_STREAM)
+		return ok().contentType(MediaType.TEXT_EVENT_STREAM)
 				.body(chattingSink.asFlux().map(e->{
 					e.setAccountId(null);
 					return e;
@@ -92,6 +92,7 @@ public class ChattingHandler {
 	
 	public Mono<ServerResponse> createWorkspace(ServerRequest serverRequest){
 		//serverRequest.bodyToMono()
+		ok().contentType(null);
 		return null;
 	}
 

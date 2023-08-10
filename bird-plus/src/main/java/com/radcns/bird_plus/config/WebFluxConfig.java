@@ -26,6 +26,7 @@ import org.thymeleaf.templateresolver.ITemplateResolver;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.radcns.bird_plus.config.security.JwtVerifyHandler;
+import com.radcns.bird_plus.entity.DefaultFieldEntity;
 import com.radcns.bird_plus.util.CommonUtil;
 import com.radcns.bird_plus.util.CreateRandomCodeUtil;
 

@@ -8,32 +8,28 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+import com.radcns.bird_plus.entity.DefaultFieldEntity;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @Builder(toBuilder = true)
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(callSuper = true)
 @Table(value="cu_account_log")
-public class AccountLogEntity {
+public class AccountLogEntity extends DefaultFieldEntity {
 	
     @Column("account_id")
 	private Long accountId;
 	
     @Column("ip")
 	private String ip;
-	
-    @Column("create_at")
-    @CreatedDate
-    private LocalDateTime createAt;
-    
-    @Column("updated_at")
-    @LastModifiedDate
-    private LocalDateTime updatedAt;
     
 }
