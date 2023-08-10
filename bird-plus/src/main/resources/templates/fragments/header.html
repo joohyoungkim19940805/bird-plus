@@ -40,9 +40,7 @@
 			    		`
 		    		});
 		    		
-		    		loginSuccessPromise = new Promise(resolve => {
-		    			this.loginSuccessResolve = resolve;
-		    		});
+
 		    		
 		    		constructor(){
 		    			this.loginEvent(this.loginContainer);
@@ -65,14 +63,16 @@
 		    						src : '/images/user.png'
 		    					});
 		    					this.loginButton.replaceChildren(img);
-		    					this.loginSuccessResolve();
+		    					common.loginSuccessResolve();
 							}
 						})
 					}
 		    		
 		    		loginEvent(container, {isContainerLayer = true, loginStartButton = this.loginButton} = {}){
-	    				this.loginSuccessPromise.then(()=>{
-	    					container.remove();
+	    				common.loginSuccessPromise.then(()=>{
+							if(container == this.loginContainer){
+	    						container.remove();
+							}
 	    				})
 	    				if(isContainerLayer){
 	    					loginStartButton.onclick = (event) => {
@@ -123,7 +123,7 @@
 			    						src : '/images/user.png'
 			    					});
 			    					this.loginButton.replaceChildren(img);
-			    					this.loginSuccessResolve();
+			    					common.loginSuccessResolve();
 			    					//container.remove();
 		    					}else if(message && message != ''){
 		    						statusText.textContent = message;

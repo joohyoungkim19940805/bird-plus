@@ -20,19 +20,8 @@ import org.springframework.context.annotation.ComponentScan;
 							  })
 @SpringBootApplication
 public class BirdPlusApplication {
-
     public static void main(String[] args) {
-    	/*
-		//System.setProperty("spring.profiles.active", "local");
-        SpringApplication application = new SpringApplication(ProjectApplication.class);
-        application.setWebApplicationType(WebApplicationType.REACTIVE); 
-        // starter-web은 SERVLET으로 자동으로 선택한다. 이것을 강제로 REACTIVE로 바꾼다.
-        application.run(args);
-        *///
-    	//System.setProperty("springbootwebfluxjjwt.password.encoder.secret", new CreateRandomCodeUtil().createCode(new byte[16]));
-		
-		SpringApplication.run(BirdPlusApplication.class, args);
-		
+		SpringApplication.run(BirdPlusApplication.class, args);		
 	}
 	
     /**

@@ -172,7 +172,11 @@ const getStart = new class GetStart{
 			let [forgotPassword, signUp] = this.#loginPage.querySelectorAll('[data-page="forgot_password_page"], [data-page="sign_up_page"]');
 			forgotPassword.onclick = () => this.showForgotPasswordPage();
 			signUp.onclick = () => this.showSignUpPage();
-			
+			common.loginSuccessPromise.then(()=>{
+				if(this.#loginPage.isConnected){
+					this.#pageChange(this.#createWorkspacePage);
+				}
+			});
 			/**
 			 * forgot password
 			 */
@@ -273,14 +277,14 @@ const getStart = new class GetStart{
 
 		padeEndProise.then(()=>{
 			//this.createRoomContainer.replaceChildren(this.#createWorkspacePage);
-			this.createRoomContainer.replaceChildren(this.#loginPage);
-			/*common.isLogin(result => {
+			//this.createRoomContainer.replaceChildren(this.#loginPage);
+			common.isLogin(result => {
 				if(result.isLogin){
-					
+					this.createRoomContainer.replaceChildren(this.#createWorkspacePage);
 				}else {
 					this.createRoomContainer.replaceChildren(this.#loginPage);
 				}
-			});*/
+			});
 			return Promise.all(padeEndPromiseList).then(()=>{
 				let delay = 100;
 				
@@ -348,6 +352,11 @@ const getStart = new class GetStart{
 	 * @param {HTMLDivElement} forgotPassworPage 
 	 */
 	forgotPasswordPageEvent(forgotPassworPage){
+		common.loginSuccessPromise.then(()=>{
+			if(forgotPassworPage.isConnected){
+				this.#pageChange(this.#createWorkspacePage);
+			}
+		});
 		let form = forgotPassworPage.querySelector('#forgot_password_form');
 		let isClick = false;
 		form.onsubmit = (event) => {
@@ -389,6 +398,11 @@ const getStart = new class GetStart{
 		signUpPage.onclick = () => this.showSignUpPage();
 	}
 	forgotPasswordSendEmailEndPageEvent(forgotPasswordSendEmailEndPage){
+		common.loginSuccessPromise.then(()=>{
+			if(forgotPassworPage.isConnected){
+				this.#pageChange(this.#createWorkspacePage);
+			}
+		});
 		let [loginPage, signUpPage] = forgotPasswordSendEmailEndPage.querySelectorAll('[data-page="login_page"], [data-page="sign_up_page"]');
 		loginPage.onclick = () => this.showLoginPage();
 		signUpPage.onclick = () => this.showSignUpPage();
@@ -398,6 +412,12 @@ const getStart = new class GetStart{
 	 * @param {HTMLDivElement} signUpPage 
 	 */
 	signUpPageEvent(signUpPage){
+		common.loginSuccessPromise.then(()=>{
+			if(forgotPassworPage.isConnected){
+				this.#pageChange(this.#createWorkspacePage);
+			}
+		});
+		
 		let form = signUpPage.querySelector('#sign_up_form');
 
 		let {

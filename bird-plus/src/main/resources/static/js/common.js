@@ -6,8 +6,15 @@ const common = new class Common{
 	globalClickEventPromise = new Promise(resolve=>{
 		this.globalClickEventPromiseResolve = resolve;
 	});
-	
+	loginSuccessPromise = new Promise(resolve => {
+		this.loginSuccessResolve = resolve;
+	});
 	constructor(){
+		this.loginSuccessPromise.then(()=>{
+			this.loginSuccessPromise = new Promise(resolve => {
+				this.loginSuccessResolve = resolve;
+			});
+		})
 		document.addEventListener('mousemove', (event) => {
 			//mousePos = { x: event.clientX, y: event.clientY };
 			//mousePosText.textContent = `(${mousePos.x}, ${mousePos.y})`;
@@ -99,6 +106,9 @@ const common = new class Common{
 						json.isLogin = true;	
 					}else{
 						json.isLogin = false;
+					}
+					if(json.isLogin){
+						this.loginSuccessResolve();
 					}
 					return callBack(json);
 				});
