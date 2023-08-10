@@ -151,7 +151,7 @@ const getStart = new class GetStart{
 					</div>
 				</div>
 				<div>
-					<label for="workspace_finally_only_permit">access is only to the finally permit in admin
+					<label for="workspace_finally_only_permit">access is ultimately do permit by admin
 						<input type="checkbox" id="workspace_finally_only_permit" name="workspace_finally_only_permit"/>
 					</label>
 				</div>
@@ -417,7 +417,7 @@ const getStart = new class GetStart{
 				this.#pageChange(this.#createWorkspacePage);
 			}
 		});
-		
+
 		let form = signUpPage.querySelector('#sign_up_form');
 
 		let {
