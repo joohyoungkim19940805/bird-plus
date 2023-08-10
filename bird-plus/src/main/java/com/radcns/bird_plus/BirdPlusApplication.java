@@ -12,7 +12,7 @@ import org.springframework.context.annotation.ComponentScan;
  * 이 클래스의 패키지가 최상위 루트로 지정된다.
  */
 
-@ServletComponentScan
+//@ServletComponentScan
 
 //매핑할 패키지 경로를 지정한다. 해당 클래스 외의 패키지 경로를 매핑하고 싶을 때(Autowired bean이 안잡힐 때)
 @ComponentScan(basePackages = {

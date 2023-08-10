@@ -16,6 +16,7 @@ import org.springframework.security.web.server.authentication.RedirectServerAuth
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.logout.RedirectServerLogoutSuccessHandler;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
+import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
 import org.springframework.security.web.server.header.ReferrerPolicyServerHttpHeadersWriter;
 import org.springframework.security.web.server.header.XFrameOptionsServerHttpHeadersWriter.Mode;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
@@ -112,6 +113,7 @@ public class WebFluxSecurityConfig {
                 
                 .addFilterAt(bearerAuthenticationFilter(authManager), SecurityWebFiltersOrder.HTTP_BASIC)
                 
+                //.securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
                 .build();
     }
     AuthenticationWebFilter bearerAuthenticationFilter(ReactiveAuthenticationManager authManager) {
