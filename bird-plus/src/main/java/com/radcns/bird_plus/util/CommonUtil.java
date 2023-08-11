@@ -138,6 +138,7 @@ public class CommonUtil {//extends AwsCliCommand{
 	 * @param obj json 포맷인 객체
 	 * @return
 	 */
+	/*
 	public String prettyPrintingJson(Object obj) {
 		
 		StringBuilder prettyJSONBuilder = new StringBuilder();
@@ -226,7 +227,7 @@ public class CommonUtil {//extends AwsCliCommand{
 
 		return prettyJSONBuilder.toString();
 	}
-	
+	*/
 	/**
 	 * 내용을 json 파일로 저장시키는 함수
 	 * @param str 저장 시킬 내용

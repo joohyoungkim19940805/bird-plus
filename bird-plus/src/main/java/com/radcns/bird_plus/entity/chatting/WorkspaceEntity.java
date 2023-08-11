@@ -12,6 +12,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.With;
 
 import java.util.List;
 
@@ -20,8 +21,9 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@With
 @ToString(callSuper = true)
-@Table(value="ch_chatting")
+@Table(value="ch_workspace")
 public class WorkspaceEntity extends DefaultFieldEntity{
 	
 	@Id
@@ -40,4 +42,6 @@ public class WorkspaceEntity extends DefaultFieldEntity{
 	@Column("is_finally_permit")
 	private Boolean isFinallyPermit;
 	
+	@Column("owner_account_id")
+	private Long ownerAccountId;
 }

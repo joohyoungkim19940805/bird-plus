@@ -1,24 +1,30 @@
 package com.radcns.bird_plus.service;
 
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.jackson.io.JacksonSerializer;
 
 import org.springframework.beans.factory.annotation.Autowired;
-
+import org.springframework.http.HttpCookie;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.server.ServerRequest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.radcns.bird_plus.config.security.JwtIssuerType;
+import com.radcns.bird_plus.config.security.JwtVerifyHandler;
 import com.radcns.bird_plus.config.security.Role;
 import com.radcns.bird_plus.config.security.Token;
 import com.radcns.bird_plus.entity.account.AccountEntity;
 import com.radcns.bird_plus.entity.account.AccountLogEntity;
 import com.radcns.bird_plus.repository.customer.AccountLogRepository;
 import com.radcns.bird_plus.repository.customer.AccountRepository;
+import com.radcns.bird_plus.util.CommonUtil;
 import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
 import com.radcns.bird_plus.util.exception.AccountException;
 
@@ -29,7 +35,7 @@ import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.security.KeyPair;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+
 import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
@@ -37,10 +43,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-@SuppressWarnings("serial")
+
 @Component
 @Service
-public class AccountService implements Serializable {
+public class AccountService  {
     @Autowired
 	private AccountRepository accountRepository;
     @Autowired
@@ -55,6 +61,9 @@ public class AccountService implements Serializable {
     @Autowired
     private KeyPair keyPair;
     
+	@Autowired
+	private JwtVerifyHandler jwtVerifyHandler;
+	
     /**
      * 엑세스 토큰을 생성하는 함수
      * @param user
@@ -160,11 +169,49 @@ public class AccountService implements Serializable {
     	*/
     }
 
-    public Mono<AccountEntity> getUser(Long userId) {
-        return accountRepository.findById(userId);
-    }
-    public Mono<AccountEntity> getUser(String email) {
-        return accountRepository.findByEmail(email);
+    public String searchJwtTokenAsString(ServerRequest request) {
+    	String auth = request
+    			.headers()
+                .firstHeader(HttpHeaders.AUTHORIZATION);
+    	if(auth == null || auth.isEmpty()) {
+    		HttpCookie obj = request
+    				.cookies()
+    				.getFirst(HttpHeaders.AUTHORIZATION);
+    		if(obj != null) {
+    			auth = obj.getValue();
+    			if(auth.isEmpty()) {
+    				auth = null;
+    			}
+    		}else {
+	    		String[] paths = request.path().split("/");
+	    		
+	    		auth = paths.length == 0 ? "" : paths[paths.length - 1];
+
+	    		if(auth.contains("bearer-")) {
+	    			auth = auth.replace("bearer-","");
+	    		}else {
+	    			auth = null;
+	    		}
+
+    		}
+    	}
+    	return auth;
     }
     
+    public Mono<AccountEntity> convertJwtToAccount(ServerRequest request) {
+    	String token = searchJwtTokenAsString(request);
+    	if(token == null) {
+    		return Mono.empty();
+    	}
+    	
+    	Jws<Claims> jws = jwtVerifyHandler.getJwt(token);
+		Claims claims = jws.getBody();
+		Date expiration = claims.getExpiration();
+		if(expiration.before(new Date())) {
+			return Mono.empty();
+		}
+		
+    	return accountRepository.findByEmail(claims.getSubject())
+    			.switchIfEmpty(accountRepository.findByAccountName(claims.getIssuer()));
+    }
 }

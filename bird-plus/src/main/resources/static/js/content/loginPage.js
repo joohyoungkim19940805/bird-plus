@@ -129,18 +129,18 @@ const getStart = new class GetStart{
 			<form id="create_workspace_form">
 				<div> 
 					<div>
-						<label for="create_workspace_name">your workspace name</label>
+						<label for="workspace_name">your workspace name</label>
 					</div>
-					<input type="text" name="workspace_name"/>
+					<input type="text" id="workspace_name" name="workspace_name"/>
 				</div>
 				<div>
 					<div>
-						<label for="create_workspace_filter">access email filter <p style="margin:0">(if nothing is selected anyone can access)</p></label>
+						<label for="workspace_filter">access email filter <p style="margin:0">(if nothing is selected anyone can access)</p></label>
 						<p style="color:red;" class="description_validation"></p>
 					</div>
 					<input type="email" name="validation_email" hidden value="email" data-default_value="email"/>
 					<div class="space_between">
-						<input type="email" list="workspace_filter_list" name="workspace_filter" autocomplete="off"/>
+						<input type="email" list="workspace_filter_list" id="workspace_filter" name="workspace_filter" autocomplete="off"/>
 						<button type="button" name="workspace_filter_add" id="workspace_filter_add">+</button>
 					</div>
 					<datalist id="workspace_filter_list" name="workspace_filter_list">
@@ -155,10 +155,32 @@ const getStart = new class GetStart{
 						<input type="checkbox" id="workspace_finally_only_permit" name="workspace_finally_only_permit"/>
 					</label>
 				</div>
-				
+				<div>
+					<button type="button" name="create_new_workspace_button" class="create_new_workspace_button">create new workspace</button>
+				</div>
 			</form>
 		`
 	});
+
+	#startMenuPage = Object.assign(document.createElement('div'), {
+		className: 'start_menu_page',
+		innerHTML: `
+			<form id="startMenu">
+				<div>
+					<label>
+						see your workspace now
+					</label>
+				</div>
+				<div class="find_wrapper">
+					<a href="javascript:void(0);" data-page="download_page">bird plus download</a>
+					<a href="javascript:void(0);" data-page="web_version_page">i want see web page</a>
+				</div>
+				<div class="find_wrapper">
+					<a href="javascript:void(0);" data-page="create_workspace_page">create new workspace</a>
+				</div>
+			<//form>
+		`
+	})
 
 	constructor(){
 		
@@ -193,6 +215,10 @@ const getStart = new class GetStart{
 			 * create workspace
 			 */
 			this.createWorkspaceEvent(this.#createWorkspacePage);
+			/**
+			 * menu page
+			 */
+			this.createSstartMenuEvent(this.#startMenuPage);
 			
 			resolve();
 		})
@@ -278,9 +304,30 @@ const getStart = new class GetStart{
 		padeEndProise.then(()=>{
 			//this.createRoomContainer.replaceChildren(this.#createWorkspacePage);
 			//this.createRoomContainer.replaceChildren(this.#loginPage);
-			common.isLogin(result => {
+			common.isLogin(async result => {
 				if(result.isLogin){
-					this.createRoomContainer.replaceChildren(this.#createWorkspacePage);
+					let isWorkspaceAttend = await fetch('/api/chatting/is_workspace_attend', {
+						method: 'GET',
+						headers: {
+							'Content-Type' : 'application/json'
+						}
+					}).then(response => {
+						if( ! response.ok){
+							console.error(response);
+							throw new Error('response is not ok');
+						}
+						return response.json();
+					}).then(result => {
+						return result.data.isAttend;
+					}).catch(error => {
+						console.error(error);
+						return false;
+					})
+					if(isWorkspaceAttend){
+						this.createRoomContainer.replaceChildren(this.startMenuPage);
+					}else{
+						this.createRoomContainer.replaceChildren(this.#createWorkspacePage);
+					}
 				}else {
 					this.createRoomContainer.replaceChildren(this.#loginPage);
 				}
@@ -305,28 +352,34 @@ const getStart = new class GetStart{
 		});
 		
 	}
-	
-	showContainer(){
-
-	}
 
 	showLoginPage(){
-		this.#pageChange(this.#loginPage).then(() => {
+		return this.#pageChange(this.#loginPage).then(() => {
 			//... page change end callback
 		});
 	}
 	showForgotPasswordPage(){
-		this.#pageChange(this.#forgotPasswordPage).then(() => {
+		return this.#pageChange(this.#forgotPasswordPage).then(() => {
 			//... page change end callback
 		});
 	}
 	showSignUpPage(){
-		this.#pageChange(this.#signUpPage).then(() => {
+		return this.#pageChange(this.#signUpPage).then(() => {
 			//... page change end callback
 		});
 	}
 	showForgotPasswordSendEmailEndPage(){
-		this.#pageChange(this.#forgotPasswordSendEmailEndPage).then(()=> {
+		return this.#pageChange(this.#forgotPasswordSendEmailEndPage).then(() => {
+			//... page change end callback
+		});
+	}
+	showCreateWorkspacePage(){
+		return this.#pageChange(this.#createWorkspacePage).then(() => {
+			//... page change end callback
+		});
+	}
+	showStartMenuPage(){
+		return this.#pageChange(this.#startMenuPage).then(() => {
 			//... page change end callback
 		});
 	}
@@ -397,9 +450,10 @@ const getStart = new class GetStart{
 		loginPage.onclick = () => this.showLoginPage();
 		signUpPage.onclick = () => this.showSignUpPage();
 	}
+	
 	forgotPasswordSendEmailEndPageEvent(forgotPasswordSendEmailEndPage){
 		common.loginSuccessPromise.then(()=>{
-			if(forgotPassworPage.isConnected){
+			if(forgotPasswordSendEmailEndPage.isConnected){
 				this.#pageChange(this.#createWorkspacePage);
 			}
 		});
@@ -413,7 +467,7 @@ const getStart = new class GetStart{
 	 */
 	signUpPageEvent(signUpPage){
 		common.loginSuccessPromise.then(()=>{
-			if(forgotPassworPage.isConnected){
+			if(signUpPage.isConnected){
 				this.#pageChange(this.#createWorkspacePage);
 			}
 		});
@@ -476,23 +530,36 @@ const getStart = new class GetStart{
 			workspace_filter: workspaceFilter,
 			workspace_filter_add: workspaceFilterAdd,
 			workspace_filter_history: workspaceFilterHistory,
-			workspace_finally_only_permit: workspaceFinallyOnlyPermit
+			workspace_finally_only_permit: workspaceFinallyOnlyPermit,
+			create_new_workspace_button: createNewWorkspaceButton
 		} = form;
 		let descriptionValidation = form.querySelector('.description_validation');
-		console.log(workspaceName, workspaceFilter, workspaceFilterAdd, workspaceFilterHistory, workspaceFinallyOnlyPermit, validationEmail);
-		let isValidationOk = false;
+
+		//console.log(workspaceName, workspaceFilter, workspaceFilterAdd, workspaceFilterHistory, workspaceFinallyOnlyPermit, validationEmail);
+		//let isValidationOk = false;
 		let isOneClick = false;
 
 		workspaceFilter.oninput = () => {
+			if(workspaceFilter.value == ''){
+				descriptionValidation.textContent = '';
+				return;	
+			}
 			let domainSeparatorIndex = workspaceFilter.value.indexOf('@');
 			if(domainSeparatorIndex == 0){
-				validationEmail.value = 'example' + workspaceFilter.value.substring(workspaceFilter.value.indexOf('@'))	
+				validationEmail.value = validationEmail.dataset.default_value + workspaceFilter.value.substring(workspaceFilter.value.indexOf('@'))	
 			}else if(domainSeparatorIndex > 0){
 				validationEmail.value = workspaceFilter.value
 			}else{
 				validationEmail.value = validationEmail.dataset.default_value;
 			}
+			
 			descriptionValidation.textContent = validationEmail.validationMessage;
+		}
+
+		workspaceFilter.onblur = () => {
+			if(workspaceFilter.value == ''){
+				descriptionValidation.textContent = '';
+			}
 		}
 
 		workspaceFilterAdd.onclick = () => {
@@ -554,7 +621,15 @@ const getStart = new class GetStart{
 
 		form.onsubmit = (event) => {
 			event.preventDefault();
-			if( ! isValidationOk || isOneClick){
+		}
+		createNewWorkspaceButton.onclick = (event) => {
+			if(/* ! isValidationOk ||*/ isOneClick){
+				return;
+			}else if( ! workspaceName.value || workspaceName.value == ''){
+				workspaceName.classList.add('shake');
+				setTimeout(()=>{workspaceName.classList.remove('shake')},150)
+				workspaceName.labels[0].classList.add('shake');
+				setTimeout(()=>{workspaceName.labels[0].classList.remove('shake')},150)
 				return;
 			}
 			isOneClick = true;
@@ -568,14 +643,35 @@ const getStart = new class GetStart{
 					accessFilter: [...workspaceFilterHistory.options].map(e=>e.value),
 					isFinallyPermit: workspaceFinallyOnlyPermit.checked
 				})
-			}).then(response=>{
+			}).then(response => {
 				if( ! response.ok){
 					console.error(response);
 					throw new Error('response is not ok');
 				}
+				return response.json();
+			}).then(result => {
+				if(result.code == 0){
+					this.showStartMenuPage().then(() => {
+						workspaceName.value = '';
+						isOneClick = true;
+					});
+				}else{
+					alert(result.message);
+					isOneClick = false;
+				}
+				console.log(result);
+			}).catch(err=>{
+				console.error(err);
+				isOneClick = false;
 			})
 		}
 
 	}
-
+	createSstartMenuEvent(startMenuPage){
+		let [downloadPage, webVersionPage, createWorkspacePage]	= startMenuPage.querySelectorAll('[data-page="download_page"], [data-page="web_version_page"], [data-page="create_workspace_page"]')
+		downloadPage.onclick = () => {}
+		webVersionPage.onclick = () => {}
+		createWorkspacePage.onclick = () => this.showCreateWorkspacePage();
+	}
+	
 }();

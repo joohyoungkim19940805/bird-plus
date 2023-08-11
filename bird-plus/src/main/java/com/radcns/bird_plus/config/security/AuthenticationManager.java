@@ -8,6 +8,7 @@ import org.springframework.security.core.Authentication;
 
 import org.springframework.stereotype.Component;
 
+import com.radcns.bird_plus.repository.customer.AccountRepository;
 import com.radcns.bird_plus.service.AccountService;
 import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
 import com.radcns.bird_plus.util.exception.AccountException;
@@ -18,16 +19,15 @@ import reactor.core.publisher.Mono;
 @AllArgsConstructor
 public class AuthenticationManager implements ReactiveAuthenticationManager {
 
-	@Autowired 
-	private AccountService accountService;
-	
+    @Autowired
+	private AccountRepository accountRepository;
 	
     @Override
     public Mono<Authentication> authenticate(Authentication authentication) {
     	
     	UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
 
-    	return accountService.getUser(principal.getId())
+    	return accountRepository.findByEmail(principal.getId())
             //.filter(user -> user.getIsEnabled())
             .switchIfEmpty(Mono.error(new AccountException(Result._104)))
             .map(user -> authentication);

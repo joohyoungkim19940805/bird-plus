@@ -30,7 +30,7 @@ public abstract class DefaultFieldEntity {
     
     @Column("create_by")
     @CreatedBy
-    private String createBy;
+    private Long createBy;
     
     @Column("updated_at")
     @LastModifiedDate
@@ -38,7 +38,7 @@ public abstract class DefaultFieldEntity {
 
     @Column("updated_by")
     @LastModifiedBy
-    private String updatedBy;
+    private Long updatedBy;
 
 	@Transient
 	Long createMils = null;

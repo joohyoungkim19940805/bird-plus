@@ -8,13 +8,25 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 
 import com.radcns.bird_plus.config.security.JwtVerifyHandler;
 import com.radcns.bird_plus.entity.chatting.ChattingEntity;
+import com.radcns.bird_plus.entity.chatting.WorkspaceEntity;
+import com.radcns.bird_plus.entity.chatting.WorkspaceMembersEntity;
+
 import com.radcns.bird_plus.repository.chatting.ChattingRepository;
+import com.radcns.bird_plus.repository.chatting.WorkspaceMembersRepository;
+import com.radcns.bird_plus.repository.chatting.WorkspaceRepository;
 import com.radcns.bird_plus.repository.customer.AccountRepository;
+import com.radcns.bird_plus.service.AccountService;
+import com.radcns.bird_plus.util.Response;
+import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
+
 import io.jsonwebtoken.Claims;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
+import static com.radcns.bird_plus.util.Response.response;
 import static org.springframework.web.reactive.function.server.ServerResponse.ok;
+
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -30,6 +42,15 @@ public class ChattingHandler {
 	
 	@Autowired
 	private AccountRepository accountRepository;
+	
+	@Autowired
+	private AccountService accountService;
+	
+	@Autowired
+	private WorkspaceRepository workspaceRepository;
+	
+	@Autowired
+	private WorkspaceMembersRepository workspaceMembersRepository;
 	
 	/**
 	unicast() : 하나의 Subscriber 만 허용한다. 즉, 하나의 Client 만 연결할 수 있다.
@@ -80,7 +101,7 @@ public class ChattingHandler {
 				.onErrorResume(e -> Mono.error(new UnauthorizedException(Result._100)));
 		*/
 	}
-	public Mono<ServerResponse> emissionStream(ServerRequest serverRequest) {
+	public Mono<ServerResponse> emissionStream(ServerRequest request) {
 		return ok().contentType(MediaType.TEXT_EVENT_STREAM)
 				.body(chattingSink.asFlux().map(e->{
 					e.setAccountId(null);
@@ -90,10 +111,28 @@ public class ChattingHandler {
 				;
 	}
 	
-	public Mono<ServerResponse> createWorkspace(ServerRequest serverRequest){
+	public Mono<ServerResponse> createWorkspace(ServerRequest request){
 		//serverRequest.bodyToMono()
-		ok().contentType(null);
+		return accountService.convertJwtToAccount(request)
+		.flatMap(account -> request.bodyToMono(WorkspaceEntity.class)
+			.flatMap(workspace->
+				workspaceRepository.save(workspace.withOwnerAccountId(account.getId()))
+			)
+			.doOnSuccess(e->
+				workspaceMembersRepository.save(
+					WorkspaceMembersEntity.builder().accountId(account.getId()).workspaceId(e.getId()).build()
+				).subscribe()
+			)
+		)
+		.flatMap(workspace -> ok()
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(Mono.just(response(Result._0, workspace)), Response.class)
+		)
+		;
+	}
+	
+	public Mono<ServerResponse> isWorkspaceAttend(ServerRequest request){
+		
 		return null;
 	}
-
 }

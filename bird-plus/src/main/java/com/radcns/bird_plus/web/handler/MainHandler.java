@@ -18,6 +18,7 @@ import com.radcns.bird_plus.service.MailService;
 import com.radcns.bird_plus.util.Response;
 import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
 import com.radcns.bird_plus.util.exception.ApiException;
+import com.radcns.bird_plus.util.exception.BirdPlusException;
 import com.radcns.bird_plus.util.exception.AccountException;
 import com.radcns.bird_plus.util.exception.ForgotPasswordException;
 
@@ -79,7 +80,7 @@ public class MainHandler {
 		}).flatMap(account -> 
 			ok()
 			.contentType(MediaType.APPLICATION_JSON)
-			.body(Mono.just(response(Result._0, null)), Response.class)
+			.body(Mono.just(response(Result._0)), Response.class)
 		);
 
 	}
@@ -132,7 +133,7 @@ public class MainHandler {
 				.flatMap(e->
 					ok()
 					.contentType(MediaType.APPLICATION_JSON)
-					.body(Mono.just(response(Result._0, null)), Response.class)
+					.body(Mono.just(response(Result._0)), Response.class)
 				)
 				;
 		/*
@@ -189,6 +190,8 @@ public class MainHandler {
 		*/
 	}
 
+	
+	/*
 	public Mono<ServerResponse> test(ServerRequest request){
 		return ok()
 				.contentType(MediaType.APPLICATION_JSON)
@@ -196,6 +199,7 @@ public class MainHandler {
 				//.onErrorResume(e -> Mono.error(new UnauthorizedException(Result._999)))
 				;
 	}
+	*/
 	
 	public Mono<ServerResponse> forgotPassword(ServerRequest request){
 		return request.bodyToMono(AccountEntity.class)
@@ -269,7 +273,7 @@ public class MainHandler {
 			.flatMap(e->
 				ok()
 				.contentType(MediaType.APPLICATION_JSON)
-				.body(Mono.just(response(Result._0, null)), Response.class)
+				.body(Mono.just(response(Result._0)), Response.class)
 			)
 			;
 	}

@@ -24,7 +24,11 @@ import com.radcns.bird_plus.util.ExceptionCodeConstant;
 
 import reactor.core.publisher.Mono;
 
+import java.net.URI;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 @Component
 @Order(-2)
@@ -53,7 +57,15 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
         	status = HttpStatus.OK;
         }
         
-        BodyBuilder bodyBuilder = ServerResponse.status(status);
+        boolean isHTML = request.headers().accept().stream().filter(e->e.equals(MediaType.TEXT_HTML)).findFirst().isPresent();
+        
+        BodyBuilder bodyBuilder;
+        
+        if(isHTML) {
+        	bodyBuilder = ServerResponse.temporaryRedirect(URI.create("/login-page"));
+        }else {
+        	bodyBuilder = ServerResponse.status(status);
+        }
         
         if(code == ExceptionCodeConstant.Result._100.code() ||
         		code == ExceptionCodeConstant.Result._105.code() ||
@@ -68,15 +80,18 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
     				.build());
         }
         
-        if(request.headers().accept().stream().filter(e->e.equals(MediaType.TEXT_HTML)).findFirst().isPresent()) {
+        if(isHTML) {
+        	/*
         	return bodyBuilder
         			.contentType(MediaType.parseMediaType("text/html;charset=UTF-8"))
-        			.render("content/loginPage.html", Map.of("loginStatus", "FAILED"));
+        			.render("content/loginPage.html", Map.of("loginStatus", "FAILED", "resourcesNameList", List.of("loginPage")));
+        	*/
+        	return bodyBuilder.build();
+        }else {
+        	return bodyBuilder
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(BodyInserters.fromValue(errorPropertiesMap));
         }
-        
-        return bodyBuilder
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(BodyInserters.fromValue(errorPropertiesMap));
         
         /*
         BodyBuilder bodyBuilder = ServerResponse.status(status)
