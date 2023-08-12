@@ -1,6 +1,7 @@
 package com.radcns.bird_plus.entity.chatting;
 
 import java.io.Serializable;
+import java.util.List;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
@@ -35,6 +36,24 @@ public class WorkspaceMembersEntity extends DefaultFieldEntity{
 	
 	@Column("account_id")
 	private Long accountId;
+	
+	@Getter
+	@Setter
+	public static class MyJoinedWorkspaceListResponse{
+		//@Cloumn("id")
+		private Long workspaceId;
+		
+		private String workspaceName;
+		
+		private Boolean isEnabled;
+		
+		private List<String> accessFilter;
+		
+		private Boolean isFinallyPermit;
+		
+		private Long joinedCount;
+	}
+	
 /*
 	@SuppressWarnings("serial")
 	@Getter

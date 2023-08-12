@@ -17,6 +17,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.With;
 import lombok.experimental.SuperBuilder;
 
 @ToString
@@ -46,7 +47,6 @@ public abstract class DefaultFieldEntity {
 	@Transient
 	Long updateMils = null;
 	
-
 	public void setCreateAt(LocalDateTime createAt) {
 		this.createAt = createAt;
 		this.createMils = createAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();

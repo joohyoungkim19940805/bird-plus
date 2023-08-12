@@ -12,6 +12,32 @@ const getStart = new class GetStart{
 	createRoomWrapper = this.getStartContainer.querySelector('.create_room_wrapper');
 	createRoomContainer = this.createRoomWrapper.querySelector('.create_room_container');
 	
+	#isWorkspaceJoinedPromise = common.loginSuccessPromise.then(async ()=>{
+		return fetch('/api/chatting/is-workspace-joined', {
+			method: 'GET',
+			headers: {
+				'Content-Type' : 'application/json'
+			}
+		}).then(response => {
+			if( ! response.ok){
+				console.error(response);
+				throw new Error('response is not ok');
+			}
+			return response.json();
+		}).then(result => {
+			console.log(result)
+			if(result.data){
+				this.showStartMenuPage();
+			}else{
+				this.showCreateWorkspacePage();
+			}
+			return result.data;
+		}).catch(error => {
+			console.error(error);
+			return false;
+		})
+	});
+
 	#loginPage = Object.assign(document.createElement('div'), {
 		className: 'login_page',
 		innerHTML: `
@@ -173,7 +199,7 @@ const getStart = new class GetStart{
 				</div>
 				<div class="find_wrapper">
 					<a href="javascript:void(0);" data-page="download_page">bird plus download</a>
-					<a href="javascript:void(0);" data-page="web_version_page">i want see web page</a>
+					<a href="javascript:void(0);" data-page="web_version_page">i want see web page version</a>
 				</div>
 				<div class="find_wrapper">
 					<a href="javascript:void(0);" data-page="create_workspace_page">create new workspace</a>
@@ -183,10 +209,10 @@ const getStart = new class GetStart{
 	})
 
 	constructor(){
-		
-		this.addOpeningEvent();
-
 		new Promise(resolve => {
+			
+			this.addOpeningEvent();
+			
 			/**
 			 * login
 			 */
@@ -194,11 +220,6 @@ const getStart = new class GetStart{
 			let [forgotPassword, signUp] = this.#loginPage.querySelectorAll('[data-page="forgot_password_page"], [data-page="sign_up_page"]');
 			forgotPassword.onclick = () => this.showForgotPasswordPage();
 			signUp.onclick = () => this.showSignUpPage();
-			common.loginSuccessPromise.then(()=>{
-				if(this.#loginPage.isConnected){
-					this.#pageChange(this.#createWorkspacePage);
-				}
-			});
 			/**
 			 * forgot password
 			 */
@@ -224,7 +245,7 @@ const getStart = new class GetStart{
 		})
 	}
 	
-	addOpeningEvent(){
+	async addOpeningEvent(){
 
 		let widthTransitionEndResolve;
 		let widthTransitionEndPromise = new Promise(resolve=>{
@@ -301,12 +322,12 @@ const getStart = new class GetStart{
 			res();
 		})
 
-		padeEndProise.then(()=>{
+		return padeEndProise.then(()=>{
 			//this.createRoomContainer.replaceChildren(this.#createWorkspacePage);
 			//this.createRoomContainer.replaceChildren(this.#loginPage);
 			common.isLogin(async result => {
 				if(result.isLogin){
-					let isWorkspaceAttend = await fetch('/api/chatting/is_workspace_attend', {
+					let isWorkspaceJoined = await fetch('/api/chatting/is-workspace-joined', {
 						method: 'GET',
 						headers: {
 							'Content-Type' : 'application/json'
@@ -318,15 +339,17 @@ const getStart = new class GetStart{
 						}
 						return response.json();
 					}).then(result => {
-						return result.data.isAttend;
+						console.log(result)
+						return result.data;
 					}).catch(error => {
 						console.error(error);
 						return false;
 					})
-					if(isWorkspaceAttend){
-						this.createRoomContainer.replaceChildren(this.startMenuPage);
+					console.log(isWorkspaceJoined)
+					if(isWorkspaceJoined){
+						this.showStartMenuPage();
 					}else{
-						this.createRoomContainer.replaceChildren(this.#createWorkspacePage);
+						this.showCreateWorkspacePage();
 					}
 				}else {
 					this.createRoomContainer.replaceChildren(this.#loginPage);
@@ -353,34 +376,50 @@ const getStart = new class GetStart{
 		
 	}
 
-	showLoginPage(){
+	async showLoginPage(){
 		return this.#pageChange(this.#loginPage).then(() => {
 			//... page change end callback
 		});
 	}
-	showForgotPasswordPage(){
+	async showForgotPasswordPage(){
 		return this.#pageChange(this.#forgotPasswordPage).then(() => {
 			//... page change end callback
 		});
 	}
-	showSignUpPage(){
+	async showSignUpPage(){
 		return this.#pageChange(this.#signUpPage).then(() => {
 			//... page change end callback
 		});
 	}
-	showForgotPasswordSendEmailEndPage(){
+	async showForgotPasswordSendEmailEndPage(){
 		return this.#pageChange(this.#forgotPasswordSendEmailEndPage).then(() => {
 			//... page change end callback
 		});
 	}
-	showCreateWorkspacePage(){
+	async showCreateWorkspacePage(){
 		return this.#pageChange(this.#createWorkspacePage).then(() => {
 			//... page change end callback
 		});
 	}
-	showStartMenuPage(){
-		return this.#pageChange(this.#startMenuPage).then(() => {
-			//... page change end callback
+	async showStartMenuPage(){
+		return this.#pageChange(this.#startMenuPage).then((startMenuPage) => {
+			let page = 0;
+			let size = 10;
+			let createWorkspaceList = () => fetch(`/api/chatting/search-workspace-joined?page=${page}&size=${size}`, {
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			}).then(response => {
+				if( ! response.ok){
+					console.error(response);
+					throw new Error('response is not ok')
+				}
+				return response.json();
+			}).then(result => {
+				console.log('result ::: ', result);
+			})
+			createWorkspaceList();
 		});
 	}
 
@@ -395,7 +434,7 @@ const getStart = new class GetStart{
 				this.createRoomContainer.replaceChildren(page);
 				this.createRoomContainer.ontransitionend = '';
 				this.createRoomContainer.classList.add('start');
-				resolve();
+				resolve(page);
 			}
 		});
 	}
@@ -405,11 +444,12 @@ const getStart = new class GetStart{
 	 * @param {HTMLDivElement} forgotPassworPage 
 	 */
 	forgotPasswordPageEvent(forgotPassworPage){
-		common.loginSuccessPromise.then(()=>{
-			if(forgotPassworPage.isConnected){
+		/*common.loginSuccessPromise.then(()=>{
+			if(this.#loginPage.isConnected){
 				this.#pageChange(this.#createWorkspacePage);
 			}
-		});
+		});*/
+
 		let form = forgotPassworPage.querySelector('#forgot_password_form');
 		let isClick = false;
 		form.onsubmit = (event) => {
@@ -453,10 +493,11 @@ const getStart = new class GetStart{
 	
 	forgotPasswordSendEmailEndPageEvent(forgotPasswordSendEmailEndPage){
 		common.loginSuccessPromise.then(()=>{
-			if(forgotPasswordSendEmailEndPage.isConnected){
+			if(this.#loginPage.isConnected){
 				this.#pageChange(this.#createWorkspacePage);
 			}
 		});
+
 		let [loginPage, signUpPage] = forgotPasswordSendEmailEndPage.querySelectorAll('[data-page="login_page"], [data-page="sign_up_page"]');
 		loginPage.onclick = () => this.showLoginPage();
 		signUpPage.onclick = () => this.showSignUpPage();
@@ -466,11 +507,11 @@ const getStart = new class GetStart{
 	 * @param {HTMLDivElement} signUpPage 
 	 */
 	signUpPageEvent(signUpPage){
-		common.loginSuccessPromise.then(()=>{
-			if(signUpPage.isConnected){
+		/*common.loginSuccessPromise.then(()=>{
+			if(this.#loginPage.isConnected){
 				this.#pageChange(this.#createWorkspacePage);
 			}
-		});
+		});*/
 
 		let form = signUpPage.querySelector('#sign_up_form');
 
@@ -666,12 +707,27 @@ const getStart = new class GetStart{
 			})
 		}
 
+		common.loginSuccessPromise.then(()=>{
+			//<a href="javascript:void(0);" data-page="start_menu_page">
+			let aTagStartMenuPage = Object.assign(document.createElement('a'), {
+				href: 'javascript:void(0);',
+				textContent: 'See the workspaces i have joined'
+			})
+			let div = Object.assign(document.createElement('div'), {
+				className: 'find_wrapper',
+			});
+			div.prepend(aTagStartMenuPage)
+			form.append(div);
+			aTagStartMenuPage.onclick = () => this.showStartMenuPage();
+		});
 	}
+
 	createSstartMenuEvent(startMenuPage){
 		let [downloadPage, webVersionPage, createWorkspacePage]	= startMenuPage.querySelectorAll('[data-page="download_page"], [data-page="web_version_page"], [data-page="create_workspace_page"]')
 		downloadPage.onclick = () => {}
 		webVersionPage.onclick = () => {}
 		createWorkspacePage.onclick = () => this.showCreateWorkspacePage();
+
 	}
 	
 }();

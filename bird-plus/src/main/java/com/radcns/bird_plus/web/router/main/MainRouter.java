@@ -58,7 +58,8 @@ public class MainRouter implements MainRouterSwagger{
 					.POST("/stream", accept(MediaType.APPLICATION_JSON), chattingHandler::addStream)
 					.GET("/stream/{auth}", chattingHandler::emissionStream)
 					.POST("/create-workspace", accept(MediaType.APPLICATION_JSON), chattingHandler::createWorkspace)
-					.GET("/is-workspace-attend", accept(MediaType.APPLICATION_JSON), chattingHandler::isWorkspaceAttend)
+					.GET("/is-workspace-joined", accept(MediaType.APPLICATION_JSON), chattingHandler::isWorkspaceJoined)
+					.GET("/search-workspace-joined", accept(MediaType.APPLICATION_JSON), chattingHandler::searchWorkspaceJoined)
 				).build();
 		/*
 		return route( POST("/api/chatting/stream").and(accept(MediaType.APPLICATION_JSON)), chattingHandler::addStream )

@@ -7,10 +7,12 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
 import com.radcns.bird_plus.config.security.JwtVerifyHandler;
+import com.radcns.bird_plus.entity.DefaultFieldEntity;
+import com.radcns.bird_plus.entity.account.AccountEntity;
 import com.radcns.bird_plus.entity.chatting.ChattingEntity;
 import com.radcns.bird_plus.entity.chatting.WorkspaceEntity;
 import com.radcns.bird_plus.entity.chatting.WorkspaceMembersEntity;
-
+import com.radcns.bird_plus.entity.chatting.WorkspaceMembersEntity.MyJoinedWorkspaceListResponse;
 import com.radcns.bird_plus.repository.chatting.ChattingRepository;
 import com.radcns.bird_plus.repository.chatting.WorkspaceMembersRepository;
 import com.radcns.bird_plus.repository.chatting.WorkspaceRepository;
@@ -20,6 +22,7 @@ import com.radcns.bird_plus.util.Response;
 import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
 
 import io.jsonwebtoken.Claims;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
@@ -29,6 +32,8 @@ import static org.springframework.web.reactive.function.server.ServerResponse.ok
 import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 
 @Component
@@ -131,8 +136,38 @@ public class ChattingHandler {
 		;
 	}
 	
-	public Mono<ServerResponse> isWorkspaceAttend(ServerRequest request){
-		
-		return null;
+	public Mono<ServerResponse> isWorkspaceJoined(ServerRequest request){
+		return ok()
+		.contentType(MediaType.APPLICATION_JSON)
+		.body(
+			accountService.convertJwtToAccount(request)
+			.flatMap(account -> accountRepository.findByEmail(account.getEmail()))
+			.flatMap(account -> workspaceMembersRepository.existsByAccountId(account.getId()))
+			.map(isExists -> response(Result._0, isExists))
+		, Response.class)
+		;
+	}
+	
+	public Mono<ServerResponse> searchWorkspaceJoined(ServerRequest request){
+		//workspaceMembersRepository.find
+		return ok()
+		.contentType(MediaType.APPLICATION_JSON)
+		.body(
+			accountService.convertJwtToAccount(request)
+			.flatMapMany(e->{
+				PageRequest pageRequest = PageRequest.of(
+						Integer.valueOf(request.queryParams().get("page").get(0)),
+						Integer.valueOf(request.queryParams().get("size").get(0))
+						);
+				return workspaceMembersRepository.findAllByAccountId(e.getId(), pageRequest)
+				.collectList()
+	            .zipWith(workspaceMembersRepository.findAllByAccountIdCount(e.getId()))
+	            .map(entityTuples -> 
+                	new PageImpl<>(entityTuples.getT1(), pageRequest, entityTuples.getT2())
+                );
+			})
+			.collectList()
+			.map(list -> response(Result._0, list))
+		, Response.class);
 	}
 }
