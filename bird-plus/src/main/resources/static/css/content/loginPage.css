@@ -10,7 +10,7 @@
 .content_wrapper .content_container{
     margin-top: 5vh;
     margin-left: 2%;
-    font-size: 5rem;
+    font-size: 4.5vmax;
     font-weight: bold;
     font-family: serif;
     height: 0;
@@ -88,6 +88,7 @@
 	visibility: visible;
 	opacity: 1;
     left: 0%;
+	overflow: visible;
 }
 
 /* 빠른 시작 컨텐츠 영역 - 우측 영역 - 자식요소 공통 영역 */
@@ -143,7 +144,25 @@
     font-size: 2vh;
 }
 
-
+.create_room_container ul{
+	height: 29%;
+    overflow-y: auto;
+    width: 70%;
+}
+.create_room_container ul img{
+	width: 5vw;
+}
+.create_room_container ul li .workspace_list_container{
+	display: flex;
+	align-items: center;
+	justify-content: space-around;
+}
+.create_room_container ul li .workspace_list_container > *{
+	width: 16%;	
+}
+.create_room_container ul li button{
+	width: initial !important;
+}
 /* 최하단 프로젝트 문의 및 인력 모집 영역 */
 .request_list{
     display: flex;

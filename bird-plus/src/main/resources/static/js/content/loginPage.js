@@ -12,32 +12,6 @@ const getStart = new class GetStart{
 	createRoomWrapper = this.getStartContainer.querySelector('.create_room_wrapper');
 	createRoomContainer = this.createRoomWrapper.querySelector('.create_room_container');
 	
-	#isWorkspaceJoinedPromise = common.loginSuccessPromise.then(async ()=>{
-		return fetch('/api/chatting/is-workspace-joined', {
-			method: 'GET',
-			headers: {
-				'Content-Type' : 'application/json'
-			}
-		}).then(response => {
-			if( ! response.ok){
-				console.error(response);
-				throw new Error('response is not ok');
-			}
-			return response.json();
-		}).then(result => {
-			console.log(result)
-			if(result.data){
-				this.showStartMenuPage();
-			}else{
-				this.showCreateWorkspacePage();
-			}
-			return result.data;
-		}).catch(error => {
-			console.error(error);
-			return false;
-		})
-	});
-
 	#loginPage = Object.assign(document.createElement('div'), {
 		className: 'login_page',
 		innerHTML: `
@@ -148,7 +122,26 @@ const getStart = new class GetStart{
 			</form>
 		`
 	});
-	
+	#searchWorkspacePage = Object.assign(document.createElement('div'), {
+		className: 'search_workspace_page',
+		innerHTML: `
+			<form id="search_workspace_form">
+				<div>
+					<div>
+						<label for="search_workspace_name">search workspace name</label>
+					</div>
+					<input type="text" id="search_workspace_name" name="search_workspace_name" autocomplete="on">
+				</div>
+
+				<ul id="search_workspace_list">
+				</ul>
+
+				<div class="find_wrapper">
+					<a href="javascript:void(0);" data-page="create_workspace_page">create new workspace</a>
+				</div>
+			</form>
+		`
+	})
 	#createWorkspacePage = Object.assign(document.createElement('div'), {
 		className: 'create_workspace_page',
 		innerHTML: `
@@ -184,6 +177,9 @@ const getStart = new class GetStart{
 				<div>
 					<button type="button" name="create_new_workspace_button" class="create_new_workspace_button">create new workspace</button>
 				</div>
+				<div class="find_wrapper">
+					<a href="javascript:void(0);" data-page="search_workspace_apge">i want joined anther workspace</a>
+				</div>
 			</form>
 		`
 	});
@@ -197,18 +193,65 @@ const getStart = new class GetStart{
 						see your workspace now
 					</label>
 				</div>
+
+				<ul id="joined_workspace_list">
+				</ul>
+
 				<div class="find_wrapper">
 					<a href="javascript:void(0);" data-page="download_page">bird plus download</a>
 					<a href="javascript:void(0);" data-page="web_version_page">i want see web page version</a>
 				</div>
 				<div class="find_wrapper">
 					<a href="javascript:void(0);" data-page="create_workspace_page">create new workspace</a>
+					<a href="javascript:void(0);" data-page="search_workspace_apge">i want joined anther workspace</a>
 				</div>
-			<//form>
+			</form>
 		`
 	})
+	callIsWorkspaceJoined = async () => {
+		return fetch('/api/chatting/is-workspace-joined', {
+			method: 'GET',
+			headers: {
+				'Content-Type' : 'application/json'
+			}
+		}).then(response => {
+			if( ! response.ok){
+				console.error(response);
+				throw new Error('response is not ok');
+			}
+			return response.json();
+		}).then(result => {
+			console.log(result)
+			return result.data;
+		}).catch(error => {
+			console.error(error);
+			return false;
+		})
+	}
+	
+	isWorkspaceJoined;
 
 	constructor(){
+		let isLoginPromise = common.isLogin(async result => {
+			let isJoinedCallBack = async () => {
+				this.isWorkspaceJoined = await this.callIsWorkspaceJoined();
+				if(this.isWorkspaceJoined){
+					this.createRoomContainer.replaceChildren(this.#startMenuPage);
+				}else{
+					this.createRoomContainer.replaceChildren(this.#searchWorkspacePage)
+				}
+			}
+			if(result.isLogin){
+				isJoinedCallBack();
+			}else {
+				this.createRoomContainer.replaceChildren(this.#loginPage);
+				common.loginSuccessPromise.then(async () => {
+					isJoinedCallBack();
+				})
+			}
+			return result.isLogin;
+		});
+
 		new Promise(resolve => {
 			
 			this.addOpeningEvent();
@@ -239,7 +282,17 @@ const getStart = new class GetStart{
 			/**
 			 * menu page
 			 */
-			this.createSstartMenuEvent(this.#startMenuPage);
+			isLoginPromise.then(isLogin => {
+				if(isLogin){
+					this.createStartMenuEvent(this.#startMenuPage);
+					this.searchWorkspaceEvent(this.#searchWorkspacePage);
+				}else{
+					common.loginSuccessPromise.then(()=>{
+						this.createStartMenuEvent(this.#startMenuPage);
+						this.searchWorkspaceEvent(this.#searchWorkspacePage);
+					})
+				}
+			})
 			
 			resolve();
 		})
@@ -321,40 +374,9 @@ const getStart = new class GetStart{
 			});
 			res();
 		})
-
-		return padeEndProise.then(()=>{
+		return padeEndProise.then(async ()=>{
 			//this.createRoomContainer.replaceChildren(this.#createWorkspacePage);
 			//this.createRoomContainer.replaceChildren(this.#loginPage);
-			common.isLogin(async result => {
-				if(result.isLogin){
-					let isWorkspaceJoined = await fetch('/api/chatting/is-workspace-joined', {
-						method: 'GET',
-						headers: {
-							'Content-Type' : 'application/json'
-						}
-					}).then(response => {
-						if( ! response.ok){
-							console.error(response);
-							throw new Error('response is not ok');
-						}
-						return response.json();
-					}).then(result => {
-						console.log(result)
-						return result.data;
-					}).catch(error => {
-						console.error(error);
-						return false;
-					})
-					console.log(isWorkspaceJoined)
-					if(isWorkspaceJoined){
-						this.showStartMenuPage();
-					}else{
-						this.showCreateWorkspacePage();
-					}
-				}else {
-					this.createRoomContainer.replaceChildren(this.#loginPage);
-				}
-			});
 			return Promise.all(padeEndPromiseList).then(()=>{
 				let delay = 100;
 				
@@ -377,49 +399,45 @@ const getStart = new class GetStart{
 	}
 
 	async showLoginPage(){
-		return this.#pageChange(this.#loginPage).then(() => {
+		return this.#pageChange(this.#loginPage).then((loginPage) => {
 			//... page change end callback
+			return loginPage;
 		});
 	}
 	async showForgotPasswordPage(){
-		return this.#pageChange(this.#forgotPasswordPage).then(() => {
+		return this.#pageChange(this.#forgotPasswordPage).then((forgotPasswordPage) => {
 			//... page change end callback
+			return forgotPasswordPage;
 		});
 	}
 	async showSignUpPage(){
-		return this.#pageChange(this.#signUpPage).then(() => {
+		return this.#pageChange(this.#signUpPage).then((signUpPage) => {
 			//... page change end callback
+			return signUpPage;
 		});
 	}
 	async showForgotPasswordSendEmailEndPage(){
-		return this.#pageChange(this.#forgotPasswordSendEmailEndPage).then(() => {
+		return this.#pageChange(this.#forgotPasswordSendEmailEndPage).then((forgotPasswordSendEmailEndPage) => {
 			//... page change end callback
+			return forgotPasswordSendEmailEndPage;
 		});
 	}
-	async showCreateWorkspacePage(){
-		return this.#pageChange(this.#createWorkspacePage).then(() => {
+	async showSearchWorkspacePage(){
+		return this.#pageChange(this.#searchWorkspacePage).then((searchWorkspacePage) => {
 			//... page change end callback
+			return searchWorkspacePage;
+		})
+	}
+	async showCreateWorkspacePage(){
+		return this.#pageChange(this.#createWorkspacePage).then((createWorkspacePage) => {
+			//... page change end callback
+			return createWorkspacePage;
 		});
 	}
 	async showStartMenuPage(){
 		return this.#pageChange(this.#startMenuPage).then((startMenuPage) => {
-			let page = 0;
-			let size = 10;
-			let createWorkspaceList = () => fetch(`/api/chatting/search-workspace-joined?page=${page}&size=${size}`, {
-				method: 'GET',
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			}).then(response => {
-				if( ! response.ok){
-					console.error(response);
-					throw new Error('response is not ok')
-				}
-				return response.json();
-			}).then(result => {
-				console.log('result ::: ', result);
-			})
-			createWorkspaceList();
+			//... page change end callback
+			return startMenuPage;
 		});
 	}
 
@@ -492,11 +510,11 @@ const getStart = new class GetStart{
 	}
 	
 	forgotPasswordSendEmailEndPageEvent(forgotPasswordSendEmailEndPage){
-		common.loginSuccessPromise.then(()=>{
+		/**common.loginSuccessPromise.then(()=>{
 			if(this.#loginPage.isConnected){
 				this.#pageChange(this.#createWorkspacePage);
 			}
-		});
+		});*/
 
 		let [loginPage, signUpPage] = forgotPasswordSendEmailEndPage.querySelectorAll('[data-page="login_page"], [data-page="sign_up_page"]');
 		loginPage.onclick = () => this.showLoginPage();
@@ -561,6 +579,135 @@ const getStart = new class GetStart{
 		let [loginPage, forgotPassword] = form.querySelectorAll('[data-page="login_page"], [data-page="forgot_password_page"]');
 		loginPage.onclick = () => this.showLoginPage();
 		forgotPassword.onclick = () => this.showForgotPasswordPage();
+	}
+	searchWorkspaceEvent(searchWorkspacePage){
+		let form = searchWorkspacePage.querySelector('#search_workspace_form');
+		
+		let {search_workspace_name: workspaceName} = form;
+		let page = 0, size = 10;
+		let searchWorkspaceList = (text) => fetch(`/api/chatting/search-workspace-name?page=${page}&size=${size}&workspaceName=${text}`, {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		}).then(response => {
+			if( ! response.ok){
+				console.error(response);
+				throw new Error('response is not ok')
+			}
+			return response.json();
+		}).then(result => {
+			console.log('result :::', result);
+			let {data, message, code} = result;
+			if(code != 0){
+				alert(message);
+				return {content: []};
+			}
+			return data;
+		}).catch(error=>{
+			console.error(error);
+			return {content: []};
+		})
+		let workspaceListUl = form.querySelector('#search_workspace_list');
+		let allWorkspaceItemList = [];
+		let visibleObserver = new IntersectionObserver((entries, observer) => {
+			entries.forEach(entry =>{
+				if (entry.isIntersecting){
+					entry.target.style.visibility = '';
+					entry.target.style.opacity = '';
+				}else{
+					entry.target.style.visibility = 'hidden';
+					entry.target.style.opacity = 0;
+				}
+			})
+		}, {
+			threshold: 0.1,
+			root: workspaceListUl
+		});
+
+		let lastItemObserver = new IntersectionObserver((entries, observer) => {
+			entries.forEach(entry =>{
+				if (entry.isIntersecting){
+					page += 1;
+					renderingWorkspaceListPage().then(totalPages => {
+						if(page >= totalPages){
+							lastItemObserver.disconnect();
+						}
+					});
+				}
+			})
+		}, {
+			threshold: 0.1,
+			root: workspaceListUl
+		})
+
+		let renderingWorkspaceListPage = async (text) => {
+			return searchWorkspaceList(text).then((data)=>{
+				lastItemObserver.disconnect();
+				let {content, totalPages} = data;
+				allWorkspaceItemList.push(...content.map(({
+					accessFilter, isEnabled, isFinallyPermit, joinedCount, workspaceId, workspaceName
+				})=>{
+					let li = Object.assign(document.createElement('li'), {
+						innerHTML : `
+							<div class="workspace_list_container">
+								<img src="/images/user.png">
+								<div>
+									<div><b>${workspaceName}</b></div>
+									<div>${joinedCount} members</div>
+								</div>
+							</div>
+						`
+					});
+					let containerDiv = li.querySelector('div');
+					let joinedButton = Object.assign(document.createElement('button'),{
+						textContent: 'joined',
+						type: 'button'
+					});
+					containerDiv.append(joinedButton);
+					joinedButton.onclick = () => {
+						
+					}
+					visibleObserver.observe(li);
+					return li;
+				}));
+				workspaceListUl.replaceChildren(...allWorkspaceItemList);
+				lastItemObserver.observe(allWorkspaceItemList[allWorkspaceItemList.length - 1])
+				return totalPages;
+			});
+		}
+
+		let delay = 250
+		let isDelay = false;
+		let reset = () => {
+
+		}
+		workspaceName.oninput = () => {
+			if(isDelay){
+				return;
+			}
+			isDelay = true;
+			setTimeout(() => {
+				page = 0;
+				allWorkspaceItemList = [];
+				workspaceListUl.replaceChildren();
+				if(workspaceName.value == ''){
+					isDelay = false;
+					return;
+				}
+				renderingWorkspaceListPage(workspaceName.value);
+				isDelay = false;
+			}, delay)
+		}
+
+		let createWorkspacePage = form.querySelector('[data-page="create_workspace_page"]');
+		createWorkspacePage.onclick = () => this.showCreateWorkspacePage();
+		let aTagStartMenuPage = Object.assign(document.createElement('a'), {
+			href: 'javascript:void(0);',
+			textContent: 'See the workspaces i have joined'
+		})
+		createWorkspacePage.after(aTagStartMenuPage);
+		aTagStartMenuPage.onclick = () => this.showStartMenuPage();
 	}
 
 	createWorkspaceEvent(createWorkspacePage){
@@ -692,9 +839,10 @@ const getStart = new class GetStart{
 				return response.json();
 			}).then(result => {
 				if(result.code == 0){
-					this.showStartMenuPage().then(() => {
+					this.showStartMenuPage().then((startMenuPage) => {
 						workspaceName.value = '';
 						isOneClick = true;
+						this.createStartMenuEvent(startMenuPage);
 					});
 				}else{
 					alert(result.message);
@@ -707,27 +855,135 @@ const getStart = new class GetStart{
 			})
 		}
 
-		common.loginSuccessPromise.then(()=>{
-			//<a href="javascript:void(0);" data-page="start_menu_page">
-			let aTagStartMenuPage = Object.assign(document.createElement('a'), {
-				href: 'javascript:void(0);',
-				textContent: 'See the workspaces i have joined'
-			})
-			let div = Object.assign(document.createElement('div'), {
-				className: 'find_wrapper',
-			});
-			div.prepend(aTagStartMenuPage)
-			form.append(div);
-			aTagStartMenuPage.onclick = () => this.showStartMenuPage();
-		});
+		let searchWorkspacePage = form.querySelector('[data-page="search_workspace_apge"]');
+		searchWorkspacePage.onclick = () => this.showSearchWorkspacePage();
+		let aTagStartMenuPage = Object.assign(document.createElement('a'), {
+			href: 'javascript:void(0);',
+			textContent: 'See the workspaces i have joined'
+		})
+		searchWorkspacePage.after(aTagStartMenuPage)
+		aTagStartMenuPage.onclick = () => this.showStartMenuPage();
+	
 	}
 
-	createSstartMenuEvent(startMenuPage){
-		let [downloadPage, webVersionPage, createWorkspacePage]	= startMenuPage.querySelectorAll('[data-page="download_page"], [data-page="web_version_page"], [data-page="create_workspace_page"]')
+	createStartMenuEvent(startMenuPage){
+		let [downloadPage, webVersionPage, createWorkspacePage, searchWorkspacePage]	= startMenuPage.querySelectorAll('[data-page="download_page"], [data-page="web_version_page"], [data-page="create_workspace_page"], [data-page="search_workspace_apge"]')
 		downloadPage.onclick = () => {}
 		webVersionPage.onclick = () => {}
 		createWorkspacePage.onclick = () => this.showCreateWorkspacePage();
+		searchWorkspacePage.onclick = () => this.showSearchWorkspacePage();
+		let page = 0, size = 10;
+		let createWorkspaceList = () => fetch(`/api/chatting/search-workspace-joined?page=${page}&size=${size}`, {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		}).then(response => {
+			if( ! response.ok){
+				console.error(response);
+				throw new Error('response is not ok')
+			}
+			return response.json();
+		}).then(result => {
+			console.log('result ::: ', result);
+			let {data, message, code} = result;
+			if(code != 0){
+				alert(message);
+				return {content: []};
+			}
+			return data;
+		}).catch(error=>{
+			console.error(error);
+			return {content: []};
+		})
 
+		let workspaceListUl = startMenuPage.querySelector('#joined_workspace_list')
+		let allWorkspaceItemList = [];
+		let visibleObserver = new IntersectionObserver((entries, observer) => {
+			entries.forEach(entry =>{
+				if (entry.isIntersecting){
+					entry.target.style.visibility = '';
+					entry.target.style.opacity = '';
+				}else{
+					entry.target.style.visibility = 'hidden';
+					entry.target.style.opacity = 0;
+				}
+			})
+		}, {
+			threshold: 0.1,
+			root: workspaceListUl
+		});
+
+		let lastItemObserver = new IntersectionObserver((entries, observer) => {
+			entries.forEach(entry =>{
+				if (entry.isIntersecting){
+					page += 1;
+					renderingWorkspaceListPage().then(totalPages => {
+						if(page >= totalPages){
+							lastItemObserver.disconnect();
+						}
+					});
+				}
+			})
+		}, {
+			threshold: 0.1,
+			root: workspaceListUl
+		})
+
+
+		let renderingWorkspaceListPage = async () => {
+			return createWorkspaceList().then((data)=>{
+				
+				lastItemObserver.disconnect();
+
+				let {content, totalPages} = data;
+
+				allWorkspaceItemList.push(...content.map(({
+					accessFilter, isEnabled, isFinallyPermit, joinedCount, workspaceId, workspaceName
+				})=>{
+					let li = Object.assign(document.createElement('li'), {
+						innerHTML : `
+							<div class="workspace_list_container">
+								<img src="/images/user.png">
+								<div>
+									<div><b>${workspaceName}</b></div>
+									<div>${joinedCount} members</div>
+								</div>
+							</div>
+						`
+					});
+					let containerDiv = li.querySelector('div');
+					let goToButton = Object.assign(document.createElement('button'),{
+						textContent: 'GO TO',
+						type: 'button'
+					});
+					containerDiv.append(goToButton);
+					goToButton.onclick = () => {
+						window.location.href = 'bird-plus-desktop://param';
+						let moveDownload = setTimeout(()=>{
+							window.removeEventListener('blur', onBlurEvent, false);
+							//window.location.href = 'http://naver.com';
+							if(confirm('do you want download app?')){
+								alert('아직 빌드 파일을 생성하지 못하였기 때문에 다운로드 할 수 없습니다..')
+							}
+						}, 500)
+						const onBlurEvent = () => {
+							window.removeEventListener('blur', onBlurEvent, false);
+							clearTimeout(moveDownload);
+							
+						}
+						window.addEventListener('blur', onBlurEvent);
+					}
+					visibleObserver.observe(li);
+					return li;
+				}));
+				workspaceListUl.replaceChildren(...allWorkspaceItemList);
+				lastItemObserver.observe(allWorkspaceItemList[allWorkspaceItemList.length - 1])
+				return totalPages;
+			});
+		}
+		renderingWorkspaceListPage();
+		return startMenuPage;
 	}
 	
 }();

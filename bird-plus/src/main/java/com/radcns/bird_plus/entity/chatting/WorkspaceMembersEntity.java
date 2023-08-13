@@ -37,23 +37,26 @@ public class WorkspaceMembersEntity extends DefaultFieldEntity{
 	@Column("account_id")
 	private Long accountId;
 	
-	@Getter
-	@Setter
-	public static class MyJoinedWorkspaceListResponse{
-		//@Cloumn("id")
-		private Long workspaceId;
+	public static class MyJoinedWorkspaceListDomain{
+		@Getter
+		@Setter
+		public static class MyJoinedWorkspaceListResponse{
+			//@Cloumn("id")
+			private Long workspaceId;
+			
+			private String workspaceName;
+			
+			private Boolean isEnabled;
+			
+			private List<String> accessFilter;
+			
+			private Boolean isFinallyPermit;
+			
+			private Long joinedCount;
+		}
 		
-		private String workspaceName;
-		
-		private Boolean isEnabled;
-		
-		private List<String> accessFilter;
-		
-		private Boolean isFinallyPermit;
-		
-		private Long joinedCount;
 	}
-	
+
 /*
 	@SuppressWarnings("serial")
 	@Getter

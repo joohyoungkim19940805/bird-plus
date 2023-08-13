@@ -12,7 +12,8 @@ import com.radcns.bird_plus.entity.account.AccountEntity;
 import com.radcns.bird_plus.entity.chatting.ChattingEntity;
 import com.radcns.bird_plus.entity.chatting.WorkspaceEntity;
 import com.radcns.bird_plus.entity.chatting.WorkspaceMembersEntity;
-import com.radcns.bird_plus.entity.chatting.WorkspaceMembersEntity.MyJoinedWorkspaceListResponse;
+import com.radcns.bird_plus.entity.chatting.WorkspaceEntity.SearchWorkspaceListDomain.SearchWorkspaceListRequest;
+import com.radcns.bird_plus.entity.chatting.WorkspaceMembersEntity.MyJoinedWorkspaceListDomain.MyJoinedWorkspaceListResponse;
 import com.radcns.bird_plus.repository.chatting.ChattingRepository;
 import com.radcns.bird_plus.repository.chatting.WorkspaceMembersRepository;
 import com.radcns.bird_plus.repository.chatting.WorkspaceRepository;
@@ -34,6 +35,8 @@ import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 
 @Component
@@ -136,6 +139,30 @@ public class ChattingHandler {
 		;
 	}
 	
+	public Mono<ServerResponse> searchWorkspaceName(ServerRequest request){
+		return ok()
+		.contentType(MediaType.APPLICATION_JSON)
+		.body(
+			Mono.just("")
+			.flatMap(test->{
+				var param = request.queryParams();
+				PageRequest pageRequest = PageRequest.of(
+					Integer.valueOf(param.getFirst("page")),
+					Integer.valueOf(param.getFirst("size"))
+					//vo.getPage(), vo.getSize()
+				);
+				String workspaceName = param.getFirst("workspaceName");
+				return workspaceRepository.findAllByWorkspaceName(workspaceName, pageRequest)
+				.collectList()
+				.zipWith(workspaceRepository.findAllByWorkspaceNameCount(workspaceName))
+				.map(tuples -> 
+					new PageImpl<>(tuples.getT1(), pageRequest, tuples.getT2())
+				);
+			})
+			.map(list -> response(Result._0, list))
+		, Response.class);
+	}
+	
 	public Mono<ServerResponse> isWorkspaceJoined(ServerRequest request){
 		return ok()
 		.contentType(MediaType.APPLICATION_JSON)
@@ -154,11 +181,13 @@ public class ChattingHandler {
 		.contentType(MediaType.APPLICATION_JSON)
 		.body(
 			accountService.convertJwtToAccount(request)
-			.flatMapMany(e->{
+			.flatMap(e->{
+				var param = request.queryParams();
 				PageRequest pageRequest = PageRequest.of(
-						Integer.valueOf(request.queryParams().get("page").get(0)),
-						Integer.valueOf(request.queryParams().get("size").get(0))
-						);
+					Integer.valueOf(param.getFirst("page")),
+					Integer.valueOf(param.getFirst("size"))
+				);
+					//.withSort(Sort.by("create_at").ascending());
 				return workspaceMembersRepository.findAllByAccountId(e.getId(), pageRequest)
 				.collectList()
 	            .zipWith(workspaceMembersRepository.findAllByAccountIdCount(e.getId()))
@@ -166,7 +195,6 @@ public class ChattingHandler {
                 	new PageImpl<>(entityTuples.getT1(), pageRequest, entityTuples.getT2())
                 );
 			})
-			.collectList()
 			.map(list -> response(Result._0, list))
 		, Response.class);
 	}

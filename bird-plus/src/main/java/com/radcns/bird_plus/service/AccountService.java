@@ -139,7 +139,7 @@ public class AccountService  {
 	             			return accountRepository.save(account)
 	             				.flatMap(e->accountLogRepository.save(accountLogEntity));
 	             		}).flatMap(e -> Mono.just(generateAccessToken(account, JwtIssuerType.ACCOUNT).toBuilder()
-	                     			.userId(account.getId())
+	                     			//.userId(account.getId())
 	                     			.build())
 	             		);
 	             	}

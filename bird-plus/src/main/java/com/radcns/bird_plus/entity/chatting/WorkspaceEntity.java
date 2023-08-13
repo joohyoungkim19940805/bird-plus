@@ -44,4 +44,32 @@ public class WorkspaceEntity extends DefaultFieldEntity{
 	
 	@Column("owner_account_id")
 	private Long ownerAccountId;
+	
+	public static class SearchWorkspaceListDomain{
+		@Getter
+		@Setter
+		public static class SearchWorkspaceListRequest{
+			private String workspaceName;
+			private Integer page;
+			private Integer size;
+		}
+		@Getter
+		@Setter
+		public static class SearchWorkspaceListResponse{
+			//@Cloumn("id")
+			private Long workspaceId;
+			
+			private String workspaceName;
+			
+			private Boolean isEnabled;
+			
+			private List<String> accessFilter;
+			
+			private Boolean isFinallyPermit;
+			
+			private Long joinedCount;
+		}
+	}
+	
+
 }

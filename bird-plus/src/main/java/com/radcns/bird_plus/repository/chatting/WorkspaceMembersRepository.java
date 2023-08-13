@@ -5,7 +5,7 @@ import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 
 import com.radcns.bird_plus.entity.chatting.WorkspaceMembersEntity;
-import com.radcns.bird_plus.entity.chatting.WorkspaceMembersEntity.MyJoinedWorkspaceListResponse;
+import com.radcns.bird_plus.entity.chatting.WorkspaceMembersEntity.MyJoinedWorkspaceListDomain.MyJoinedWorkspaceListResponse;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -37,10 +37,13 @@ public interface WorkspaceMembersRepository extends ReactiveCrudRepository<Works
 				cwm.workspace_id = cw.id
 			WHERE
 				cwm.account_id = :#{[0]}
+			ORDER BY
+				cw.create_at DESC
 			OFFSET
 				:#{[1].offset}
 			LIMIT
-				:#{[1].pageSize};
+				:#{[1].pageSize}
+			;
 			""")
 	Flux<MyJoinedWorkspaceListResponse> findAllByAccountId(Long accountId, Pageable pageable);
 	
