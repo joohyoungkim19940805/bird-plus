@@ -128,7 +128,7 @@ const getStart = new class GetStart{
 			<form id="search_workspace_form">
 				<div>
 					<div>
-						<label for="search_workspace_name">search workspace name</label>
+						<label for="search_workspace_name">Search Workspace Name, Plase Press Enter Key</label>
 					</div>
 					<input type="text" id="search_workspace_name" name="search_workspace_name" autocomplete="on">
 				</div>
@@ -677,27 +677,21 @@ const getStart = new class GetStart{
 			});
 		}
 
-		let delay = 250
-		let isDelay = false;
-		let reset = () => {
-
-		}
-		workspaceName.oninput = () => {
-			if(isDelay){
+		let isEnter = false;
+		form.onsubmit = (event) => {
+			event.preventDefault();
+			if(isEnter){
+				return ;
+			}
+			page = 0;
+			allWorkspaceItemList = [];
+			workspaceListUl.replaceChildren();
+			if(workspaceName.value == ''){
+				isEnter = false;
 				return;
 			}
-			isDelay = true;
-			setTimeout(() => {
-				page = 0;
-				allWorkspaceItemList = [];
-				workspaceListUl.replaceChildren();
-				if(workspaceName.value == ''){
-					isDelay = false;
-					return;
-				}
-				renderingWorkspaceListPage(workspaceName.value);
-				isDelay = false;
-			}, delay)
+			renderingWorkspaceListPage(workspaceName.value);
+			isEnter = false;
 		}
 
 		let createWorkspacePage = form.querySelector('[data-page="create_workspace_page"]');

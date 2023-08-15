@@ -140,29 +140,26 @@ public class ChattingHandler {
 	}
 	
 	public Mono<ServerResponse> searchWorkspaceName(ServerRequest request){
+		var param = request.queryParams();
+		PageRequest pageRequest = PageRequest.of(
+			Integer.valueOf(param.getFirst("page")),
+			Integer.valueOf(param.getFirst("size"))
+			//vo.getPage(), vo.getSize()
+		);
+		String workspaceName = param.getFirst("workspaceName");
 		return ok()
-		.contentType(MediaType.APPLICATION_JSON)
-		.body(
-			Mono.just("")
-			.flatMap(test->{
-				var param = request.queryParams();
-				PageRequest pageRequest = PageRequest.of(
-					Integer.valueOf(param.getFirst("page")),
-					Integer.valueOf(param.getFirst("size"))
-					//vo.getPage(), vo.getSize()
-				);
-				String workspaceName = param.getFirst("workspaceName");
-				return workspaceRepository.findAllByWorkspaceName(workspaceName, pageRequest)
-				.collectList()
-				.zipWith(workspaceRepository.findAllByWorkspaceNameCount(workspaceName))
-				.map(tuples -> 
-					new PageImpl<>(tuples.getT1(), pageRequest, tuples.getT2())
-				);
-			})
-			.map(list -> response(Result._0, list))
-		, Response.class);
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(
+				workspaceRepository.findAllByWorkspaceName(workspaceName, pageRequest)
+					.collectList()
+					.zipWith(workspaceRepository.findAllByWorkspaceNameCount(workspaceName))
+					.map(tuples -> 
+						new PageImpl<>(tuples.getT1(), pageRequest, tuples.getT2())
+					)
+					.map(list -> response(Result._0, list))
+			, Response.class);
 	}
-	
+
 	public Mono<ServerResponse> isWorkspaceJoined(ServerRequest request){
 		return ok()
 		.contentType(MediaType.APPLICATION_JSON)
