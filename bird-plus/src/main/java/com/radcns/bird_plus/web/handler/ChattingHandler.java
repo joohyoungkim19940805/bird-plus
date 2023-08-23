@@ -10,14 +10,12 @@ import com.radcns.bird_plus.config.security.JwtVerifyHandler;
 import com.radcns.bird_plus.entity.DefaultFieldEntity;
 import com.radcns.bird_plus.entity.account.AccountEntity;
 import com.radcns.bird_plus.entity.chatting.ChattingEntity;
-import com.radcns.bird_plus.entity.chatting.WorkspaceEntity;
-import com.radcns.bird_plus.entity.chatting.WorkspaceMembersEntity;
-import com.radcns.bird_plus.entity.chatting.WorkspaceEntity.SearchWorkspaceListDomain.SearchWorkspaceListRequest;
-import com.radcns.bird_plus.entity.chatting.WorkspaceMembersEntity.MyJoinedWorkspaceListDomain.MyJoinedWorkspaceListResponse;
+import com.radcns.bird_plus.entity.workspace.WorkspaceEntity;
+import com.radcns.bird_plus.entity.workspace.WorkspaceMembersEntity;
 import com.radcns.bird_plus.repository.chatting.ChattingRepository;
-import com.radcns.bird_plus.repository.chatting.WorkspaceMembersRepository;
-import com.radcns.bird_plus.repository.chatting.WorkspaceRepository;
 import com.radcns.bird_plus.repository.customer.AccountRepository;
+import com.radcns.bird_plus.repository.workspace.WorkspaceMembersRepository;
+import com.radcns.bird_plus.repository.workspace.WorkspaceRepository;
 import com.radcns.bird_plus.service.AccountService;
 import com.radcns.bird_plus.util.Response;
 import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
@@ -30,6 +28,7 @@ import reactor.core.publisher.Sinks;
 import static com.radcns.bird_plus.util.Response.response;
 import static org.springframework.web.reactive.function.server.ServerResponse.ok;
 
+import java.util.List;
 import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -152,7 +151,7 @@ public class ChattingHandler {
 			.body(
 				workspaceRepository.findAllByWorkspaceName(workspaceName, pageRequest)
 					.collectList()
-					.zipWith(workspaceRepository.findAllByWorkspaceNameCount(workspaceName))
+					.zipWith(workspaceRepository.countByWorkspaceName(workspaceName))
 					.map(tuples -> 
 						new PageImpl<>(tuples.getT1(), pageRequest, tuples.getT2())
 					)
@@ -181,13 +180,13 @@ public class ChattingHandler {
 			.flatMap(e->{
 				var param = request.queryParams();
 				PageRequest pageRequest = PageRequest.of(
-					Integer.valueOf(param.getFirst("page")),
-					Integer.valueOf(param.getFirst("size"))
+					Integer.valueOf(param.getOrDefault("page", List.of("1")).get(0)),
+					Integer.valueOf(param.getOrDefault("size", List.of("10")).get(0))
 				);
 					//.withSort(Sort.by("create_at").ascending());
 				return workspaceMembersRepository.findAllByAccountId(e.getId(), pageRequest)
 				.collectList()
-	            .zipWith(workspaceMembersRepository.findAllByAccountIdCount(e.getId()))
+	            .zipWith(workspaceMembersRepository.countByAccountId(e.getId()))
 	            .map(entityTuples -> 
                 	new PageImpl<>(entityTuples.getT1(), pageRequest, entityTuples.getT2())
                 );

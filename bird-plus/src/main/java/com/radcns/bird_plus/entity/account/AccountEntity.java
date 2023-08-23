@@ -27,7 +27,7 @@ import org.mapstruct.factory.Mappers;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString(callSuper = true)
-@Table(value="cu_account")
+@Table(value="ac_account")
 public class AccountEntity extends DefaultFieldEntity {
 	
     @Id
@@ -59,23 +59,24 @@ public class AccountEntity extends DefaultFieldEntity {
     @Column("email")
     private String email;
     
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class ChangePasswordRequest {
-    	private String email;
-    	private String password;
-    	private String newPassword;
+    public static class AccountDomain{
+	    @Data
+	    @Builder
+	    @NoArgsConstructor
+	    @AllArgsConstructor
+	    public static class ChangePasswordRequest {
+	    	private String email;
+	    	private String password;
+	    	private String newPassword;
+	    }
+	    @Data
+	    @Builder
+	    @NoArgsConstructor
+	    @AllArgsConstructor
+	    public static class AccountVerifyRequest {
+	    	private String email;
+	    }
     }
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class AccountVerifyRequest {
-    	private String email;
-    }
-    
     /**
      * 
      * @author kim.joohyoung
@@ -85,11 +86,11 @@ public class AccountEntity extends DefaultFieldEntity {
     public interface AccountMapper{
     	AccountMapper INSTANCE = Mappers.getMapper(AccountMapper.class);
 
-    	AccountEntity entity(ChangePasswordRequest vo);
-    	AccountEntity entity(AccountVerifyRequest vo);
+    	AccountEntity entity(AccountDomain.ChangePasswordRequest vo);
+    	AccountEntity entity(AccountDomain.AccountVerifyRequest vo);
 
-    	ChangePasswordRequest changePasswordRequest(AccountEntity entity);
+    	AccountDomain.ChangePasswordRequest changePasswordRequest(AccountEntity entity);
     	
-    	AccountVerifyRequest accountVerifyRequest(AccountEntity entity);
+    	AccountDomain.AccountVerifyRequest accountVerifyRequest(AccountEntity entity);
     }
 }

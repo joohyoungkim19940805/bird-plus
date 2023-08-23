@@ -1,4 +1,4 @@
-package com.radcns.bird_plus.entity.chatting;
+package com.radcns.bird_plus.entity.workspace;
 
 import java.io.Serializable;
 import java.util.List;
@@ -24,7 +24,7 @@ import lombok.With;
 @AllArgsConstructor
 @With
 @ToString(callSuper = true)
-@Table(value="ch_workspace_members")
+@Table(value="wo_workspace_in_account")
 public class WorkspaceMembersEntity extends DefaultFieldEntity{
 	
 	@Id
@@ -37,7 +37,7 @@ public class WorkspaceMembersEntity extends DefaultFieldEntity{
 	@Column("account_id")
 	private Long accountId;
 	
-	public static class MyJoinedWorkspaceListDomain{
+	public static class WorkspaceMembersDomain{
 		@Getter
 		@Setter
 		public static class MyJoinedWorkspaceListResponse{

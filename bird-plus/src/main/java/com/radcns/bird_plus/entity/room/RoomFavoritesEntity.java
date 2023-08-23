@@ -1,10 +1,6 @@
-package com.radcns.bird_plus.entity.account;
+package com.radcns.bird_plus.entity.room;
 
-import java.time.LocalDateTime;
-
-import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
@@ -16,6 +12,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.With;
 
 @Builder(toBuilder = true)
 @Getter
@@ -23,13 +20,16 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString(callSuper = true)
-@Table(value="ac_account_log")
-public class AccountLogEntity extends DefaultFieldEntity {
+@With
+@Table(value="ro_room_favorites")
+public class RoomFavoritesEntity extends DefaultFieldEntity{
+	@Id
+	@Column("id")
+	private Long id;
 	
-    @Column("account_id")
-	private Long accountId;
+	@Column("room_id")
+	private Integer roomId;
 	
-    @Column("ip")
-	private String ip;
-    
+	@Column("account_id")
+	private Integer accountId;
 }

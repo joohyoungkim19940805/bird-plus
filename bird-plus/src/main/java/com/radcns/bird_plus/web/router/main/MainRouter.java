@@ -21,7 +21,7 @@ import static org.springframework.web.reactive.function.server.RequestPredicates
 import static org.springframework.web.reactive.function.server.RequestPredicates.accept;
 
 @Configuration
-public class MainRouter implements MainRouterSwagger{
+public class MainRouter implements IndexRouterSwagger{
 	
 	@Bean
 	@Override

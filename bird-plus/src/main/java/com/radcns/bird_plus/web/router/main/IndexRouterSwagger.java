@@ -22,7 +22,7 @@ import io.swagger.v3.oas.annotations.media.SchemaProperty;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
-public interface MainRouterSwagger {
+public interface IndexRouterSwagger {
     @RouterOperations({
     	@RouterOperation(
     		path = "/login-processing", 

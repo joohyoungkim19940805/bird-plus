@@ -1,4 +1,4 @@
-package com.radcns.bird_plus.entity.chatting;
+package com.radcns.bird_plus.entity.workspace;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
@@ -23,7 +23,7 @@ import java.util.List;
 @AllArgsConstructor
 @With
 @ToString(callSuper = true)
-@Table(value="ch_workspace")
+@Table(value="wo_workspace")
 public class WorkspaceEntity extends DefaultFieldEntity{
 	
 	@Id
@@ -45,19 +45,11 @@ public class WorkspaceEntity extends DefaultFieldEntity{
 	@Column("owner_account_id")
 	private Long ownerAccountId;
 	
-	public static class SearchWorkspaceListDomain{
-		@Getter
-		@Setter
-		public static class SearchWorkspaceListRequest{
-			private String workspaceName;
-			private Integer page;
-			private Integer size;
-		}
+	public static class WorkspaceDomain{
 		@Getter
 		@Setter
 		public static class SearchWorkspaceListResponse{
-			//@Cloumn("id")
-			private Long workspaceId;
+			private Long id;
 			
 			private String workspaceName;
 			

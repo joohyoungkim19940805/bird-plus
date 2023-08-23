@@ -10,15 +10,13 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import com.radcns.bird_plus.config.security.JwtIssuerType;
 import com.radcns.bird_plus.config.security.JwtVerifyHandler;
 import com.radcns.bird_plus.entity.account.AccountEntity;
-import com.radcns.bird_plus.entity.account.AccountEntity.AccountVerifyRequest;
-import com.radcns.bird_plus.entity.account.AccountEntity.ChangePasswordRequest;
+import com.radcns.bird_plus.entity.account.AccountEntity.AccountDomain;
 import com.radcns.bird_plus.repository.customer.AccountRepository;
 import com.radcns.bird_plus.service.AccountService;
 import com.radcns.bird_plus.service.MailService;
 import com.radcns.bird_plus.util.Response;
 import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
 import com.radcns.bird_plus.util.exception.ApiException;
-import com.radcns.bird_plus.util.exception.BirdPlusException;
 import com.radcns.bird_plus.util.exception.AccountException;
 import com.radcns.bird_plus.util.exception.ForgotPasswordException;
 
@@ -117,7 +115,7 @@ public class MainHandler {
 	}
 	
 	public Mono<ServerResponse> accountVerify(ServerRequest request){
-		return request.bodyToMono(AccountVerifyRequest.class)
+		return request.bodyToMono(AccountDomain.AccountVerifyRequest.class)
 				.flatMap(accountVerifyRequest ->{
 					return accountRepository.findByEmail(accountVerifyRequest.getEmail())
 					.switchIfEmpty(Mono.error(new ApiException(Result._1)))
@@ -257,7 +255,7 @@ public class MainHandler {
 	}
 	
 	public Mono<ServerResponse> changePassword(ServerRequest request){
-		return request.bodyToMono(ChangePasswordRequest.class)
+		return request.bodyToMono(AccountDomain.ChangePasswordRequest.class)
 			.flatMap(changePasswordRequest ->
 				accountRepository.findByEmail(changePasswordRequest.getEmail())
 				.switchIfEmpty(Mono.error(new AccountException(Result._1)))
