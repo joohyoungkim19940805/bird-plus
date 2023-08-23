@@ -209,7 +209,7 @@ const getStart = new class GetStart{
 		`
 	})
 	callIsWorkspaceJoined = async () => {
-		return fetch('/api/chatting/is-workspace-joined', {
+		return fetch('/api/workspace/is-workspace-joined', {
 			method: 'GET',
 			headers: {
 				'Content-Type' : 'application/json'
@@ -585,7 +585,7 @@ const getStart = new class GetStart{
 		
 		let {search_workspace_name: workspaceName} = form;
 		let page = 0, size = 10;
-		let searchWorkspaceList = (text) => fetch(`/api/chatting/search-workspace-name?page=${page}&size=${size}&workspaceName=${text}`, {
+		let searchWorkspaceList = (text) => fetch(`/api/workspace/search-workspace-name?page=${page}&size=${size}&workspaceName=${text}`, {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json'
@@ -815,7 +815,7 @@ const getStart = new class GetStart{
 				return;
 			}
 			isOneClick = true;
-			fetch('/api/chatting/create-workspace', {
+			fetch('/api/workspace/create-workspace', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
@@ -867,7 +867,7 @@ const getStart = new class GetStart{
 		createWorkspacePage.onclick = () => this.showCreateWorkspacePage();
 		searchWorkspacePage.onclick = () => this.showSearchWorkspacePage();
 		let page = 0, size = 10;
-		let createWorkspaceList = () => fetch(`/api/chatting/search-workspace-joined?page=${page}&size=${size}`, {
+		let createWorkspaceList = () => fetch(`/api/workspace/search-workspace-joined?page=${page}&size=${size}`, {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json'

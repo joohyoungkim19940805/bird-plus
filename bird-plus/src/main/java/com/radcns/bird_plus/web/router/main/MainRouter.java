@@ -55,8 +55,13 @@ public class MainRouter implements IndexRouterSwagger{
 	@Bean
 	public RouterFunction<ServerResponse> apiChatting(ChattingHandler chattingHandler){
 		return route().nest(path("/api/chatting"), builder -> builder
-					.POST("/stream", accept(MediaType.APPLICATION_JSON), chattingHandler::addStream)
-					.GET("/stream/{auth}", chattingHandler::emissionStream)
+					.POST("/send-stream", accept(MediaType.APPLICATION_JSON), chattingHandler::sendStream)
+					.GET("/emission-stream/{auth}", chattingHandler::emissionStream)
+				).build();
+	}
+	@Bean
+	public RouterFunction<ServerResponse> apiWorkspace(ChattingHandler chattingHandler){
+		return route().nest(path("/api/workspace"), builder -> builder
 					.POST("/create-workspace", accept(MediaType.APPLICATION_JSON), chattingHandler::createWorkspace)
 					.GET("/search-workspace-name", accept(MediaType.APPLICATION_JSON), chattingHandler::searchWorkspaceName)
 					.GET("/is-workspace-joined", accept(MediaType.APPLICATION_JSON), chattingHandler::isWorkspaceJoined)
@@ -70,8 +75,15 @@ public class MainRouter implements IndexRouterSwagger{
 		;
 		*/
 	}
-	
-	
+	@Bean
+	public RouterFunction<ServerResponse> apiRoom(ChattingHandler chattingHandler){
+		return route().nest(path("/api/workspace"), builder -> builder
+					.POST("/create-workspace", accept(MediaType.APPLICATION_JSON), chattingHandler::createWorkspace)
+					.GET("/search-workspace-name", accept(MediaType.APPLICATION_JSON), chattingHandler::searchWorkspaceName)
+					.GET("/is-workspace-joined", accept(MediaType.APPLICATION_JSON), chattingHandler::isWorkspaceJoined)
+					.GET("/search-workspace-joined", accept(MediaType.APPLICATION_JSON), chattingHandler::searchWorkspaceJoined)
+				).build();
+	}
 	
 	/*
 	public Mono<ServerResponse> admin(ServerRequest request){

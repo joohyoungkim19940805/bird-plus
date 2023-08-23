@@ -73,7 +73,7 @@ public class ChattingHandler {
 	 */
 	private Sinks.Many<ChattingEntity> chattingSink = Sinks.many().multicast().directAllOrNothing();
 	
-	public Mono<ServerResponse> addStream(ServerRequest request){
+	public Mono<ServerResponse> sendStream(ServerRequest request){
 		return request.bodyToMono(String.class)
 				/*.doOnNext(chatting->{
 					chattingSink.tryEmitNext(chatting);

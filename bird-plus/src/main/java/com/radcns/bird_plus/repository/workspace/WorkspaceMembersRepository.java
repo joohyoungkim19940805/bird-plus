@@ -27,14 +27,14 @@ public interface WorkspaceMembersRepository extends ReactiveCrudRepository<Works
 					FROM 
 						wo_workspace_in_account wwm2 
 					WHERE 
-						wwm2.workspace_id = cwm.workspace_id
+						wwm2.workspace_id = ww.id
 				) AS joined_count
 			FROM
 				wo_workspace_in_account wwm
 			INNER JOIN
-				wo_workspace cw
+				wo_workspace ww
 			ON
-				wwm.workspace_id = cw.id
+				wwm.workspace_id = ww.id
 			WHERE
 				wwm.account_id = :#{[0]}
 			ORDER BY

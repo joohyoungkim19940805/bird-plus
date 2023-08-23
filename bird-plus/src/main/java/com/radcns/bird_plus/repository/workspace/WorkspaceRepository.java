@@ -24,14 +24,14 @@ public interface WorkspaceRepository extends ReactiveCrudRepository<WorkspaceEnt
 					SELECT
 						count(1)
 					FROM
-						wo_workspace_members cwm 
+						wo_workspace_members wwm 
 					WHERE
-						cwm.workspace_id = cw.id
+						wwm.workspace_id = ww.id
 				) AS joined_count
 			FROM
-				wo_workspace cw
+				wo_workspace ww
 			WHERE
-				(cw.workspace_name ILIKE concat('%',:#{[0]},'%'))
+				(ww.workspace_name ILIKE concat('%',:#{[0]},'%'))
 			OFFSET
 				:#{[1].offset}
 			LIMIT
@@ -44,9 +44,9 @@ public interface WorkspaceRepository extends ReactiveCrudRepository<WorkspaceEnt
 			SELECT
 				count(1)
 			FROM
-				wo_workspace cw
+				wo_workspace ww
 			WHERE
-				(cw.workspace_name ILIKE concat('%',:workspaceName,'%'));
+				(ww.workspace_name ILIKE concat('%',:workspaceName,'%'));
 			""")
 	Mono<Long> countByWorkspaceName(String workspaceName);
 	
