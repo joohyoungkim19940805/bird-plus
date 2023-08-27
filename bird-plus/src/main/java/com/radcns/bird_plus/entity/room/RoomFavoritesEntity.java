@@ -28,8 +28,22 @@ public class RoomFavoritesEntity extends DefaultFieldEntity{
 	private Long id;
 	
 	@Column("room_id")
-	private Integer roomId;
+	private Long roomId;
 	
 	@Column("account_id")
-	private Integer accountId;
+	private Long accountId;
+	
+	public static class RoomFavoritesDomain{
+		@Getter
+		@Setter
+		public static class MyFavoritesRoomListResponse{
+			private Long id;
+			private String roomCode;
+			private String roomName;
+			private Boolean isEnabled;
+			private Long workspaceId;
+			private Long joinedCount;
+			private Integer orderSort;
+		}
+	}
 }

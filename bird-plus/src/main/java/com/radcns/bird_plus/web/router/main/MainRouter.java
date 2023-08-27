@@ -10,6 +10,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import com.radcns.bird_plus.web.handler.ChattingHandler;
 import com.radcns.bird_plus.web.handler.LoginHandler;
 import com.radcns.bird_plus.web.handler.MainHandler;
+import com.radcns.bird_plus.web.handler.WorkspaceHandler;
 
 import java.net.URI;
 
@@ -60,12 +61,12 @@ public class MainRouter implements IndexRouterSwagger{
 				).build();
 	}
 	@Bean
-	public RouterFunction<ServerResponse> apiWorkspace(ChattingHandler chattingHandler){
+	public RouterFunction<ServerResponse> apiWorkspace(WorkspaceHandler workspaceHandler){
 		return route().nest(path("/api/workspace"), builder -> builder
-					.POST("/create-workspace", accept(MediaType.APPLICATION_JSON), chattingHandler::createWorkspace)
-					.GET("/search-workspace-name", accept(MediaType.APPLICATION_JSON), chattingHandler::searchWorkspaceName)
-					.GET("/is-workspace-joined", accept(MediaType.APPLICATION_JSON), chattingHandler::isWorkspaceJoined)
-					.GET("/search-workspace-joined", accept(MediaType.APPLICATION_JSON), chattingHandler::searchWorkspaceJoined)
+					.POST("/create-workspace", accept(MediaType.APPLICATION_JSON), workspaceHandler::createWorkspace)
+					.GET("/search-workspace-name", accept(MediaType.APPLICATION_JSON), workspaceHandler::searchWorkspaceName)
+					.GET("/is-workspace-joined", accept(MediaType.APPLICATION_JSON), workspaceHandler::isWorkspaceJoined)
+					.GET("/search-workspace-joined", accept(MediaType.APPLICATION_JSON), workspaceHandler::searchWorkspaceJoined)
 				).build();
 		/*
 		return route( POST("/api/chatting/stream").and(accept(MediaType.APPLICATION_JSON)), chattingHandler::addStream )
@@ -76,13 +77,13 @@ public class MainRouter implements IndexRouterSwagger{
 		*/
 	}
 	@Bean
-	public RouterFunction<ServerResponse> apiRoom(ChattingHandler chattingHandler){
-		return route().nest(path("/api/workspace"), builder -> builder
-					.POST("/create-workspace", accept(MediaType.APPLICATION_JSON), chattingHandler::createWorkspace)
-					.GET("/search-workspace-name", accept(MediaType.APPLICATION_JSON), chattingHandler::searchWorkspaceName)
-					.GET("/is-workspace-joined", accept(MediaType.APPLICATION_JSON), chattingHandler::isWorkspaceJoined)
-					.GET("/search-workspace-joined", accept(MediaType.APPLICATION_JSON), chattingHandler::searchWorkspaceJoined)
-				).build();
+	public RouterFunction<ServerResponse> apiRoom(WorkspaceHandler workspaceHandler){
+		return route().nest(path("/api/room"), builder -> builder
+				.POST("/create-room", accept(MediaType.APPLICATION_JSON), workspaceHandler::createWorkspace)
+				.GET("/search-workspace-name", accept(MediaType.APPLICATION_JSON), workspaceHandler::searchWorkspaceName)
+				.GET("/is-workspace-joined", accept(MediaType.APPLICATION_JSON), workspaceHandler::isWorkspaceJoined)
+				.GET("/search-workspace-joined", accept(MediaType.APPLICATION_JSON), workspaceHandler::searchWorkspaceJoined)
+			).build();
 	}
 	
 	/*

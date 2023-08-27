@@ -28,10 +28,10 @@ public class RoomInAccountEntity extends DefaultFieldEntity{
 	private Long id;
 	
 	@Column("room_id")
-	private Integer roomId;
+	private Long roomId;
 	
 	@Column("account_id")
-	private Integer accountId;
+	private Long accountId;
 	
 	
 	public static class RoomInAccountDomain{
@@ -44,6 +44,7 @@ public class RoomInAccountEntity extends DefaultFieldEntity{
 			private Boolean isEnabled;
 			private Long workspaceId;
 			private Long joinedCount;
+			private Integer orderSort;
 		}
 	}
 }

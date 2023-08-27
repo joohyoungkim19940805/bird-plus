@@ -31,6 +31,8 @@ public interface WorkspaceRepository extends ReactiveCrudRepository<WorkspaceEnt
 			FROM
 				wo_workspace ww
 			WHERE
+				ww.is_private != true
+			AND
 				(ww.workspace_name ILIKE concat('%',:#{[0]},'%'))
 			OFFSET
 				:#{[1].offset}

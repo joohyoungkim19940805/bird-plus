@@ -14,6 +14,8 @@ public interface WorkspaceMembersRepository extends ReactiveCrudRepository<Works
 	
 	Mono<Boolean> existsByAccountId(Long accountId);
 	
+	Mono<Boolean> existsByWorkspaceIdAndAccountId(Long workspaceId, Long accountId);
+	
 	@Query("""
 			SELECT
 				wwm.workspace_id,

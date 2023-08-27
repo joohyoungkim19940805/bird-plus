@@ -8,6 +8,7 @@ import com.radcns.bird_plus.entity.room.RoomInAccountEntity;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity.RoomInAccountDomain;
 
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 public interface RoomInAccountRepository extends ReactiveCrudRepository<RoomInAccountEntity, Long>{
 
@@ -27,15 +28,17 @@ public interface RoomInAccountRepository extends ReactiveCrudRepository<RoomInAc
 				rria.room_id = rr.id
 			WHERE
 				rria.account_id = :#{[0]}
+			AND	
+				rr.workspace_id = :#{[1]}
 			ORDER BY
-				rr.updated_at DESC
+				rria.order_sort ASC
 			OFFSET
-				:#{[1].offset}
+				:#{[2].offset}
 			LIMIT
-				:#{[1].pageSize}
+				:#{[2].pageSize}
 			;
 			""")
-	Flux<RoomInAccountDomain.MyJoinedRoomListResponse> findAllByAccountId(Long accountId, Pageable pageble);
+	Flux<RoomInAccountDomain.MyJoinedRoomListResponse> findAllByAccountIdAndWorkspaceId(Long accountId, Long workspaceId, Pageable pageble);
 	
 	@Query("""
 			SELECT
@@ -48,8 +51,10 @@ public interface RoomInAccountRepository extends ReactiveCrudRepository<RoomInAc
 				rria.room_id = rr.id
 			WHERE
 				rria.account_id = :#{[0]}
+			AND
+				rr.workspace_id = :#{[1]}
 			;
 			""")
-	Flux<Long> countByAccountId(Long accountId);
+	Mono<Long> countByAccountIdAndWorkspaceId(Long accountId, Long workspaceId);
 	
 }

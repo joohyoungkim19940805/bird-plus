@@ -53,12 +53,6 @@ public class ChattingHandler {
 	@Autowired
 	private AccountService accountService;
 	
-	@Autowired
-	private WorkspaceRepository workspaceRepository;
-	
-	@Autowired
-	private WorkspaceMembersRepository workspaceMembersRepository;
-	
 	/**
 	unicast() : 하나의 Subscriber 만 허용한다. 즉, 하나의 Client 만 연결할 수 있다.
 	multicast() : 여러 Subscriber 를 허용한다.
@@ -118,80 +112,4 @@ public class ChattingHandler {
 				;
 	}
 	
-	public Mono<ServerResponse> createWorkspace(ServerRequest request){
-		//serverRequest.bodyToMono()
-		return accountService.convertJwtToAccount(request)
-		.flatMap(account -> request.bodyToMono(WorkspaceEntity.class)
-			.flatMap(workspace->
-				workspaceRepository.save(workspace.withOwnerAccountId(account.getId()))
-			)
-			.doOnSuccess(e->
-				workspaceMembersRepository.save(
-					WorkspaceMembersEntity.builder().accountId(account.getId()).workspaceId(e.getId()).build()
-				).subscribe()
-			)
-		)
-		.flatMap(workspace -> ok()
-			.contentType(MediaType.APPLICATION_JSON)
-			.body(Mono.just(response(Result._0, workspace)), Response.class)
-		)
-		;
-	}
-	
-	public Mono<ServerResponse> searchWorkspaceName(ServerRequest request){
-		var param = request.queryParams();
-		PageRequest pageRequest = PageRequest.of(
-			Integer.valueOf(param.getFirst("page")),
-			Integer.valueOf(param.getFirst("size"))
-			//vo.getPage(), vo.getSize()
-		);
-		String workspaceName = param.getFirst("workspaceName");
-		return ok()
-			.contentType(MediaType.APPLICATION_JSON)
-			.body(
-				workspaceRepository.findAllByWorkspaceName(workspaceName, pageRequest)
-					.collectList()
-					.zipWith(workspaceRepository.countByWorkspaceName(workspaceName))
-					.map(tuples -> 
-						new PageImpl<>(tuples.getT1(), pageRequest, tuples.getT2())
-					)
-					.map(list -> response(Result._0, list))
-			, Response.class);
-	}
-
-	public Mono<ServerResponse> isWorkspaceJoined(ServerRequest request){
-		return ok()
-		.contentType(MediaType.APPLICATION_JSON)
-		.body(
-			accountService.convertJwtToAccount(request)
-			.flatMap(account -> accountRepository.findByEmail(account.getEmail()))
-			.flatMap(account -> workspaceMembersRepository.existsByAccountId(account.getId()))
-			.map(isExists -> response(Result._0, isExists))
-		, Response.class)
-		;
-	}
-	
-	public Mono<ServerResponse> searchWorkspaceJoined(ServerRequest request){
-		//workspaceMembersRepository.find
-		return ok()
-		.contentType(MediaType.APPLICATION_JSON)
-		.body(
-			accountService.convertJwtToAccount(request)
-			.flatMap(e->{
-				var param = request.queryParams();
-				PageRequest pageRequest = PageRequest.of(
-					Integer.valueOf(param.getOrDefault("page", List.of("1")).get(0)),
-					Integer.valueOf(param.getOrDefault("size", List.of("10")).get(0))
-				);
-					//.withSort(Sort.by("create_at").ascending());
-				return workspaceMembersRepository.findAllByAccountId(e.getId(), pageRequest)
-				.collectList()
-	            .zipWith(workspaceMembersRepository.countByAccountId(e.getId()))
-	            .map(entityTuples -> 
-                	new PageImpl<>(entityTuples.getT1(), pageRequest, entityTuples.getT2())
-                );
-			})
-			.map(list -> response(Result._0, list))
-		, Response.class);
-	}
 }
