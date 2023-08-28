@@ -11,6 +11,7 @@ import com.radcns.bird_plus.config.security.JwtIssuerType;
 import com.radcns.bird_plus.config.security.JwtVerifyHandler;
 import com.radcns.bird_plus.entity.account.AccountEntity;
 import com.radcns.bird_plus.entity.account.AccountEntity.AccountDomain;
+import com.radcns.bird_plus.entity.room.RoomInAccountEntity;
 import com.radcns.bird_plus.repository.customer.AccountRepository;
 import com.radcns.bird_plus.service.AccountService;
 import com.radcns.bird_plus.service.MailService;
@@ -23,6 +24,7 @@ import com.radcns.bird_plus.util.exception.ForgotPasswordException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwsHeader;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
@@ -50,6 +52,60 @@ public class MainHandler {
 	@Autowired
 	private JwtVerifyHandler jwtVerifyHandler;
 
+	public Mono<ServerResponse> test(ServerRequest request){
+		Flux<RoomInAccountEntity> flux1 = Flux.just(
+				RoomInAccountEntity.builder()
+				.id(Long.valueOf("1"))
+				.accountId(Long.valueOf("1"))
+				.roomId(Long.valueOf("1"))
+				.accountId(Long.valueOf("1"))
+				.build()
+				,
+				RoomInAccountEntity.builder()
+				.id(Long.valueOf("3"))
+				.accountId(Long.valueOf("3"))
+				.roomId(Long.valueOf("3"))
+				.accountId(Long.valueOf("3"))
+				.build()
+				,
+				RoomInAccountEntity.builder()
+				.id(Long.valueOf("2"))
+				.accountId(Long.valueOf("2"))
+				.roomId(Long.valueOf("2"))
+				.accountId(Long.valueOf("2"))
+				.build()
+				);
+		Flux<AccountEntity> flux2 = Flux.just(
+				AccountEntity.builder()
+				.id(Long.valueOf("1"))
+				.email("test@naver.com")
+				.fullName("kim")
+				.accountName("test1")
+				.build()
+				,
+				AccountEntity.builder()
+				.id(Long.valueOf("2"))
+				.email("aaaaa@naver.com")
+				.fullName("min")
+				.accountName("aaaa1")
+				.build()
+				,
+				AccountEntity.builder()
+				.id(Long.valueOf("3"))
+				.email("grrggrgr@naver.com")
+				.fullName("grgrgrg")
+				.accountName("grgrgrgrg1")
+				.build()
+				);
+		flux1.zipWith(flux2);
+		return ok().contentType(MediaType.APPLICATION_JSON)
+				.body(
+						//flux1.zipWith(flux2)
+						Flux.mergeSequential(flux1, flux2)
+						, Object.class
+						);
+	}
+	
 	public Mono<ServerResponse> index(ServerRequest request){
 		return ok().contentType(MediaType.TEXT_HTML).render("/index.html");
 	}

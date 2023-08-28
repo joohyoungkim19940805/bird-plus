@@ -27,18 +27,18 @@ public interface WorkspaceMembersRepository extends ReactiveCrudRepository<Works
 					SELECT 
 						count(1) 
 					FROM 
-						wo_workspace_in_account wwm2 
+						wo_workspace_in_account wwia2 
 					WHERE 
-						wwm2.workspace_id = ww.id
+						wwia2.workspace_id = ww.id
 				) AS joined_count
 			FROM
-				wo_workspace_in_account wwm
+				wo_workspace_in_account wwia
 			INNER JOIN
 				wo_workspace ww
 			ON
-				wwm.workspace_id = ww.id
+				wwia.workspace_id = ww.id
 			WHERE
-				wwm.account_id = :#{[0]}
+				wwia.account_id = :#{[0]}
 			ORDER BY
 				ww.create_at DESC
 			OFFSET
@@ -53,13 +53,13 @@ public interface WorkspaceMembersRepository extends ReactiveCrudRepository<Works
 			SELECT
 				count(1)
 			FROM
-				wo_workspace_in_account wwm
+				wo_workspace_in_account wwia
 			INNER JOIN
 				wo_workspace ww
 			ON
-				wwm.workspace_id = ww.id
+				wwia.workspace_id = ww.id
 			WHERE
-				wwm.account_id = :accountId;
+				wwia.account_id = :accountId;
 			""")
 	Mono<Long> countByAccountId(Long accountId);
 }

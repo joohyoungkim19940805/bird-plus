@@ -12,7 +12,6 @@ import reactor.core.publisher.Mono;
 
 public interface RoomInAccountRepository extends ReactiveCrudRepository<RoomInAccountEntity, Long>{
 
-
 	@Query("""
 			SELECT
 				rria.room_id,
@@ -38,7 +37,8 @@ public interface RoomInAccountRepository extends ReactiveCrudRepository<RoomInAc
 				:#{[2].pageSize}
 			;
 			""")
-	Flux<RoomInAccountDomain.MyJoinedRoomListResponse> findAllByAccountIdAndWorkspaceId(Long accountId, Long workspaceId, Pageable pageble);
+	Flux<RoomInAccountDomain.MyJoinedRoomListResponse> 
+		findAllByAccountIdAndWorkspaceId(Long accountId, Long workspaceId, Pageable pageble);
 	
 	@Query("""
 			SELECT
@@ -55,6 +55,57 @@ public interface RoomInAccountRepository extends ReactiveCrudRepository<RoomInAc
 				rr.workspace_id = :#{[1]}
 			;
 			""")
-	Mono<Long> countByAccountIdAndWorkspaceId(Long accountId, Long workspaceId);
+	Mono<Long> 
+		countByAccountIdAndWorkspaceId(Long accountId, Long workspaceId);
 	
+
+	@Query("""
+			SELECT
+				rria.room_id,
+				rr.room_code,
+				rr.room_namme,
+				rr.is_enabled,
+				rr.workspace_id
+			FROM
+				ro_room_in_account rria
+			INNER JOIN
+				ro_room rr
+			ON
+				rria.room_id = rr.id
+			WHERE
+				rria.account_id = :#{[0]}
+			AND	
+				rr.workspace_id = :#{[1]}
+			AND	
+				(rr.room_name ILIKE concat('%', :#{[2]}, '%'))
+			OFFSET
+				:#{[3].offset}
+			LIMIT
+				:#{[3].pageSize}
+			;
+			""")
+	Flux<RoomInAccountDomain.MyJoinedRoomListResponse> 
+		findAllByAccountIdAndWorkspaceIdAndRoomName(Long accountId, Long workspaceId, String workspaceName, Pageable pageble);
+	
+	@Query("""
+			SELECT
+				count(1)
+			FROM
+				ro_room_in_account rria
+			INNER JOIN
+				ro_room rr
+			ON
+				rria.room_id = rr.id
+			WHERE
+				rria.account_id = :#{[0]}
+			AND
+				rr.workspace_id = :#{[1]}
+			AND	
+				(rr.room_name ILIKE concat('%', :#{[2]}, '%'))
+			;
+			""")
+	Mono<Long> 
+		countByAccountIdAndWorkspaceIdAndRoomName(Long accountId, Long workspaceId, String roomName);
+	
+	//Flux<RoomInAccountEntity>
 }

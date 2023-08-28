@@ -10,6 +10,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import com.radcns.bird_plus.web.handler.ChattingHandler;
 import com.radcns.bird_plus.web.handler.LoginHandler;
 import com.radcns.bird_plus.web.handler.MainHandler;
+import com.radcns.bird_plus.web.handler.RoomHandler;
 import com.radcns.bird_plus.web.handler.WorkspaceHandler;
 
 import java.net.URI;
@@ -29,7 +30,8 @@ public class MainRouter implements IndexRouterSwagger{
 	public RouterFunction<ServerResponse> index(MainHandler mainHandler){
 
     	return route( GET("/"), req -> ServerResponse.temporaryRedirect(URI.create("/login-page")).build() )
-				.and(route( GET("/login"), req -> ServerResponse.temporaryRedirect(URI.create("/login-page")).build() ))
+    			.and(route( GET("/test").and(accept(MediaType.APPLICATION_JSON)), mainHandler::test ))
+    			.and(route( GET("/login"), req -> ServerResponse.temporaryRedirect(URI.create("/login-page")).build() ))
 				.and(route( GET("/login-page").and(accept(MediaType.TEXT_HTML)), mainHandler::loginPage ))
 				.and(route( POST("/create").and(accept(MediaType.APPLICATION_JSON)), mainHandler::create ))
 				.and(route( GET("/account-verify/{token}").and(accept(MediaType.TEXT_HTML)), mainHandler::accountVerifyPage ))
@@ -66,7 +68,7 @@ public class MainRouter implements IndexRouterSwagger{
 					.POST("/create-workspace", accept(MediaType.APPLICATION_JSON), workspaceHandler::createWorkspace)
 					.GET("/search-workspace-name", accept(MediaType.APPLICATION_JSON), workspaceHandler::searchWorkspaceName)
 					.GET("/is-workspace-joined", accept(MediaType.APPLICATION_JSON), workspaceHandler::isWorkspaceJoined)
-					.GET("/search-workspace-joined", accept(MediaType.APPLICATION_JSON), workspaceHandler::searchWorkspaceJoined)
+					.GET("/search-workspace-my-joined", accept(MediaType.APPLICATION_JSON), workspaceHandler::searchWorkspaceMyJoined)
 				).build();
 		/*
 		return route( POST("/api/chatting/stream").and(accept(MediaType.APPLICATION_JSON)), chattingHandler::addStream )
@@ -77,12 +79,13 @@ public class MainRouter implements IndexRouterSwagger{
 		*/
 	}
 	@Bean
-	public RouterFunction<ServerResponse> apiRoom(WorkspaceHandler workspaceHandler){
+	public RouterFunction<ServerResponse> apiRoom(RoomHandler roomHandler){
 		return route().nest(path("/api/room"), builder -> builder
-				.POST("/create-room", accept(MediaType.APPLICATION_JSON), workspaceHandler::createWorkspace)
-				.GET("/search-workspace-name", accept(MediaType.APPLICATION_JSON), workspaceHandler::searchWorkspaceName)
-				.GET("/is-workspace-joined", accept(MediaType.APPLICATION_JSON), workspaceHandler::isWorkspaceJoined)
-				.GET("/search-workspace-joined", accept(MediaType.APPLICATION_JSON), workspaceHandler::searchWorkspaceJoined)
+				.POST("/create-room", accept(MediaType.APPLICATION_JSON), roomHandler::createRoom)
+				.GET("/search-room", accept(MediaType.APPLICATION_JSON), roomHandler::searchRoom)
+				.GET("/search-room-my-joined", accept(MediaType.APPLICATION_JSON), roomHandler::searchRoomMyJoined)
+				.GET("/search-room-my-joined-name", accept(MediaType.APPLICATION_JSON), roomHandler::searchRoomMyJoinedName)
+			
 			).build();
 	}
 	

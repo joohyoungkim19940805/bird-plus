@@ -97,7 +97,7 @@ public class WorkspaceHandler {
 	}
 	
 
-	public Mono<ServerResponse> searchWorkspaceJoined(ServerRequest request){
+	public Mono<ServerResponse> searchWorkspaceMyJoined(ServerRequest request){
 		//workspaceMembersRepository.find
 		return ok()
 		.contentType(MediaType.APPLICATION_JSON)
@@ -115,7 +115,8 @@ public class WorkspaceHandler {
 	            .zipWith(workspaceMembersRepository.countByAccountId(e.getId()))
 	            .map(entityTuples -> 
                 	new PageImpl<>(entityTuples.getT1(), pageRequest, entityTuples.getT2())
-                );
+                )
+	            ;
 			})
 			.map(list -> response(Result._0, list))
 		, Response.class);

@@ -867,7 +867,7 @@ const getStart = new class GetStart{
 		createWorkspacePage.onclick = () => this.showCreateWorkspacePage();
 		searchWorkspacePage.onclick = () => this.showSearchWorkspacePage();
 		let page = 0, size = 10;
-		let createWorkspaceList = () => fetch(`/api/workspace/search-workspace-joined?page=${page}&size=${size}`, {
+		let createWorkspaceList = () => fetch(`/api/workspace/search-workspace-my-joined?page=${page}&size=${size}`, {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json'

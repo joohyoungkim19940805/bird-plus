@@ -15,18 +15,18 @@ public interface WorkspaceRepository extends ReactiveCrudRepository<WorkspaceEnt
 
 	@Query("""
 			SELECT
-				cw.id,
-				cw.workspace_name,
-				cw.is_enabled,
-				cw.access_filter,
-				cw.is_finally_permit,
+				ww.id,
+				ww.workspace_name,
+				ww.is_enabled,
+				ww.access_filter,
+				ww.is_finally_permit,
 				(
 					SELECT
 						count(1)
 					FROM
-						wo_workspace_members wwm 
+						wo_workspace_in_account wwia
 					WHERE
-						wwm.workspace_id = ww.id
+						wwia.workspace_id = ww.id
 				) AS joined_count
 			FROM
 				wo_workspace ww

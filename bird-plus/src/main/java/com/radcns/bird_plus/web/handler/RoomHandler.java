@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
+import com.radcns.bird_plus.entity.account.AccountEntity;
 import com.radcns.bird_plus.entity.room.RoomEntity;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity;
 import com.radcns.bird_plus.repository.customer.AccountRepository;
@@ -24,6 +25,7 @@ import com.radcns.bird_plus.util.Response;
 import com.radcns.bird_plus.util.exception.WorkspaceException;
 import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Component
@@ -65,9 +67,49 @@ public class RoomHandler {
 		)
 		;
 	}
+
+	public Mono<ServerResponse> searchRoom(ServerRequest request){
+		return ok()
+		.contentType(MediaType.APPLICATION_JSON)
+		.body(
+			accountService.convertJwtToAccount(request)
+			.flatMap(account -> {
+				var param = request.queryParams();
+				Long workspaceId = Long.valueOf(param.getFirst("workspaceId"));
+				if(workspaceId == null) {
+					return Mono.empty();
+				}
+				String roomName = param.getFirst("roomName");
+				
+				PageRequest pageRequest = PageRequest.of(
+					Integer.valueOf(param.getOrDefault("page", List.of("1")).get(0)),
+					Integer.valueOf(param.getOrDefault("size", List.of("10")).get(0))	
+				);
+				Flux<RoomEntity> roomEntityFlux;
+				Mono<Long> countMono;
+				if(roomName != null && ! roomName.isBlank()) {
+					roomEntityFlux = roomRepository.findAllByAccountIdAndWorkspaceIdAndRoomName(account.getId(), workspaceId, roomName, pageRequest);
+					countMono = roomRepository.countByAccountIdAndWorkspaceIdAndRoomName(account.getId(), workspaceId, roomName);
+				}else {
+					roomEntityFlux = roomRepository.findAllByAccountIdAndWorkspaceId(account.getId(), workspaceId, pageRequest);					
+					countMono = roomRepository.countByAccountIdAndWorkspaceId(account.getId(), workspaceId);
+				}
+				
+				return roomEntityFlux.collectList()
+				.zipWith(countMono)
+				.map(entityTuples -> 
+					new PageImpl<>(entityTuples.getT1(), pageRequest, entityTuples.getT2())
+				)
+				;
+			})
+			.switchIfEmpty(Mono.error(new WorkspaceException(Result._200)))
+			.map(list -> response(Result._0, list))
+		, Response.class);
+	}
+
 	
-	public Mono<ServerResponse> searchRoomJoined(ServerRequest request){
-		ok()
+	public Mono<ServerResponse> searchRoomMyJoined(ServerRequest request){
+		return ok()
 		.contentType(MediaType.APPLICATION_JSON)
 		.body(
 			accountService.convertJwtToAccount(request)
@@ -94,6 +136,100 @@ public class RoomHandler {
 			.switchIfEmpty(Mono.error(new WorkspaceException(Result._200)))
 			.map(list -> response(Result._0, list))
 		, Response.class);
-		return null;
+	}
+	
+	public Mono<ServerResponse> searchRoomMyJoinedName(ServerRequest request){
+		return ok()
+		.contentType(MediaType.APPLICATION_JSON)
+		.body(
+			accountService.convertJwtToAccount(request)
+			.flatMap(account -> {
+				var param = request.queryParams();
+				Long workspaceId = Long.valueOf(param.getFirst("workspaceId"));
+				if(workspaceId == null) {
+					return Mono.empty();
+				}
+				String roomName = param.getOrDefault("roomName", List.of("")).get(0);
+				//if(roomName == null) {
+				//	return Mono.empty();
+				//}
+				
+				PageRequest pageRequest = PageRequest.of(
+					Integer.valueOf(param.getOrDefault("page", List.of("1")).get(0)),
+					Integer.valueOf(param.getOrDefault("size", List.of("10")).get(0))	
+				);
+				
+				return roomInAccountRepository.findAllByAccountIdAndWorkspaceIdAndRoomName(account.getId(), workspaceId, roomName, pageRequest)
+				.collectList()
+				.zipWith(roomInAccountRepository.countByAccountIdAndWorkspaceIdAndRoomName(account.getId(), workspaceId, roomName))
+				.map(entityTuples -> 
+					new PageImpl<>(entityTuples.getT1(), pageRequest, entityTuples.getT2())
+				)
+				;
+			})
+			.switchIfEmpty(Mono.error(new WorkspaceException(Result._200)))
+			.map(list -> response(Result._0, list))
+		, Response.class); 
+	}
+	
+	public Mono<ServerResponse> searchRoomFavoritesJoined(ServerRequest request){
+		return ok()
+		.contentType(MediaType.APPLICATION_JSON)
+		.body(
+			accountService.convertJwtToAccount(request)
+			.flatMap(account -> {
+				var param = request.queryParams();
+				Long workspaceId = Long.valueOf(param.getFirst("workspaceId"));
+				if(workspaceId == null) {
+					return Mono.empty();
+				}
+
+				PageRequest pageRequest = PageRequest.of(
+					Integer.valueOf(param.getOrDefault("page", List.of("1")).get(0)),
+					Integer.valueOf(param.getOrDefault("size", List.of("10")).get(0))	
+				);
+				
+				return roomFavoritesRepository.findAllByAccountIdAndWorkspaceId(account.getId(), workspaceId, pageRequest)
+				.collectList()
+				.zipWith(roomFavoritesRepository.countByAccountIdAndWorkspaceId(account.getId(), workspaceId))
+				.map(entityTuples -> 
+					new PageImpl<>(entityTuples.getT1(), pageRequest, entityTuples.getT2())
+				)
+				;
+			})
+			.switchIfEmpty(Mono.error(new WorkspaceException(Result._200)))
+			.map(list -> response(Result._0, list))
+		, Response.class);
+	}
+	
+	public Mono<ServerResponse> searchRoomFavoritesNema(ServerRequest request){
+		return ok()
+		.contentType(MediaType.APPLICATION_JSON)
+		.body(
+			accountService.convertJwtToAccount(request)
+			.flatMap(account -> {
+				var param = request.queryParams();
+				Long workspaceId = Long.valueOf(param.getFirst("workspaceId"));
+				if(workspaceId == null) {
+					return Mono.empty();
+				}
+				String roomName = param.getOrDefault("roomName", List.of("")).get(0);
+				
+				PageRequest pageRequest = PageRequest.of(
+					Integer.valueOf(param.getOrDefault("page", List.of("1")).get(0)),
+					Integer.valueOf(param.getOrDefault("size", List.of("10")).get(0))	
+				);
+				
+				return roomFavoritesRepository.findAllByAccountIdAndWorkspaceIdAndRoomName(account.getId(), workspaceId, roomName, pageRequest)
+				.collectList()
+				.zipWith(roomFavoritesRepository.countByAccountIdAndWorkspaceIdAndRoomName(account.getId(), workspaceId, roomName))
+				.map(entityTuples -> 
+					new PageImpl<>(entityTuples.getT1(), pageRequest, entityTuples.getT2())
+				)
+				;
+			})
+			.map(list -> response(Result._0, list))
+		, Response.class)
+		;
 	}
 }
