@@ -5,6 +5,7 @@ import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 
 import com.radcns.bird_plus.entity.room.RoomFavoritesEntity;
+import com.radcns.bird_plus.entity.room.RoomFavoritesEntity.RoomFavoritesDomain;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity.RoomInAccountDomain;
 
 import reactor.core.publisher.Flux;
@@ -15,9 +16,10 @@ public interface RoomFavoritesRepository extends ReactiveCrudRepository<RoomFavo
 			SELECT
 				rria.room_id,
 				rr.room_code,
-				rr.room_namme,
+				rr.room_name,
 				rr.is_enabled,
-				rr.workspace_id
+				rr.workspace_id,
+				rr.room_type
 			FROM
 				ro_room_favorites rrf
 			INNER JOIN
@@ -36,7 +38,7 @@ public interface RoomFavoritesRepository extends ReactiveCrudRepository<RoomFavo
 				:#{[2].pageSize}
 			;
 			""")
-	Flux<RoomInAccountDomain.MyJoinedRoomListResponse> 
+	Flux<RoomFavoritesDomain.MyFavoritesRoomListResponse> 
 		findAllByAccountIdAndWorkspaceId(Long accountId, Long workspaceId, Pageable pageble);
 	
 	@Query("""
@@ -61,9 +63,10 @@ public interface RoomFavoritesRepository extends ReactiveCrudRepository<RoomFavo
 			SELECT
 				rria.room_id,
 				rr.room_code,
-				rr.room_namme,
+				rr.room_name,
 				rr.is_enabled,
-				rr.workspace_id
+				rr.workspace_id,
+				rr.room_type
 			FROM
 				ro_room_favorites rrf
 			INNER JOIN
@@ -82,7 +85,7 @@ public interface RoomFavoritesRepository extends ReactiveCrudRepository<RoomFavo
 				:#{[3].pageSize}
 			;
 			""")
-	Flux<RoomInAccountDomain.MyJoinedRoomListResponse> 
+	Flux<RoomFavoritesDomain.MyFavoritesRoomListResponse> 
 		findAllByAccountIdAndWorkspaceIdAndRoomName(Long accountId, Long workspaceId, String roomName, Pageable pageble);
 	
 	@Query("""

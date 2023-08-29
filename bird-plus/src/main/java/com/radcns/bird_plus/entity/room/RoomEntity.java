@@ -5,6 +5,7 @@ import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import com.radcns.bird_plus.entity.DefaultFieldEntity;
+import com.radcns.bird_plus.entity.room.constant.RoomType;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -39,5 +40,8 @@ public class RoomEntity extends DefaultFieldEntity{
 	
 	@Column("workspace_id")
 	private Long workspaceId;
+	
+	@Column("room_type")
+	private RoomType roomType;
 	
 }

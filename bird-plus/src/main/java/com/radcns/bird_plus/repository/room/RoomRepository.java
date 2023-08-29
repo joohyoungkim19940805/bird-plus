@@ -5,6 +5,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import com.radcns.bird_plus.entity.room.RoomEntity;
+import com.radcns.bird_plus.entity.room.constant.RoomType;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -22,6 +23,8 @@ public interface RoomRepository extends ReactiveCrudRepository<RoomEntity,Long>{
 				rr.workspace_id = ww.id 
 			WHERE 
 				rr.workspace_id = :#{[1]}
+			AND 
+				rr.room_type = :#{[2]}
 			AND
 				EXISTS (
 					SELECT
@@ -38,7 +41,7 @@ public interface RoomRepository extends ReactiveCrudRepository<RoomEntity,Long>{
 			;
 			""")
 	Flux<RoomEntity>
-		findAllByAccountIdAndWorkspaceId(Long accountId, Long workspaceId, PageRequest pageReuqest);
+		findAllByAccountIdAndWorkspaceIdAndRoomType(Long accountId, Long workspaceId, RoomType roomType, PageRequest pageReuqest);
 	
 	@Query("""
 			SELECT
@@ -51,6 +54,8 @@ public interface RoomRepository extends ReactiveCrudRepository<RoomEntity,Long>{
 				rr.workspace_id = ww.id 
 			WHERE 
 				rr.workspace_id = :#{[1]}
+			AND 
+				rr.room_type = :#{[2]}
 			AND
 				EXISTS (
 					SELECT
@@ -62,7 +67,7 @@ public interface RoomRepository extends ReactiveCrudRepository<RoomEntity,Long>{
 				)
 			""")
 	Mono<Long>
-		countByAccountIdAndWorkspaceId(Long accountId, Long workspaceId);
+		countByAccountIdAndWorkspaceIdAndRoomType(Long accountId, Long workspaceId, RoomType roomType);
 	
 	@Query("""
 			SELECT
@@ -75,6 +80,8 @@ public interface RoomRepository extends ReactiveCrudRepository<RoomEntity,Long>{
 				rr.workspace_id = ww.id 
 			WHERE 
 				rr.workspace_id = :#{[1]}
+			AND 
+				rr.room_type = :#{[3]}
 			AND
 				EXISTS (
 					SELECT
@@ -93,7 +100,7 @@ public interface RoomRepository extends ReactiveCrudRepository<RoomEntity,Long>{
 			;
 			""")
 	Flux<RoomEntity>
-		findAllByAccountIdAndWorkspaceIdAndRoomName(Long accountId, Long workspaceId, String roomName, PageRequest pageReuqest);
+		findAllByAccountIdAndWorkspaceIdAndRoomNameAndRoomType(Long accountId, Long workspaceId, String roomName, RoomType roomType, PageRequest pageReuqest);
 	
 	@Query("""
 			SELECT
@@ -106,6 +113,8 @@ public interface RoomRepository extends ReactiveCrudRepository<RoomEntity,Long>{
 				rr.workspace_id = ww.id 
 			WHERE 
 				rr.workspace_id = :#{[1]}
+			AND 
+				rr.room_type = :#{[3]}
 			AND
 				EXISTS (
 					SELECT
@@ -119,6 +128,6 @@ public interface RoomRepository extends ReactiveCrudRepository<RoomEntity,Long>{
 				(rr.room_name ILIKE concat('%', :#{[2]}, '%'))
 			""")
 	Mono<Long>
-		countByAccountIdAndWorkspaceIdAndRoomName(Long accountId, Long workspaceId, String roomName);
+		countByAccountIdAndWorkspaceIdAndRoomNameAndRoomType(Long accountId, Long workspaceId, String roomName, RoomType roomType);
 	
 }

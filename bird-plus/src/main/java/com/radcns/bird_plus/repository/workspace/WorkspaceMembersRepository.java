@@ -18,7 +18,7 @@ public interface WorkspaceMembersRepository extends ReactiveCrudRepository<Works
 	
 	@Query("""
 			SELECT
-				wwm.workspace_id,
+				wwia.workspace_id,
 				ww.workspace_name,
 				ww.is_enabled,
 				ww.access_filter,

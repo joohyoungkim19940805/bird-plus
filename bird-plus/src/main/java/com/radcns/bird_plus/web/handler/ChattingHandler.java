@@ -21,13 +21,16 @@ import com.radcns.bird_plus.util.Response;
 import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
 
 import io.jsonwebtoken.Claims;
+import reactor.core.publisher.EmitterProcessor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
+import reactor.core.publisher.Sinks.EmitResult;
 
 import static com.radcns.bird_plus.util.Response.response;
 import static org.springframework.web.reactive.function.server.ServerResponse.ok;
 
+import java.lang.Enum.EnumDesc;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -81,7 +84,12 @@ public class ChattingHandler {
 							.accountName(claims.getIssuer())
 							.chatting(chatting)
 							.build();
-					chattingSink.tryEmitNext(chattingEntity);
+					
+					EmitResult result = chattingSink.tryEmitNext(chattingEntity);
+
+					if (result.isFailure()) {
+						// do something here, since emission failed
+					}
 					
 					return accountRepository.findByAccountNameAndEmail(claims.getIssuer(), claims.getSubject())
 							.map(e->chattingEntity.withAccountId(e.getId()));
@@ -105,6 +113,10 @@ public class ChattingHandler {
 	public Mono<ServerResponse> emissionStream(ServerRequest request) {
 		return ok().contentType(MediaType.TEXT_EVENT_STREAM)
 				.body(chattingSink.asFlux().map(e->{
+					accountService.convertJwtToAccount(request).subscribe(acc->{
+						System.out.println(acc);	
+						
+					});
 					e.setAccountId(null);
 					return e;
 				}), ChattingEntity.class)

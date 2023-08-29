@@ -15,13 +15,16 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 
 import com.radcns.bird_plus.entity.account.AccountEntity;
 import com.radcns.bird_plus.entity.room.RoomEntity;
+import com.radcns.bird_plus.entity.room.RoomFavoritesEntity;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity;
+import com.radcns.bird_plus.entity.room.constant.RoomType;
 import com.radcns.bird_plus.repository.customer.AccountRepository;
 import com.radcns.bird_plus.repository.room.RoomFavoritesRepository;
 import com.radcns.bird_plus.repository.room.RoomInAccountRepository;
 import com.radcns.bird_plus.repository.room.RoomRepository;
 import com.radcns.bird_plus.service.AccountService;
 import com.radcns.bird_plus.util.Response;
+import com.radcns.bird_plus.util.exception.RoomException;
 import com.radcns.bird_plus.util.exception.WorkspaceException;
 import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
 
@@ -58,12 +61,29 @@ public class RoomHandler {
 					.roomId(e.getId())
 					.accountId(account.getId())
 					.build()
-				).subscribe()
+				)
+				.subscribe()
 			)
 		)
 		.flatMap(room -> ok()
 			.contentType(MediaType.APPLICATION_JSON)
 			.body(Mono.just(response(Result._0, room)), Response.class)
+		)
+		;
+	}
+	
+	public Mono<ServerResponse> createRoomFavorites(ServerRequest request){
+		return accountService.convertJwtToAccount(request)
+		.flatMap(account -> request.bodyToMono(RoomFavoritesEntity.class)
+			.flatMap(roomFavorites -> {
+				roomFavorites.setAccountId(account.getId());
+				return roomFavoritesRepository.save(roomFavorites)
+						.map(e->e.withAccountId(null));
+			})
+		)
+		.flatMap(roomFavorites -> ok()
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(Mono.just(response(Result._0, roomFavorites)), Response.class)
 		)
 		;
 	}
@@ -79,6 +99,13 @@ public class RoomHandler {
 				if(workspaceId == null) {
 					return Mono.empty();
 				}
+				RoomType roomType;
+				try {
+					roomType = RoomType.valueOf(param.getFirst("roomType"));
+				}catch(IllegalArgumentException e) {
+					return Mono.error(new RoomException(Result._300));
+				}
+				
 				String roomName = param.getFirst("roomName");
 				
 				PageRequest pageRequest = PageRequest.of(
@@ -88,11 +115,11 @@ public class RoomHandler {
 				Flux<RoomEntity> roomEntityFlux;
 				Mono<Long> countMono;
 				if(roomName != null && ! roomName.isBlank()) {
-					roomEntityFlux = roomRepository.findAllByAccountIdAndWorkspaceIdAndRoomName(account.getId(), workspaceId, roomName, pageRequest);
-					countMono = roomRepository.countByAccountIdAndWorkspaceIdAndRoomName(account.getId(), workspaceId, roomName);
+					roomEntityFlux = roomRepository.findAllByAccountIdAndWorkspaceIdAndRoomNameAndRoomType(account.getId(), workspaceId, roomName, roomType, pageRequest);
+					countMono = roomRepository.countByAccountIdAndWorkspaceIdAndRoomNameAndRoomType(account.getId(), workspaceId, roomName, roomType);
 				}else {
-					roomEntityFlux = roomRepository.findAllByAccountIdAndWorkspaceId(account.getId(), workspaceId, pageRequest);					
-					countMono = roomRepository.countByAccountIdAndWorkspaceId(account.getId(), workspaceId);
+					roomEntityFlux = roomRepository.findAllByAccountIdAndWorkspaceIdAndRoomType(account.getId(), workspaceId, roomType, pageRequest);					
+					countMono = roomRepository.countByAccountIdAndWorkspaceIdAndRoomType(account.getId(), workspaceId, roomType);
 				}
 				
 				return roomEntityFlux.collectList()
@@ -119,12 +146,17 @@ public class RoomHandler {
 				if(workspaceId == null) {
 					return Mono.empty();
 				}
-				
+
 				PageRequest pageRequest = PageRequest.of(
-					Integer.valueOf(param.getOrDefault("page", List.of("1")).get(0)),
+					Integer.valueOf(param.getOrDefault("page", List.of("0")).get(0)),
 					Integer.valueOf(param.getOrDefault("size", List.of("10")).get(0))	
 				);
-				
+				System.out.println(
+				Integer.valueOf(param.getOrDefault("page", List.of("0")).get(0))
+				);
+				System.out.println(
+				Integer.valueOf(param.getOrDefault("size", List.of("10")).get(0))	
+				);
 				return roomInAccountRepository.findAllByAccountIdAndWorkspaceId(account.getId(), workspaceId, pageRequest)
 				.collectList()
 				.zipWith(roomInAccountRepository.countByAccountIdAndWorkspaceId(account.getId(), workspaceId))
@@ -149,6 +181,7 @@ public class RoomHandler {
 				if(workspaceId == null) {
 					return Mono.empty();
 				}
+
 				String roomName = param.getOrDefault("roomName", List.of("")).get(0);
 				//if(roomName == null) {
 				//	return Mono.empty();

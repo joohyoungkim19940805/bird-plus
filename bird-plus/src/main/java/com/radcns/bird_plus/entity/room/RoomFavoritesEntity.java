@@ -5,6 +5,7 @@ import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import com.radcns.bird_plus.entity.DefaultFieldEntity;
+import com.radcns.bird_plus.entity.room.constant.RoomType;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -37,13 +38,14 @@ public class RoomFavoritesEntity extends DefaultFieldEntity{
 		@Getter
 		@Setter
 		public static class MyFavoritesRoomListResponse{
-			private Long id;
+			private Long roomId;
 			private String roomCode;
 			private String roomName;
 			private Boolean isEnabled;
 			private Long workspaceId;
 			private Long joinedCount;
 			private Integer orderSort;
+			private RoomType roomType;
 		}
 	}
 }

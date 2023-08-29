@@ -6,6 +6,7 @@ import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity.RoomInAccountDomain;
+import com.radcns.bird_plus.entity.room.constant.RoomType;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -16,9 +17,10 @@ public interface RoomInAccountRepository extends ReactiveCrudRepository<RoomInAc
 			SELECT
 				rria.room_id,
 				rr.room_code,
-				rr.room_namme,
+				rr.room_name,
 				rr.is_enabled,
-				rr.workspace_id
+				rr.workspace_id,
+				rr.room_type
 			FROM
 				ro_room_in_account rria
 			INNER JOIN
@@ -63,9 +65,10 @@ public interface RoomInAccountRepository extends ReactiveCrudRepository<RoomInAc
 			SELECT
 				rria.room_id,
 				rr.room_code,
-				rr.room_namme,
+				rr.room_name,
 				rr.is_enabled,
-				rr.workspace_id
+				rr.workspace_id,
+				rr.room_type
 			FROM
 				ro_room_in_account rria
 			INNER JOIN
@@ -85,7 +88,7 @@ public interface RoomInAccountRepository extends ReactiveCrudRepository<RoomInAc
 			;
 			""")
 	Flux<RoomInAccountDomain.MyJoinedRoomListResponse> 
-		findAllByAccountIdAndWorkspaceIdAndRoomName(Long accountId, Long workspaceId, String workspaceName, Pageable pageble);
+		findAllByAccountIdAndWorkspaceIdAndRoomName(Long accountId, Long workspaceId, String roomName, Pageable pageble);
 	
 	@Query("""
 			SELECT

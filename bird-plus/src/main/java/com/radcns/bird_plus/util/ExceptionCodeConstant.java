@@ -16,6 +16,7 @@ public interface ExceptionCodeConstant {
 		_108(108, "해당 이메일로 된 계정은 존재하지 않습니다.", "PASSWORD CHANGE IS FAILS"),
 		_110(110, "회원 가입에 실패하였습니다.", "ACCOUNT REGIST FAILED"),
 		_200(200, "존재하지 않는 워크스페이스입니다.", "INVALID WORKSPACE"),
+		_300(300, "존재하지 않는 방입니다.", "INVALID ROOM"),
 		_999(999, "처리에 실패하였습니다. 잠시 후 다시 시도해주십시오.", "SERVER NOT DEFINED THIS ERROR")
 		;
 		private int code;
