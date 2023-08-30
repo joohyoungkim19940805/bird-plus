@@ -20,6 +20,8 @@ import lombok.ToString;
 import lombok.With;
 import lombok.experimental.SuperBuilder;
 
+//default entity 적용 안되므로 주석처리
+/*
 @ToString
 @Setter
 @Getter
@@ -74,3 +76,4 @@ public abstract class DefaultFieldEntity {
 		return this.updateMils; 
 	}
 }
+*/

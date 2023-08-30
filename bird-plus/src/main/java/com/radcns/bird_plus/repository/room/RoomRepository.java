@@ -41,7 +41,7 @@ public interface RoomRepository extends ReactiveCrudRepository<RoomEntity,Long>{
 			;
 			""")
 	Flux<RoomEntity>
-		findAllByAccountIdAndWorkspaceIdAndRoomType(Long accountId, Long workspaceId, RoomType roomType, PageRequest pageReuqest);
+		findAllJoinWorkspaceByAccountIdAndWorkspaceIdAndRoomType(Long accountId, Long workspaceId, RoomType roomType, PageRequest pageReuqest);
 	
 	@Query("""
 			SELECT
@@ -67,7 +67,7 @@ public interface RoomRepository extends ReactiveCrudRepository<RoomEntity,Long>{
 				)
 			""")
 	Mono<Long>
-		countByAccountIdAndWorkspaceIdAndRoomType(Long accountId, Long workspaceId, RoomType roomType);
+		countJoinWorkspaceByAccountIdAndWorkspaceIdAndRoomType(Long accountId, Long workspaceId, RoomType roomType);
 	
 	@Query("""
 			SELECT
@@ -100,7 +100,7 @@ public interface RoomRepository extends ReactiveCrudRepository<RoomEntity,Long>{
 			;
 			""")
 	Flux<RoomEntity>
-		findAllByAccountIdAndWorkspaceIdAndRoomNameAndRoomType(Long accountId, Long workspaceId, String roomName, RoomType roomType, PageRequest pageReuqest);
+		findAllJoinWorkspaceByAccountIdAndWorkspaceIdAndRoomNameAndRoomType(Long accountId, Long workspaceId, String roomName, RoomType roomType, PageRequest pageReuqest);
 	
 	@Query("""
 			SELECT
@@ -128,6 +128,6 @@ public interface RoomRepository extends ReactiveCrudRepository<RoomEntity,Long>{
 				(rr.room_name ILIKE concat('%', :#{[2]}, '%'))
 			""")
 	Mono<Long>
-		countByAccountIdAndWorkspaceIdAndRoomNameAndRoomType(Long accountId, Long workspaceId, String roomName, RoomType roomType);
+		countJoinWorkspaceByAccountIdAndWorkspaceIdAndRoomNameAndRoomType(Long accountId, Long workspaceId, String roomName, RoomType roomType);
 	
 }

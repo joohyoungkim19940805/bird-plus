@@ -6,6 +6,7 @@ import static org.springframework.web.reactive.function.server.ServerResponse.ok
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
@@ -13,7 +14,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
-import com.radcns.bird_plus.entity.account.AccountEntity;
 import com.radcns.bird_plus.entity.room.RoomEntity;
 import com.radcns.bird_plus.entity.room.RoomFavoritesEntity;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity;
@@ -56,18 +56,44 @@ public class RoomHandler {
 				return roomRepository.save(room);
 			})
 			.doOnSuccess(e->
-				roomInAccountRepository.save(
-					RoomInAccountEntity.builder()
-					.roomId(e.getId())
-					.accountId(account.getId())
-					.build()
+				roomInAccountRepository.countByAccountIdAndWorkspaceId(account.getId(), e.getWorkspaceId())
+				.flatMap(count -> 
+					roomInAccountRepository.save(
+							RoomInAccountEntity.builder()
+							.roomId(e.getId())
+							.accountId(account.getId())
+							.orderSort(count + 1)
+							.workspaceId(e.getWorkspaceId())
+							.build()
+						)	
 				)
 				.subscribe()
 			)
-		)
+		)//
 		.flatMap(room -> ok()
 			.contentType(MediaType.APPLICATION_JSON)
 			.body(Mono.just(response(Result._0, room)), Response.class)
+		)
+		;
+	}
+	
+	public Mono<ServerResponse> updateRoomInAccount(ServerRequest request){
+		return accountService.convertJwtToAccount(request)
+		.flatMapMany(account -> 
+			roomInAccountRepository.saveAll(
+				request.bodyToFlux(RoomInAccountEntity.class)
+				.filterWhen(roomInAccount->
+					Mono.just(roomInAccount.getId() != null)
+					.flatMap(bol->roomInAccountRepository.existsByAccountIdAndRoomId(account.getId(), roomInAccount.getRoomId()))
+				).flatMap(roomInAccount -> roomInAccountRepository.findById(roomInAccount.getId())
+					.map(newRoomInAccount->newRoomInAccount.withOrderSort(roomInAccount.getOrderSort()))
+				)
+			)
+		)
+		.collectList()
+		.flatMap(roomInAccountList -> ok()
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(Mono.just(response(Result._0, null)), Response.class)
 		)
 		;
 	}
@@ -77,8 +103,14 @@ public class RoomHandler {
 		.flatMap(account -> request.bodyToMono(RoomFavoritesEntity.class)
 			.flatMap(roomFavorites -> {
 				roomFavorites.setAccountId(account.getId());
-				return roomFavoritesRepository.save(roomFavorites)
+				return roomFavoritesRepository.countByAccountIdAndWorkspaceId(account.getId(), roomFavorites.getWorkspaceId())
+						.flatMap(count -> roomFavoritesRepository.save(roomFavorites.withOrderSort(count)))
 						.map(e->e.withAccountId(null));
+				/*return roomRepository.findById(roomFavorites.getRoomId())
+					.flatMap(roomEntity -> roomFavoritesRepository.countByAccountIdAndWorkspaceId(account.getId(), roomEntity.getId()))
+					.flatMap(count -> roomFavoritesRepository.save(roomFavorites.withOrderSort(count)))
+					.map(e->e.withAccountId(null));*/
+				
 			})
 		)
 		.flatMap(roomFavorites -> ok()
@@ -115,11 +147,11 @@ public class RoomHandler {
 				Flux<RoomEntity> roomEntityFlux;
 				Mono<Long> countMono;
 				if(roomName != null && ! roomName.isBlank()) {
-					roomEntityFlux = roomRepository.findAllByAccountIdAndWorkspaceIdAndRoomNameAndRoomType(account.getId(), workspaceId, roomName, roomType, pageRequest);
-					countMono = roomRepository.countByAccountIdAndWorkspaceIdAndRoomNameAndRoomType(account.getId(), workspaceId, roomName, roomType);
+					roomEntityFlux = roomRepository.findAllJoinWorkspaceByAccountIdAndWorkspaceIdAndRoomNameAndRoomType(account.getId(), workspaceId, roomName, roomType, pageRequest);
+					countMono = roomRepository.countJoinWorkspaceByAccountIdAndWorkspaceIdAndRoomNameAndRoomType(account.getId(), workspaceId, roomName, roomType);
 				}else {
-					roomEntityFlux = roomRepository.findAllByAccountIdAndWorkspaceIdAndRoomType(account.getId(), workspaceId, roomType, pageRequest);					
-					countMono = roomRepository.countByAccountIdAndWorkspaceIdAndRoomType(account.getId(), workspaceId, roomType);
+					roomEntityFlux = roomRepository.findAllJoinWorkspaceByAccountIdAndWorkspaceIdAndRoomType(account.getId(), workspaceId, roomType, pageRequest);					
+					countMono = roomRepository.countJoinWorkspaceByAccountIdAndWorkspaceIdAndRoomType(account.getId(), workspaceId, roomType);
 				}
 				
 				return roomEntityFlux.collectList()
@@ -134,7 +166,7 @@ public class RoomHandler {
 		, Response.class);
 	}
 
-	
+	/*
 	public Mono<ServerResponse> searchRoomMyJoined(ServerRequest request){
 		return ok()
 		.contentType(MediaType.APPLICATION_JSON)
@@ -152,9 +184,9 @@ public class RoomHandler {
 					Integer.valueOf(param.getOrDefault("size", List.of("10")).get(0))	
 				);
 				
-				return roomInAccountRepository.findAllByAccountIdAndWorkspaceId(account.getId(), workspaceId, pageRequest)
+				return roomInAccountRepository.findAllJoinRoomByAccountIdAndWorkspaceId(account.getId(), workspaceId, pageRequest)
 				.collectList()
-				.zipWith(roomInAccountRepository.countByAccountIdAndWorkspaceId(account.getId(), workspaceId))
+				.zipWith(roomInAccountRepository.countJoinRoomByAccountIdAndWorkspaceId(account.getId(), workspaceId))
 				.map(entityTuples -> 
 					new PageImpl<>(entityTuples.getT1(), pageRequest, entityTuples.getT2())
 				)
@@ -164,6 +196,7 @@ public class RoomHandler {
 			.map(list -> response(Result._0, list))
 		, Response.class);
 	}
+	*/
 	public Mono<ServerResponse> searchRoomMyJoinedAndRoomType(ServerRequest request){
 		return ok()
 		.contentType(MediaType.APPLICATION_JSON)
@@ -187,9 +220,9 @@ public class RoomHandler {
 					Integer.valueOf(param.getOrDefault("size", List.of("10")).get(0))	
 				);
 				
-				return roomInAccountRepository.findAllByAccountIdAndWorkspaceIdAndRoomType(account.getId(), workspaceId, roomType, pageRequest)
+				return roomInAccountRepository.findAllJoinRoomByAccountIdAndWorkspaceIdAndRoomType(account.getId(), workspaceId, roomType, pageRequest)
 				.collectList()
-				.zipWith(roomInAccountRepository.countByAccountIdAndWorkspaceIdAndRoomType(account.getId(), workspaceId, roomType))
+				.zipWith(roomInAccountRepository.countJoinRoomByAccountIdAndWorkspaceIdAndRoomType(account.getId(), workspaceId, roomType))
 				.map(entityTuples -> 
 					new PageImpl<>(entityTuples.getT1(), pageRequest, entityTuples.getT2())
 				)
@@ -226,9 +259,9 @@ public class RoomHandler {
 					Integer.valueOf(param.getOrDefault("size", List.of("10")).get(0))	
 				);
 				
-				return roomInAccountRepository.findAllByAccountIdAndWorkspaceIdAndRoomNameAndRoomType(account.getId(), workspaceId, roomName, roomType, pageRequest)
+				return roomInAccountRepository.findAllJoinRoomByAccountIdAndWorkspaceIdAndRoomNameAndRoomType(account.getId(), workspaceId, roomName, roomType, pageRequest)
 				.collectList()
-				.zipWith(roomInAccountRepository.countByAccountIdAndWorkspaceIdAndRoomNameAndRoomType(account.getId(), workspaceId, roomName, roomType))
+				.zipWith(roomInAccountRepository.countJoinRoomByAccountIdAndWorkspaceIdAndRoomNameAndRoomType(account.getId(), workspaceId, roomName, roomType))
 				.map(entityTuples -> 
 					new PageImpl<>(entityTuples.getT1(), pageRequest, entityTuples.getT2())
 				)
@@ -239,6 +272,7 @@ public class RoomHandler {
 		, Response.class); 
 	}
 	
+	/*
 	public Mono<ServerResponse> searchRoomMyJoinedName(ServerRequest request){
 		return ok()
 		.contentType(MediaType.APPLICATION_JSON)
@@ -261,9 +295,9 @@ public class RoomHandler {
 					Integer.valueOf(param.getOrDefault("size", List.of("10")).get(0))	
 				);
 				
-				return roomInAccountRepository.findAllByAccountIdAndWorkspaceIdAndRoomName(account.getId(), workspaceId, roomName, pageRequest)
+				return roomInAccountRepository.findAllJoinRoomByAccountIdAndWorkspaceIdAndRoomName(account.getId(), workspaceId, roomName, pageRequest)
 				.collectList()
-				.zipWith(roomInAccountRepository.countByAccountIdAndWorkspaceIdAndRoomName(account.getId(), workspaceId, roomName))
+				.zipWith(roomInAccountRepository.countJoinRoomByAccountIdAndWorkspaceIdAndRoomName(account.getId(), workspaceId, roomName))
 				.map(entityTuples -> 
 					new PageImpl<>(entityTuples.getT1(), pageRequest, entityTuples.getT2())
 				)
@@ -273,7 +307,7 @@ public class RoomHandler {
 			.map(list -> response(Result._0, list))
 		, Response.class); 
 	}
-	
+	*/
 	public Mono<ServerResponse> searchRoomFavoritesJoined(ServerRequest request){
 		return ok()
 		.contentType(MediaType.APPLICATION_JSON)
@@ -291,9 +325,9 @@ public class RoomHandler {
 					Integer.valueOf(param.getOrDefault("size", List.of("10")).get(0))	
 				);
 				
-				return roomFavoritesRepository.findAllByAccountIdAndWorkspaceId(account.getId(), workspaceId, pageRequest)
+				return roomFavoritesRepository.findAllJoinRoomByAccountIdAndWorkspaceId(account.getId(), workspaceId, pageRequest)
 				.collectList()
-				.zipWith(roomFavoritesRepository.countByAccountIdAndWorkspaceId(account.getId(), workspaceId))
+				.zipWith(roomFavoritesRepository.countJoinRoomByAccountIdAndWorkspaceId(account.getId(), workspaceId))
 				.map(entityTuples -> 
 					new PageImpl<>(entityTuples.getT1(), pageRequest, entityTuples.getT2())
 				)
@@ -322,9 +356,9 @@ public class RoomHandler {
 					Integer.valueOf(param.getOrDefault("size", List.of("10")).get(0))	
 				);
 				
-				return roomFavoritesRepository.findAllByAccountIdAndWorkspaceIdAndRoomName(account.getId(), workspaceId, roomName, pageRequest)
+				return roomFavoritesRepository.findAllJoinRoomByAccountIdAndWorkspaceIdAndRoomName(account.getId(), workspaceId, roomName, pageRequest)
 				.collectList()
-				.zipWith(roomFavoritesRepository.countByAccountIdAndWorkspaceIdAndRoomName(account.getId(), workspaceId, roomName))
+				.zipWith(roomFavoritesRepository.countJoinRoomByAccountIdAndWorkspaceIdAndRoomName(account.getId(), workspaceId, roomName))
 				.map(entityTuples -> 
 					new PageImpl<>(entityTuples.getT1(), pageRequest, entityTuples.getT2())
 				)

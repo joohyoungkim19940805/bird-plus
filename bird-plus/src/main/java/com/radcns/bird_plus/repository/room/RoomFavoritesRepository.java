@@ -12,9 +12,14 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface RoomFavoritesRepository extends ReactiveCrudRepository<RoomFavoritesEntity, Long>{
+	
+	Mono<Long> countByAccountIdAndWorkspaceId(Long accountId, Long workspaceId);
+	
 	@Query("""
 			SELECT
-				rria.room_id,
+				rrf.id,
+				rrf.room_id,
+				rrf.order_sort,
 				rr.room_code,
 				rr.room_name,
 				rr.is_enabled,
@@ -31,7 +36,7 @@ public interface RoomFavoritesRepository extends ReactiveCrudRepository<RoomFavo
 			AMD
 				rr.workspace_id = :#{[1]}
 			ORDER BY
-				rrf.order_sort ASC
+				rrf.order_sort DESC
 			OFFSET
 				:#{[2].offset}
 			LIMIT
@@ -39,13 +44,13 @@ public interface RoomFavoritesRepository extends ReactiveCrudRepository<RoomFavo
 			;
 			""")
 	Flux<RoomFavoritesDomain.MyFavoritesRoomListResponse> 
-		findAllByAccountIdAndWorkspaceId(Long accountId, Long workspaceId, Pageable pageble);
+		findAllJoinRoomByAccountIdAndWorkspaceId(Long accountId, Long workspaceId, Pageable pageble);
 	
 	@Query("""
 			SELECT
 				count(1)
 			FROM
-				ro_room_in_account rria
+				ro_room_favorites rrf
 			INNER JOIN
 				ro_room rr
 			ON
@@ -57,11 +62,13 @@ public interface RoomFavoritesRepository extends ReactiveCrudRepository<RoomFavo
 			;
 			""")
 	Mono<Long> 
-		countByAccountIdAndWorkspaceId(Long accountId, Long workspaceId);
+		countJoinRoomByAccountIdAndWorkspaceId(Long accountId, Long workspaceId);
 	
 	@Query("""
 			SELECT
-				rria.room_id,
+				rrf.id,
+				rrf.room_id,
+				rrf.order_sort,
 				rr.room_code,
 				rr.room_name,
 				rr.is_enabled,
@@ -79,6 +86,8 @@ public interface RoomFavoritesRepository extends ReactiveCrudRepository<RoomFavo
 				rr.workspace_id = :#{[1]}
 			AND	
 				(rr.room_name ILIKE concat('%', :#{[2]}, '%'))
+			ORDER BY
+				rrf.order_sort DESC
 			OFFSET
 				:#{[3].offset}
 			LIMIT
@@ -86,13 +95,13 @@ public interface RoomFavoritesRepository extends ReactiveCrudRepository<RoomFavo
 			;
 			""")
 	Flux<RoomFavoritesDomain.MyFavoritesRoomListResponse> 
-		findAllByAccountIdAndWorkspaceIdAndRoomName(Long accountId, Long workspaceId, String roomName, Pageable pageble);
+		findAllJoinRoomByAccountIdAndWorkspaceIdAndRoomName(Long accountId, Long workspaceId, String roomName, Pageable pageble);
 	
 	@Query("""
 			SELECT
 				count(1)
 			FROM
-				ro_room_in_account rria
+				ro_room_favorites rrf
 			INNER JOIN
 				ro_room rr
 			ON
@@ -106,5 +115,5 @@ public interface RoomFavoritesRepository extends ReactiveCrudRepository<RoomFavo
 			;
 			""")
 	Mono<Long> 
-		countByAccountIdAndWorkspaceIdAndRoomName(Long accountId, Long workspaceId, String roomName);
+		countJoinRoomByAccountIdAndWorkspaceIdAndRoomName(Long accountId, Long workspaceId, String roomName);
 }

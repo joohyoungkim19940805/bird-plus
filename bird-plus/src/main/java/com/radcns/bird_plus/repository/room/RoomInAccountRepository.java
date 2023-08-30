@@ -15,9 +15,16 @@ import reactor.core.publisher.Mono;
 
 public interface RoomInAccountRepository extends ReactiveCrudRepository<RoomInAccountEntity, Long>{
 
+	Mono<Long> countByAccountIdAndWorkspaceId(Long accountId, Long workspaceId);
+	
+	Mono<Boolean> existsByAccountIdAndRoomId(Long accountId, Long roomId);
+	
+	/*
 	@Query("""
 			SELECT
+				rria.id,
 				rria.room_id,
+				rria.order_sort,
 				rr.room_code,
 				rr.room_name,
 				rr.is_enabled,
@@ -34,7 +41,7 @@ public interface RoomInAccountRepository extends ReactiveCrudRepository<RoomInAc
 			AND	
 				rr.workspace_id = :#{[1]}
 			ORDER BY
-				rria.order_sort ASC
+				rria.order_sort DESC
 			OFFSET
 				:#{[2].offset}
 			LIMIT
@@ -42,7 +49,7 @@ public interface RoomInAccountRepository extends ReactiveCrudRepository<RoomInAc
 			;
 			""")
 	Flux<RoomInAccountDomain.MyJoinedRoomListResponse> 
-		findAllByAccountIdAndWorkspaceId(Long accountId, Long workspaceId, Pageable pageble);
+		findAllJoinRoomByAccountIdAndWorkspaceId(Long accountId, Long workspaceId, Pageable pageble);
 	
 	@Query("""
 			SELECT
@@ -60,12 +67,13 @@ public interface RoomInAccountRepository extends ReactiveCrudRepository<RoomInAc
 			;
 			""")
 	Mono<Long> 
-		countByAccountIdAndWorkspaceId(Long accountId, Long workspaceId);
-	
+		countJoinRoomByAccountIdAndWorkspaceId(Long accountId, Long workspaceId);
 
 	@Query("""
 			SELECT
+				rria.id,
 				rria.room_id,
+				rria.order_sort,
 				rr.room_code,
 				rr.room_name,
 				rr.is_enabled,
@@ -83,6 +91,8 @@ public interface RoomInAccountRepository extends ReactiveCrudRepository<RoomInAc
 				rr.workspace_id = :#{[1]}
 			AND	
 				(rr.room_name ILIKE concat('%', :#{[2]}, '%'))
+			ORDER BY
+				rria.order_sort DESC
 			OFFSET
 				:#{[3].offset}
 			LIMIT
@@ -90,7 +100,7 @@ public interface RoomInAccountRepository extends ReactiveCrudRepository<RoomInAc
 			;
 			""")
 	Flux<RoomInAccountDomain.MyJoinedRoomListResponse> 
-		findAllByAccountIdAndWorkspaceIdAndRoomName(Long accountId, Long workspaceId, String roomName, Pageable pageble);
+		findAllJoinRoomByAccountIdAndWorkspaceIdAndRoomName(Long accountId, Long workspaceId, String roomName, Pageable pageble);
 	
 	@Query("""
 			SELECT
@@ -110,11 +120,14 @@ public interface RoomInAccountRepository extends ReactiveCrudRepository<RoomInAc
 			;
 			""")
 	Mono<Long> 
-		countByAccountIdAndWorkspaceIdAndRoomName(Long accountId, Long workspaceId, String roomName);
+		countJoinRoomByAccountIdAndWorkspaceIdAndRoomName(Long accountId, Long workspaceId, String roomName);
+	*/
 	
 	@Query("""
 			SELECT
+				rria.id,
 				rria.room_id,
+				rria.order_sort,
 				rr.room_code,
 				rr.room_name,
 				rr.is_enabled,
@@ -133,7 +146,7 @@ public interface RoomInAccountRepository extends ReactiveCrudRepository<RoomInAc
 			AND 
 				rr.room_type IN (:#{[2]})
 			ORDER BY
-				rria.order_sort ASC
+				rria.order_sort DESC
 			OFFSET
 				:#{[3].offset}
 			LIMIT
@@ -141,7 +154,7 @@ public interface RoomInAccountRepository extends ReactiveCrudRepository<RoomInAc
 			;
 			""")
 	Flux<RoomInAccountDomain.MyJoinedRoomListResponse> 
-		findAllByAccountIdAndWorkspaceIdAndRoomType(Long accountId, Long workspaceId, List<RoomType> roomType, Pageable pageble);
+		findAllJoinRoomByAccountIdAndWorkspaceIdAndRoomType(Long accountId, Long workspaceId, List<RoomType> roomType, Pageable pageble);
 	
 	@Query("""
 			SELECT
@@ -161,12 +174,14 @@ public interface RoomInAccountRepository extends ReactiveCrudRepository<RoomInAc
 			;
 			""")
 	Mono<Long> 
-		countByAccountIdAndWorkspaceIdAndRoomType(Long accountId, Long workspaceId, List<RoomType> roomType);
+		countJoinRoomByAccountIdAndWorkspaceIdAndRoomType(Long accountId, Long workspaceId, List<RoomType> roomType);
 	
 
 	@Query("""
 			SELECT
+				rria.id,
 				rria.room_id,
+				rria.order_sort,
 				rr.room_code,
 				rr.room_name,
 				rr.is_enabled,
@@ -186,6 +201,8 @@ public interface RoomInAccountRepository extends ReactiveCrudRepository<RoomInAc
 				rr.room_type IN (:#{[3]})
 			AND	
 				(rr.room_name ILIKE concat('%', :#{[2]}, '%'))
+			ORDER BY
+				rria.order_sort DESC
 			OFFSET
 				:#{[4].offset}
 			LIMIT
@@ -193,7 +210,7 @@ public interface RoomInAccountRepository extends ReactiveCrudRepository<RoomInAc
 			;
 			""")
 	Flux<RoomInAccountDomain.MyJoinedRoomListResponse> 
-		findAllByAccountIdAndWorkspaceIdAndRoomNameAndRoomType(Long accountId, Long workspaceId, String workspaceName, List<RoomType> roomType, Pageable pageble);
+		findAllJoinRoomByAccountIdAndWorkspaceIdAndRoomNameAndRoomType(Long accountId, Long workspaceId, String workspaceName, List<RoomType> roomType, Pageable pageble);
 	
 	@Query("""
 			SELECT
@@ -215,7 +232,7 @@ public interface RoomInAccountRepository extends ReactiveCrudRepository<RoomInAc
 			;
 			""")
 	Mono<Long> 
-		countByAccountIdAndWorkspaceIdAndRoomNameAndRoomType(Long accountId, Long workspaceId, String roomName, List<RoomType> roomType);
+		countJoinRoomByAccountIdAndWorkspaceIdAndRoomNameAndRoomType(Long accountId, Long workspaceId, String roomName, List<RoomType> roomType);
 	
 	
 	//Flux<RoomInAccountEntity>
