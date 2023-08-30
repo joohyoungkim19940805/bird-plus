@@ -110,7 +110,7 @@ const getStart = new class GetStart{
 					<div>
 						<label for="sign_up_password_again">your password again</label>
 					</div>
-					<input type="password" id="sign_up_password_again" name="password_again" class="account_password" placeholder="Please enter your password (again)" autocomplete="current-password" required/>
+					<input type="password" id="sign_up_password_again" name="password_again" class="account_password" placeholder="Please enter your pw (again)" autocomplete="current-password" required/>
 				</div>
 				<div class="find_wrapper">
 					<a href="javascript:void(0);" data-page="login_page">Sign in</a>
@@ -672,7 +672,9 @@ const getStart = new class GetStart{
 					return li;
 				}));
 				workspaceListUl.replaceChildren(...allWorkspaceItemList);
-				lastItemObserver.observe(allWorkspaceItemList[allWorkspaceItemList.length - 1])
+				if(allWorkspaceItemList.length != 0){
+					lastItemObserver.observe(allWorkspaceItemList[allWorkspaceItemList.length - 1])
+				}
 				return totalPages;
 			});
 		}
@@ -700,7 +702,11 @@ const getStart = new class GetStart{
 			href: 'javascript:void(0);',
 			textContent: 'See the workspaces i have joined'
 		})
-		createWorkspacePage.after(aTagStartMenuPage);
+		let divWrapper = Object.assign(document.createElement('div'), {
+			className: 'find_wrapper'
+		})
+		divWrapper.append(aTagStartMenuPage)
+		createWorkspacePage.closest('.find_wrapper').after(divWrapper);
 		aTagStartMenuPage.onclick = () => this.showStartMenuPage();
 	}
 
@@ -855,7 +861,11 @@ const getStart = new class GetStart{
 			href: 'javascript:void(0);',
 			textContent: 'See the workspaces i have joined'
 		})
-		searchWorkspacePage.after(aTagStartMenuPage)
+				let divWrapper = Object.assign(document.createElement('div'), {
+			className: 'find_wrapper'
+		})
+		divWrapper.append(aTagStartMenuPage)
+		searchWorkspacePage.closest('.find_wrapper').after(divWrapper);
 		aTagStartMenuPage.onclick = () => this.showStartMenuPage();
 	
 	}
@@ -972,7 +982,9 @@ const getStart = new class GetStart{
 					return li;
 				}));
 				workspaceListUl.replaceChildren(...allWorkspaceItemList);
-				lastItemObserver.observe(allWorkspaceItemList[allWorkspaceItemList.length - 1])
+				if(allWorkspaceItemList.length != 0){
+					lastItemObserver.observe(allWorkspaceItemList[allWorkspaceItemList.length - 1])
+				}
 				return totalPages;
 			});
 		}

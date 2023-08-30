@@ -109,7 +109,7 @@ public class RoomHandler {
 				String roomName = param.getFirst("roomName");
 				
 				PageRequest pageRequest = PageRequest.of(
-					Integer.valueOf(param.getOrDefault("page", List.of("1")).get(0)),
+					Integer.valueOf(param.getOrDefault("page", List.of("0")).get(0)),
 					Integer.valueOf(param.getOrDefault("size", List.of("10")).get(0))	
 				);
 				Flux<RoomEntity> roomEntityFlux;
@@ -151,12 +151,7 @@ public class RoomHandler {
 					Integer.valueOf(param.getOrDefault("page", List.of("0")).get(0)),
 					Integer.valueOf(param.getOrDefault("size", List.of("10")).get(0))	
 				);
-				System.out.println(
-				Integer.valueOf(param.getOrDefault("page", List.of("0")).get(0))
-				);
-				System.out.println(
-				Integer.valueOf(param.getOrDefault("size", List.of("10")).get(0))	
-				);
+				
 				return roomInAccountRepository.findAllByAccountIdAndWorkspaceId(account.getId(), workspaceId, pageRequest)
 				.collectList()
 				.zipWith(roomInAccountRepository.countByAccountIdAndWorkspaceId(account.getId(), workspaceId))
@@ -168,6 +163,80 @@ public class RoomHandler {
 			.switchIfEmpty(Mono.error(new WorkspaceException(Result._200)))
 			.map(list -> response(Result._0, list))
 		, Response.class);
+	}
+	public Mono<ServerResponse> searchRoomMyJoinedAndRoomType(ServerRequest request){
+		return ok()
+		.contentType(MediaType.APPLICATION_JSON)
+		.body(
+			accountService.convertJwtToAccount(request)
+			.flatMap(account -> {
+				var param = request.queryParams();
+				Long workspaceId = Long.valueOf(param.getFirst("workspaceId"));
+				if(workspaceId == null) {
+					return Mono.empty();
+				}
+				List<RoomType> roomType;
+				try {
+					roomType = param.get("roomType").stream().map(RoomType::valueOf).toList();
+				}catch(IllegalArgumentException e) {
+
+					return Mono.error(new RoomException(Result._300));
+				}
+				PageRequest pageRequest = PageRequest.of(
+					Integer.valueOf(param.getOrDefault("page", List.of("0")).get(0)),
+					Integer.valueOf(param.getOrDefault("size", List.of("10")).get(0))	
+				);
+				
+				return roomInAccountRepository.findAllByAccountIdAndWorkspaceIdAndRoomType(account.getId(), workspaceId, roomType, pageRequest)
+				.collectList()
+				.zipWith(roomInAccountRepository.countByAccountIdAndWorkspaceIdAndRoomType(account.getId(), workspaceId, roomType))
+				.map(entityTuples -> 
+					new PageImpl<>(entityTuples.getT1(), pageRequest, entityTuples.getT2())
+				)
+				;
+			})
+			.switchIfEmpty(Mono.error(new WorkspaceException(Result._200)))
+			.map(list -> response(Result._0, list))
+		, Response.class);
+	}
+	public Mono<ServerResponse> searchRoomMyJoinedNameAndRoomType(ServerRequest request){
+		return ok()
+		.contentType(MediaType.APPLICATION_JSON)
+		.body(
+			accountService.convertJwtToAccount(request)
+			.flatMap(account -> {
+				var param = request.queryParams();
+				Long workspaceId = Long.valueOf(param.getFirst("workspaceId"));
+				if(workspaceId == null) {
+					return Mono.empty();
+				}
+				List<RoomType> roomType;
+				try {
+					roomType = param.get("roomType").stream().map(RoomType::valueOf).toList();
+				}catch(IllegalArgumentException e) {
+					return Mono.error(new RoomException(Result._300));
+				}
+				String roomName = param.getOrDefault("roomName", List.of("")).get(0);
+				//if(roomName == null) {
+				//	return Mono.empty();
+				//}
+				
+				PageRequest pageRequest = PageRequest.of(
+					Integer.valueOf(param.getOrDefault("page", List.of("0")).get(0)),
+					Integer.valueOf(param.getOrDefault("size", List.of("10")).get(0))	
+				);
+				
+				return roomInAccountRepository.findAllByAccountIdAndWorkspaceIdAndRoomNameAndRoomType(account.getId(), workspaceId, roomName, roomType, pageRequest)
+				.collectList()
+				.zipWith(roomInAccountRepository.countByAccountIdAndWorkspaceIdAndRoomNameAndRoomType(account.getId(), workspaceId, roomName, roomType))
+				.map(entityTuples -> 
+					new PageImpl<>(entityTuples.getT1(), pageRequest, entityTuples.getT2())
+				)
+				;
+			})
+			.switchIfEmpty(Mono.error(new WorkspaceException(Result._200)))
+			.map(list -> response(Result._0, list))
+		, Response.class); 
 	}
 	
 	public Mono<ServerResponse> searchRoomMyJoinedName(ServerRequest request){
@@ -188,7 +257,7 @@ public class RoomHandler {
 				//}
 				
 				PageRequest pageRequest = PageRequest.of(
-					Integer.valueOf(param.getOrDefault("page", List.of("1")).get(0)),
+					Integer.valueOf(param.getOrDefault("page", List.of("0")).get(0)),
 					Integer.valueOf(param.getOrDefault("size", List.of("10")).get(0))	
 				);
 				
@@ -218,7 +287,7 @@ public class RoomHandler {
 				}
 
 				PageRequest pageRequest = PageRequest.of(
-					Integer.valueOf(param.getOrDefault("page", List.of("1")).get(0)),
+					Integer.valueOf(param.getOrDefault("page", List.of("0")).get(0)),
 					Integer.valueOf(param.getOrDefault("size", List.of("10")).get(0))	
 				);
 				
@@ -249,7 +318,7 @@ public class RoomHandler {
 				String roomName = param.getOrDefault("roomName", List.of("")).get(0);
 				
 				PageRequest pageRequest = PageRequest.of(
-					Integer.valueOf(param.getOrDefault("page", List.of("1")).get(0)),
+					Integer.valueOf(param.getOrDefault("page", List.of("0")).get(0)),
 					Integer.valueOf(param.getOrDefault("size", List.of("10")).get(0))	
 				);
 				
@@ -265,4 +334,5 @@ public class RoomHandler {
 		, Response.class)
 		;
 	}
+
 }
