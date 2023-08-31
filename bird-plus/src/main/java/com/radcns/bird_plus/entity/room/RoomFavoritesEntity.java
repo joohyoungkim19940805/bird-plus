@@ -47,6 +47,9 @@ public class RoomFavoritesEntity {
 	@Column("workspace_id")
 	private Long workspaceId;
 	
+	@Column("room_type")
+	private RoomType roomType;
+	
     @Column("create_at")
     @CreatedDate
     private LocalDateTime createAt;

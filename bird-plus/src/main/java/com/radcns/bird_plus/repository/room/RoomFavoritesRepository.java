@@ -15,6 +15,8 @@ public interface RoomFavoritesRepository extends ReactiveCrudRepository<RoomFavo
 	
 	Mono<Long> countByAccountIdAndWorkspaceId(Long accountId, Long workspaceId);
 	
+	Mono<Boolean> existsByAccountIdAndRoomId(Long accountId, Long roomId);
+	
 	@Query("""
 			SELECT
 				rrf.id,
@@ -33,7 +35,7 @@ public interface RoomFavoritesRepository extends ReactiveCrudRepository<RoomFavo
 				rrf.room_id = rr.id
 			WHERE
 				rrf.account_id = :#{[0]}
-			AMD
+			AND
 				rr.workspace_id = :#{[1]}
 			ORDER BY
 				rrf.order_sort DESC
@@ -82,7 +84,7 @@ public interface RoomFavoritesRepository extends ReactiveCrudRepository<RoomFavo
 				rrf.room_id = rr.id
 			WHERE
 				rrf.account_id = :#{[0]}
-			AMD
+			AND
 				rr.workspace_id = :#{[1]}
 			AND	
 				(rr.room_name ILIKE concat('%', :#{[2]}, '%'))

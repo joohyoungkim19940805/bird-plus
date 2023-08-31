@@ -55,20 +55,26 @@ public class RoomHandler {
 				room.setCreateBy(account.getId());
 				return roomRepository.save(room);
 			})
-			.doOnSuccess(e->
-				roomInAccountRepository.countByAccountIdAndWorkspaceId(account.getId(), e.getWorkspaceId())
+			.doOnSuccess(e-> {
+				List<RoomType> roomType;
+				if(e.getRoomType().equals(RoomType.ROOM_PRIVATE) || e.getRoomType().equals(RoomType.ROOM_PRIVATE)) {
+					roomType = List.of(RoomType.ROOM_PRIVATE, RoomType.ROOM_PUBLIC);
+				}else{//(e.getRoomType().equals(RoomType.MESSENGER) || e.getRoomType().equals(RoomType.SELF)) {
+					roomType = List.of(RoomType.MESSENGER, RoomType.SELF);
+				}
+				roomInAccountRepository.countJoinRoomByAccountIdAndWorkspaceIdAndRoomType(account.getId(), e.getWorkspaceId(), roomType)
 				.flatMap(count -> 
 					roomInAccountRepository.save(
-							RoomInAccountEntity.builder()
-							.roomId(e.getId())
-							.accountId(account.getId())
-							.orderSort(count + 1)
-							.workspaceId(e.getWorkspaceId())
-							.build()
-						)	
+						RoomInAccountEntity.builder()
+						.roomId(e.getId())
+						.accountId(account.getId())
+						.orderSort(count + 1)
+						.workspaceId(e.getWorkspaceId())
+						.build()
+					)
 				)
-				.subscribe()
-			)
+				.subscribe();
+			})
 		)//
 		.flatMap(room -> ok()
 			.contentType(MediaType.APPLICATION_JSON)
@@ -120,6 +126,27 @@ public class RoomHandler {
 		;
 	}
 
+	public Mono<ServerResponse> updateRoomFavorites(ServerRequest request){
+		return accountService.convertJwtToAccount(request)
+		.flatMapMany(account -> 
+		roomFavoritesRepository.saveAll(
+				request.bodyToFlux(RoomInAccountEntity.class)
+				.filterWhen(roomInAccount->
+					Mono.just(roomInAccount.getId() != null)
+					.flatMap(bol->roomFavoritesRepository.existsByAccountIdAndRoomId(account.getId(), roomInAccount.getRoomId()))
+				).flatMap(roomInAccount -> roomFavoritesRepository.findById(roomInAccount.getId())
+					.map(newRoomInAccount->newRoomInAccount.withOrderSort(roomInAccount.getOrderSort()))
+				)
+			)
+		)
+		.collectList()
+		.flatMap(roomInAccountList -> ok()
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(Mono.just(response(Result._0, null)), Response.class)
+		)
+		;
+	}
+	
 	public Mono<ServerResponse> searchRoom(ServerRequest request){
 		return ok()
 		.contentType(MediaType.APPLICATION_JSON)
@@ -308,7 +335,7 @@ public class RoomHandler {
 		, Response.class); 
 	}
 	*/
-	public Mono<ServerResponse> searchRoomFavoritesJoined(ServerRequest request){
+	public Mono<ServerResponse> searchRoomFavoritesMyJoined(ServerRequest request){
 		return ok()
 		.contentType(MediaType.APPLICATION_JSON)
 		.body(
@@ -338,7 +365,7 @@ public class RoomHandler {
 		, Response.class);
 	}
 	
-	public Mono<ServerResponse> searchRoomFavoritesNema(ServerRequest request){
+	public Mono<ServerResponse> searchRoomFavoritesMyJoinedNema(ServerRequest request){
 		return ok()
 		.contentType(MediaType.APPLICATION_JSON)
 		.body(

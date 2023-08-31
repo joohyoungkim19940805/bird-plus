@@ -84,9 +84,12 @@ public class MainRouter implements IndexRouterSwagger{
 				.POST("/create-room", accept(MediaType.APPLICATION_JSON), roomHandler::createRoom)
 				.POST("/create-room-favorites", accept(MediaType.APPLICATION_JSON), roomHandler::createRoomFavorites)
 				.POST("/update-room-in-account", accept(MediaType.APPLICATION_JSON), roomHandler::updateRoomInAccount)
+				.POST("/update-room-favorites", accept(MediaType.APPLICATION_JSON), roomHandler::updateRoomFavorites)
 				.GET("/search-room", accept(MediaType.APPLICATION_JSON), roomHandler::searchRoom)
 				.GET("/search-room-my-joined", accept(MediaType.APPLICATION_JSON), roomHandler::searchRoomMyJoinedAndRoomType)
 				.GET("/search-room-my-joined-name", accept(MediaType.APPLICATION_JSON), roomHandler::searchRoomMyJoinedNameAndRoomType)
+				.GET("/search-room-favorites-my-joined", accept(MediaType.APPLICATION_JSON), roomHandler::searchRoomFavoritesMyJoined)
+				.GET("/search-room-favorites-my-joined-name", accept(MediaType.APPLICATION_JSON), roomHandler::searchRoomFavoritesMyJoinedNema)
 			).build();
 	}
 	
