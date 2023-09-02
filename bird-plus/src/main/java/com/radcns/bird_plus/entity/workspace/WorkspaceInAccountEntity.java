@@ -29,7 +29,7 @@ import lombok.With;
 @AllArgsConstructor
 @With
 @Table(value="wo_workspace_in_account")
-public class WorkspaceMembersEntity {
+public class WorkspaceInAccountEntity {
 	
 	@Id
 	@Column("id")
@@ -107,7 +107,15 @@ public class WorkspaceMembersEntity {
 			
 			private Long joinedCount;
 		}
-		
+		@Getter
+		@Setter
+		public static class WorkspaceInAccountListResponse{
+			private Long workspaceId;
+			private String accountName;
+			private String fullName;
+			private String jobGrade;
+			private String department;
+		}
 	}
 
 /*

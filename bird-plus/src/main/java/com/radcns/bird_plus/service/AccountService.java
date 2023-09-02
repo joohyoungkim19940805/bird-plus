@@ -112,14 +112,23 @@ public class AccountService  {
 	    		.switchIfEmpty(
 	    			Mono.error(new AccountException(Result._103))
 	    		).flatMap(account -> {
+	    			System.out.println("kjh test1 <<<<<");
+	    			System.out.println(account.getJobGrade());
 	        		if ( ! account.getIsEnabled()) {
 	        			// 이메일 전송이 오래걸리므로 응답에 3~6초씩 걸림
 						// 병목이 발생하지 않도록 별도 스레드를 통해 처리한다.
-						Mono.just(account)
+	        			Mono.fromRunnable(()->{
+	        				mailService.sendAccountVerifyTemplate(account);
+	        			})
+	        			.subscribeOn(Schedulers.boundedElastic())
+	        			.subscribe();
+	        			/*
+	        			Mono.just(account)
 						.publishOn(Schedulers.boundedElastic())
 						.subscribe(e->{
 							mailService.sendAccountVerifyTemplate(e);
 						});
+						*/
 	    				return Mono.error(new AccountException(Result._101));
 	    			}else if(!passwordEncoder.encode(accountInfo.getPassword()).equals(account.getPassword())) {
 	    				return Mono.error(new AccountException(Result._102));

@@ -7,36 +7,19 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
 import com.radcns.bird_plus.config.security.JwtVerifyHandler;
-import com.radcns.bird_plus.entity.account.AccountEntity;
 import com.radcns.bird_plus.entity.chatting.ChattingEntity;
-import com.radcns.bird_plus.entity.workspace.WorkspaceEntity;
-import com.radcns.bird_plus.entity.workspace.WorkspaceMembersEntity;
 import com.radcns.bird_plus.repository.chatting.ChattingRepository;
 import com.radcns.bird_plus.repository.customer.AccountRepository;
-import com.radcns.bird_plus.repository.workspace.WorkspaceMembersRepository;
-import com.radcns.bird_plus.repository.workspace.WorkspaceRepository;
 import com.radcns.bird_plus.service.AccountService;
-import com.radcns.bird_plus.util.Response;
-import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
 
 import io.jsonwebtoken.Claims;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.core.publisher.Sinks.EmitResult;
 
-import static com.radcns.bird_plus.util.Response.response;
 import static org.springframework.web.reactive.function.server.ServerResponse.ok;
 
-import java.lang.Enum.EnumDesc;
-import java.util.List;
-import java.util.stream.Stream;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 
 
 @Component
@@ -69,10 +52,13 @@ public class ChattingHandler {
 	private Sinks.Many<ChattingEntity> chattingSink = Sinks.many().multicast().directAllOrNothing();
 	
 	public Mono<ServerResponse> sendStream(ServerRequest request){
+		//chattingSink.emitComplete(null);
+		//chattingSink.currentSubscriberCount();
 		return request.bodyToMono(String.class)
 				/*.doOnNext(chatting->{
 					chattingSink.tryEmitNext(chatting);
 				})*/
+				//chattingSink.actuals()
 				.flatMap(chatting -> {
 					String token = request.headers().firstHeader(HttpHeaders.AUTHORIZATION);
 					Claims claims = jwtVerifyHandler.getJwt(token).getBody();
@@ -84,7 +70,7 @@ public class ChattingHandler {
 							.build();
 					
 					EmitResult result = chattingSink.tryEmitNext(chattingEntity);
-
+					//chattingSink.
 					if (result.isFailure()) {
 						// do something here, since emission failed
 					}

@@ -30,7 +30,7 @@ public class MainRouter implements IndexRouterSwagger{
 	public RouterFunction<ServerResponse> index(MainHandler mainHandler){
 
     	return route( GET("/"), req -> ServerResponse.temporaryRedirect(URI.create("/login-page")).build() )
-    			.and(route( GET("/test").and(accept(MediaType.APPLICATION_JSON)), mainHandler::test ))
+    			//.and(route( GET("/test").and(accept(MediaType.APPLICATION_JSON)), mainHandler::test ))
     			.and(route( GET("/login"), req -> ServerResponse.temporaryRedirect(URI.create("/login-page")).build() ))
 				.and(route( GET("/login-page").and(accept(MediaType.TEXT_HTML)), mainHandler::loginPage ))
 				.and(route( POST("/create").and(accept(MediaType.APPLICATION_JSON)), mainHandler::create ))
@@ -69,6 +69,7 @@ public class MainRouter implements IndexRouterSwagger{
 					.GET("/search-workspace-name", accept(MediaType.APPLICATION_JSON), workspaceHandler::searchWorkspaceName)
 					.GET("/is-workspace-joined", accept(MediaType.APPLICATION_JSON), workspaceHandler::isWorkspaceJoined)
 					.GET("/search-workspace-my-joined", accept(MediaType.APPLICATION_JSON), workspaceHandler::searchWorkspaceMyJoined)
+					.GET("/search-workspace-in-account/{workspaceId}", accept(MediaType.APPLICATION_JSON), workspaceHandler::searchWorkspaceInAccount)
 				).build();
 		/*
 		return route( POST("/api/chatting/stream").and(accept(MediaType.APPLICATION_JSON)), chattingHandler::addStream )
@@ -82,6 +83,7 @@ public class MainRouter implements IndexRouterSwagger{
 	public RouterFunction<ServerResponse> apiRoom(RoomHandler roomHandler){
 		return route().nest(path("/api/room"), builder -> builder
 				.POST("/create-room", accept(MediaType.APPLICATION_JSON), roomHandler::createRoom)
+				.POST("/create-room-in-account", accept(MediaType.TEXT_EVENT_STREAM), roomHandler::createRoomInAccount)
 				.POST("/create-room-favorites", accept(MediaType.APPLICATION_JSON), roomHandler::createRoomFavorites)
 				.POST("/update-room-in-account", accept(MediaType.APPLICATION_JSON), roomHandler::updateRoomInAccount)
 				.POST("/update-room-favorites", accept(MediaType.APPLICATION_JSON), roomHandler::updateRoomFavorites)
@@ -89,7 +91,7 @@ public class MainRouter implements IndexRouterSwagger{
 				.GET("/search-room-my-joined", accept(MediaType.APPLICATION_JSON), roomHandler::searchRoomMyJoinedAndRoomType)
 				.GET("/search-room-my-joined-name", accept(MediaType.APPLICATION_JSON), roomHandler::searchRoomMyJoinedNameAndRoomType)
 				.GET("/search-room-favorites-my-joined", accept(MediaType.APPLICATION_JSON), roomHandler::searchRoomFavoritesMyJoined)
-				.GET("/search-room-favorites-my-joined-name", accept(MediaType.APPLICATION_JSON), roomHandler::searchRoomFavoritesMyJoinedNema)
+				.GET("/search-room-favorites-my-joined-name", accept(MediaType.APPLICATION_JSON), roomHandler::searchRoomFavoritesMyJoinedNema)	
 			).build();
 	}
 	

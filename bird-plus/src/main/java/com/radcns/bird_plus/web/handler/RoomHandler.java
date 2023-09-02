@@ -4,6 +4,7 @@ import static com.radcns.bird_plus.util.Response.response;
 import static org.springframework.web.reactive.function.server.ServerResponse.ok;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
@@ -17,11 +18,14 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import com.radcns.bird_plus.entity.room.RoomEntity;
 import com.radcns.bird_plus.entity.room.RoomFavoritesEntity;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity;
+import com.radcns.bird_plus.entity.room.RoomInAccountEntity.RoomInAccountDomain;
 import com.radcns.bird_plus.entity.room.constant.RoomType;
 import com.radcns.bird_plus.repository.customer.AccountRepository;
 import com.radcns.bird_plus.repository.room.RoomFavoritesRepository;
 import com.radcns.bird_plus.repository.room.RoomInAccountRepository;
 import com.radcns.bird_plus.repository.room.RoomRepository;
+import com.radcns.bird_plus.repository.workspace.WorkspaceInAccountRepository;
+import com.radcns.bird_plus.repository.workspace.WorkspaceRepository;
 import com.radcns.bird_plus.service.AccountService;
 import com.radcns.bird_plus.util.Response;
 import com.radcns.bird_plus.util.exception.RoomException;
@@ -30,6 +34,7 @@ import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 
 @Component
 public class RoomHandler {
@@ -47,6 +52,9 @@ public class RoomHandler {
 	
 	@Autowired
 	private RoomFavoritesRepository roomFavoritesRepository;
+	
+	@Autowired
+	private WorkspaceInAccountRepository workspaceInAccountRepository;
 	
 	public Mono<ServerResponse> createRoom(ServerRequest request){
 		return accountService.convertJwtToAccount(request)
@@ -83,14 +91,65 @@ public class RoomHandler {
 		;
 	}
 	
+	public Mono<ServerResponse> createRoomInAccount(ServerRequest request){
+		return ok()
+		.contentType(MediaType.TEXT_EVENT_STREAM)
+		.body(
+			accountService.convertJwtToAccount(request)
+			.flatMapMany(account -> {
+				Sinks.Many<RoomInAccountEntity> sinks = Sinks.many().unicast().onBackpressureBuffer();
+				AtomicInteger emitCount = new AtomicInteger();
+				var save = roomInAccountRepository.saveAll(
+					request.bodyToFlux(RoomInAccountDomain.CreateRoomInAccountRequest.class)
+					.flatMap(createRoomInAccount -> {
+						return accountRepository.findByAccountName(createRoomInAccount.getAccountName())
+						.filterWhen(e -> 
+							workspaceInAccountRepository.existsByWorkspaceIdAndAccountId(createRoomInAccount.getWorkspaceId(), e.getId())
+						)
+						.flatMap(e-> {
+							RoomInAccountEntity roomInAccountEntity = RoomInAccountEntity.builder()
+							.accountId(e.getId())
+							.workspaceId(createRoomInAccount.getWorkspaceId())
+							.roomId(createRoomInAccount.getRoomId())
+							.build();
+							List<RoomType> roomType;
+							if(createRoomInAccount.getRoomType().equals(RoomType.ROOM_PRIVATE) || createRoomInAccount.getRoomType().equals(RoomType.ROOM_PRIVATE)) {
+								roomType = List.of(RoomType.ROOM_PRIVATE, RoomType.ROOM_PUBLIC);
+							}else{//(e.getRoomType().equals(RoomType.MESSENGER) || e.getRoomType().equals(RoomType.SELF)) {
+								roomType = List.of(RoomType.MESSENGER, RoomType.SELF);
+							}
+							return roomInAccountRepository.countJoinRoomByAccountIdAndWorkspaceIdAndRoomType
+								(roomInAccountEntity.getId(), roomInAccountEntity.getWorkspaceId(), roomType)
+									.map(count -> roomInAccountEntity.withOrderSort(count));
+						})
+						;
+					})
+				);
+				save.doOnNext(e-> {
+					sinks.tryEmitNext(e);
+					//emitCount.getAndIncrement();
+					save.count().subscribe((cnt)->{
+						System.out.println("kjh test <<< " + cnt);
+						if(emitCount.get() == emitCount.getAndIncrement()) {
+							sinks.tryEmitComplete();
+						}
+					});
+				})
+				;
+				save.subscribe();
+				return sinks.asFlux();
+			})
+		, RoomInAccountEntity.class);
+	}
+	
 	public Mono<ServerResponse> updateRoomInAccount(ServerRequest request){
 		return accountService.convertJwtToAccount(request)
 		.flatMapMany(account -> 
 			roomInAccountRepository.saveAll(
 				request.bodyToFlux(RoomInAccountEntity.class)
+				.filter(roomInAccount -> roomInAccount.getId() != null)
 				.filterWhen(roomInAccount->
-					Mono.just(roomInAccount.getId() != null)
-					.flatMap(bol->roomInAccountRepository.existsByAccountIdAndRoomId(account.getId(), roomInAccount.getRoomId()))
+					roomInAccountRepository.existsByAccountIdAndRoomId(account.getId(), roomInAccount.getRoomId())
 				).flatMap(roomInAccount -> roomInAccountRepository.findById(roomInAccount.getId())
 					.map(newRoomInAccount->newRoomInAccount.withOrderSort(roomInAccount.getOrderSort()))
 				)
@@ -129,15 +188,15 @@ public class RoomHandler {
 	public Mono<ServerResponse> updateRoomFavorites(ServerRequest request){
 		return accountService.convertJwtToAccount(request)
 		.flatMapMany(account -> 
-		roomFavoritesRepository.saveAll(
-				request.bodyToFlux(RoomInAccountEntity.class)
-				.filterWhen(roomInAccount->
-					Mono.just(roomInAccount.getId() != null)
-					.flatMap(bol->roomFavoritesRepository.existsByAccountIdAndRoomId(account.getId(), roomInAccount.getRoomId()))
-				).flatMap(roomInAccount -> roomFavoritesRepository.findById(roomInAccount.getId())
-					.map(newRoomInAccount->newRoomInAccount.withOrderSort(roomInAccount.getOrderSort()))
+			roomFavoritesRepository.saveAll(
+					request.bodyToFlux(RoomInAccountEntity.class)
+					.filterWhen(roomInAccount->
+						Mono.just(roomInAccount.getId() != null)
+						.flatMap(bol->roomFavoritesRepository.existsByAccountIdAndRoomId(account.getId(), roomInAccount.getRoomId()))
+					).flatMap(roomInAccount -> roomFavoritesRepository.findById(roomInAccount.getId())
+						.map(newRoomInAccount->newRoomInAccount.withOrderSort(roomInAccount.getOrderSort()))
+					)
 				)
-			)
 		)
 		.collectList()
 		.flatMap(roomInAccountList -> ok()
@@ -239,7 +298,6 @@ public class RoomHandler {
 				try {
 					roomType = param.get("roomType").stream().map(RoomType::valueOf).toList();
 				}catch(IllegalArgumentException e) {
-
 					return Mono.error(new RoomException(Result._300));
 				}
 				PageRequest pageRequest = PageRequest.of(

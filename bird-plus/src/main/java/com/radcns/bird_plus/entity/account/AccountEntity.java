@@ -64,6 +64,12 @@ public class AccountEntity {
     @Column("email")
     private String email;
     
+    @Column("job_grade")
+    private String jobGrade;
+    
+    @Column("department")
+    private String department;
+    
     @Column("create_at")
     @CreatedDate
     private LocalDateTime createAt;

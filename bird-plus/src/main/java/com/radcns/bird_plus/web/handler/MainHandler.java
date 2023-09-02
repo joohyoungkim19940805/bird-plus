@@ -26,6 +26,7 @@ import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwsHeader;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
 import static com.radcns.bird_plus.util.Response.response;
@@ -51,7 +52,7 @@ public class MainHandler {
 	
 	@Autowired
 	private JwtVerifyHandler jwtVerifyHandler;
-
+/*
 	public Mono<ServerResponse> test(ServerRequest request){
 		Flux<RoomInAccountEntity> flux1 = Flux.just(
 				RoomInAccountEntity.builder()
@@ -105,6 +106,7 @@ public class MainHandler {
 						, Object.class
 						);
 	}
+*/
 	
 	public Mono<ServerResponse> index(ServerRequest request){
 		return ok().contentType(MediaType.TEXT_HTML).render("/index.html");
@@ -126,11 +128,17 @@ public class MainHandler {
 				*/
 		return accountService.createUser(request.bodyToMono(AccountEntity.class))
 		.doOnNext(account -> {
+			Mono.fromRunnable(()->{
+				mailService.sendAccountVerifyTemplate(account);
+			})
+			.subscribeOn(Schedulers.boundedElastic())
+			.subscribe();
+			/*
 			Mono.just(account)
 			.publishOn(Schedulers.boundedElastic())
 			.subscribe(e -> {
 				mailService.sendAccountVerifyTemplate(e);
-			});
+			});*/
 		}).flatMap(account -> 
 			ok()
 			.contentType(MediaType.APPLICATION_JSON)
@@ -260,14 +268,21 @@ public class MainHandler {
 				.flatMap(account -> accountRepository.findByEmail(account.getEmail()))
 				.switchIfEmpty(Mono.error(new AccountException(Result._108)))
 				.publishOn(Schedulers.boundedElastic())
-				.doOnNext(e->{
+				.doOnNext(account->{
 					// 이메일 전송이 오래걸리므로 응답에 3~6초씩 걸림
 					// 병목이 발생하지 않도록 별도 스레드를 통해 처리한다.
+					Mono.fromRunnable(()->{
+						mailService.sendForgotPasswordEmail(account);
+					})
+					.subscribeOn(Schedulers.boundedElastic())
+					.subscribe();
+					/*
 					Mono.just(e)
 					.publishOn(Schedulers.boundedElastic())
 					.subscribe(account->{
 						mailService.sendForgotPasswordEmail(account);
 					});
+					*/
 				})
 				//.subscribeOn(Schedulers.boundedElastic())
 				.flatMap(account -> 

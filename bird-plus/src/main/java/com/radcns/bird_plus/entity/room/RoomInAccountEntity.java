@@ -47,9 +47,6 @@ public class RoomInAccountEntity {
 	@Column("workspace_id")
 	private Long workspaceId;
 	
-	@Column("room_type")
-	private RoomType roomType;
-	
     @Column("create_at")
     @CreatedDate
     private LocalDateTime createAt;
@@ -116,8 +113,12 @@ public class RoomInAccountEntity {
 		
 		@Getter
 		@Setter
-		public static class MyJoinedRoomOrderSortUpdateRequest{
-			
+		public static class CreateRoomInAccountRequest{
+			private Long workspaceId;
+			private Long roomId;
+			private RoomType roomType;
+			private String accountName;
+			private String fullName;
 		}
 	}
 }
