@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
+import com.radcns.bird_plus.config.security.JwtIssuerType;
 import com.radcns.bird_plus.entity.room.RoomEntity;
 import com.radcns.bird_plus.entity.room.RoomFavoritesEntity;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity;
@@ -82,6 +83,10 @@ public class RoomHandler {
 					)
 				)
 				.subscribe();
+				/*roomRepository.save(
+					e.withRoomCode(List.of(accountService.generateAccessToken(account, JwtIssuerType.BOT).getToken()))
+					.withCreateAt(null)
+				).subscribe();*/
 			})
 		)//
 		.flatMap(room -> ok()
@@ -129,7 +134,6 @@ public class RoomHandler {
 					sinks.tryEmitNext(e);
 					//emitCount.getAndIncrement();
 					save.count().subscribe((cnt)->{
-						System.out.println("kjh test <<< " + cnt);
 						if(emitCount.get() == emitCount.getAndIncrement()) {
 							sinks.tryEmitComplete();
 						}

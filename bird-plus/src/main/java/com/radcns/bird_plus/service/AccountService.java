@@ -20,6 +20,7 @@ import com.radcns.bird_plus.config.security.JwtIssuerType;
 import com.radcns.bird_plus.config.security.JwtVerifyHandler;
 import com.radcns.bird_plus.config.security.Role;
 import com.radcns.bird_plus.config.security.Token;
+import com.radcns.bird_plus.config.security.TokenTemplate;
 import com.radcns.bird_plus.entity.account.AccountEntity;
 import com.radcns.bird_plus.entity.account.AccountLogEntity;
 import com.radcns.bird_plus.repository.customer.AccountLogRepository;
@@ -69,19 +70,17 @@ public class AccountService  {
      * @param user
      * @return
      */
-    public Token generateAccessToken(AccountEntity account, JwtIssuerType type) {
+    public Token generateAccessToken(TokenTemplate tokenTemplate, JwtIssuerType type) {
 
-    	Map<String, List<Role>> claims = Map.of("role", account.getRoles());
+    	Map<String, List<Role>> claims = Map.of("role", tokenTemplate.getRoles());
     	
-        var expirationTimeInMilliseconds = type.getSecond() * 1000;
-        var expirationDate = new Date(new Date().getTime() + expirationTimeInMilliseconds);
         var createdDate = new Date();
         
         var token = Jwts.builder()
         		.serializeToJsonWith(new JacksonSerializer<Map<String,?>>(this.om))
                 .setClaims(claims)
-                .setIssuer(account.getAccountName())
-                .setSubject(account.getEmail())
+                .setIssuer(tokenTemplate.getIssuer())
+                .setSubject(tokenTemplate.getSubject())
                 .setIssuedAt(createdDate)
                 .setId(UUID.randomUUID().toString())
                 //.setHeaderParams(Map.of("typ", "jwt", "alg", "HS256"))
@@ -89,20 +88,26 @@ public class AccountService  {
                 .setHeaderParams(Map.of(
                 		"typ", "jwt", 
                 		"alg", "RS256", 
-                		"name", account.getFullName(),
+                		"name", tokenTemplate.getName(),
                 		"jwtIssuerType", type.name())
                 )
                 .signWith(keyPair.getPrivate(), SignatureAlgorithm.RS256);
-                
-        if( ! type.equals(JwtIssuerType.BOT)) {
-        	token.setExpiration( new Date(new Date().getTime() + LocalDate.of(9000, 12, 31).atStartOfDay(ZoneOffset.systemDefault()).toInstant().toEpochMilli()));
+        
+        Date expirationDate = null;
+        if(type.equals(JwtIssuerType.BOT)) {
+        	expirationDate = new Date(new Date().getTime() + LocalDate.of(9000, 12, 31).atStartOfDay(ZoneOffset.systemDefault()).toInstant().toEpochMilli());
+        	token.setExpiration(expirationDate);
+        }else {
+        	var expirationTimeInMilliseconds = type.getSecond() * 1000;
+            expirationDate = new Date(new Date().getTime() + expirationTimeInMilliseconds);
+        	token.setExpiration(expirationDate);
         }
         return Token.builder()
                 .token(token.compact())
                 .issuedAt(createdDate)
                 .expiresAt(expirationDate)
-                .isDifferentIp(account.getIsDifferentIp())
-                .isFirstLogin(account.getIsFirstLogin())
+                //.isDifferentIp(account.getIsDifferentIp())
+                //.isFirstLogin(account.getIsFirstLogin())
                 .build();
     }
 

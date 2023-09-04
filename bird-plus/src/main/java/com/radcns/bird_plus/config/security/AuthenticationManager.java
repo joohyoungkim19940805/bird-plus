@@ -24,9 +24,18 @@ public class AuthenticationManager implements ReactiveAuthenticationManager {
 	
     @Override
     public Mono<Authentication> authenticate(Authentication authentication) {
-    	
+    	System.out.println("kjh test <<<<123 ");
+    	System.out.println(authentication.getCredentials());
+    	System.out.println(authentication.getDetails());
+    	System.out.println(authentication.getName());
+    	System.out.println(authentication.getAuthorities());
+    	System.out.println(authentication.getAuthorities().toArray()[0]);
+    	System.out.println(((org.springframework.security.core.authority.SimpleGrantedAuthority)authentication.getAuthorities().toArray()[0]).getAuthority())	;
+    	System.out.println(authentication.getAuthorities().stream().anyMatch(e->e.getAuthority().equals(Role.ROLE_GUEST.name())));
+    	authentication.getAuthorities().stream().anyMatch(e->e.getAuthority().equals(Role.ROLE_BOT.name()));
     	UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
-
+    	System.out.println(principal.getId());
+    	System.out.println(principal.getName());
     	return accountRepository.findByEmail(principal.getId())
             //.filter(user -> user.getIsEnabled())
             .switchIfEmpty(Mono.error(new AccountException(Result._104)))

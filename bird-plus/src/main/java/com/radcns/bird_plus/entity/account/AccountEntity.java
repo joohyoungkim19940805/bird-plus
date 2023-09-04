@@ -15,6 +15,7 @@ import org.springframework.data.relational.core.mapping.Table;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.radcns.bird_plus.config.security.Role;
+import com.radcns.bird_plus.config.security.TokenTemplate;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -33,7 +34,7 @@ import org.mapstruct.factory.Mappers;
 @AllArgsConstructor
 @ToString
 @Table(value="ac_account")
-public class AccountEntity {
+public class AccountEntity implements TokenTemplate{
 	
     @Id
     @Column("id")
@@ -153,4 +154,19 @@ public class AccountEntity {
     	
     	AccountDomain.AccountVerifyRequest accountVerifyRequest(AccountEntity entity);
     }
+	@Override
+	public String getIssuer() {
+		// TODO Auto-generated method stub
+		return this.accountName;
+	}
+	@Override
+	public String getSubject() {
+		// TODO Auto-generated method stub
+		return this.email;
+	}
+	@Override
+	public String getName() {
+		// TODO Auto-generated method stub
+		return this.fullName;
+	}
 }
