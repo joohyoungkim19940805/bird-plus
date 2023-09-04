@@ -65,11 +65,14 @@ public class RoomHandler {
 			})
 			.doOnSuccess(e-> {
 				List<RoomType> roomType;
-				if(e.getRoomType().equals(RoomType.ROOM_PRIVATE) || e.getRoomType().equals(RoomType.ROOM_PRIVATE)) {
+				if(e.getRoomType().equals(RoomType.ROOM_PUBLIC) || e.getRoomType().equals(RoomType.ROOM_PRIVATE)) {
 					roomType = List.of(RoomType.ROOM_PRIVATE, RoomType.ROOM_PUBLIC);
 				}else{//(e.getRoomType().equals(RoomType.MESSENGER) || e.getRoomType().equals(RoomType.SELF)) {
 					roomType = List.of(RoomType.MESSENGER, RoomType.SELF);
 				}
+				System.out.println("kjh <<<<< dfhdfghkldfkgl");
+				System.out.println(roomType);
+				System.out.println(e.getRoomType());
 				roomInAccountRepository.countJoinRoomByAccountIdAndWorkspaceIdAndRoomType(account.getId(), e.getWorkspaceId(), roomType)
 				.flatMap(count -> 
 					roomInAccountRepository.save(
@@ -86,7 +89,7 @@ public class RoomHandler {
 		)//
 		.flatMap(room -> ok()
 			.contentType(MediaType.APPLICATION_JSON)
-			.body(Mono.just(response(Result._0, room)), Response.class)
+			.body(Mono.just(response(Result._0, room.withCreateBy(null))), Response.class)
 		)
 		;
 	}
@@ -97,43 +100,66 @@ public class RoomHandler {
 		.body(
 			accountService.convertJwtToAccount(request)
 			.flatMapMany(account -> {
+				System.out.println("kjh start 111111111111111111111111");
 				Sinks.Many<RoomInAccountEntity> sinks = Sinks.many().unicast().onBackpressureBuffer();
 				AtomicInteger emitCount = new AtomicInteger();
 				var save = roomInAccountRepository.saveAll(
+					//request.bodyToFlux(RoomInAccountDomain.CreateRoomInAccountRequest.class)
+					//.flatMap(createRoomInAccount -> {
 					request.bodyToFlux(RoomInAccountDomain.CreateRoomInAccountRequest.class)
 					.flatMap(createRoomInAccount -> {
+						System.out.println("kjh start 2222222222222222222");
+						System.out.println(createRoomInAccount.getWorkspaceId());
+						System.out.println(createRoomInAccount.getAccountName());
+						System.out.println(account.getId());
 						return accountRepository.findByAccountName(createRoomInAccount.getAccountName())
-						.filterWhen(e -> 
-							workspaceInAccountRepository.existsByWorkspaceIdAndAccountId(createRoomInAccount.getWorkspaceId(), e.getId())
-						)
+						.switchIfEmpty(Mono.error(new RoomException(Result._105)))
+						.filterWhen(e -> {
+							System.out.println("kjh 99999999999999999999");
+							System.out.println(createRoomInAccount.getWorkspaceId());
+							System.out.println(createRoomInAccount.getAccountName());
+							System.out.println(e.getId());
+							return workspaceInAccountRepository.existsByWorkspaceIdAndAccountId(createRoomInAccount.getWorkspaceId(), e.getId());
+						})
+						.switchIfEmpty(Mono.error(new RoomException(Result._300)))
 						.flatMap(e-> {
+							System.out.println("kjh start 33333333333333333333333333");
 							RoomInAccountEntity roomInAccountEntity = RoomInAccountEntity.builder()
 							.accountId(e.getId())
 							.workspaceId(createRoomInAccount.getWorkspaceId())
 							.roomId(createRoomInAccount.getRoomId())
 							.build();
 							List<RoomType> roomType;
-							if(createRoomInAccount.getRoomType().equals(RoomType.ROOM_PRIVATE) || createRoomInAccount.getRoomType().equals(RoomType.ROOM_PRIVATE)) {
+							if(createRoomInAccount.getRoomType().equals(RoomType.ROOM_PUBLIC) || createRoomInAccount.getRoomType().equals(RoomType.ROOM_PRIVATE)) {
 								roomType = List.of(RoomType.ROOM_PRIVATE, RoomType.ROOM_PUBLIC);
 							}else{//(e.getRoomType().equals(RoomType.MESSENGER) || e.getRoomType().equals(RoomType.SELF)) {
 								roomType = List.of(RoomType.MESSENGER, RoomType.SELF);
 							}
+							System.out.println("kjh test 777777777777777777");
+							System.out.println(roomType);
+							System.out.println(createRoomInAccount.getRoomType());
 							return roomInAccountRepository.countJoinRoomByAccountIdAndWorkspaceIdAndRoomType
-								(roomInAccountEntity.getId(), roomInAccountEntity.getWorkspaceId(), roomType)
+								(roomInAccountEntity.getAccountId(), roomInAccountEntity.getWorkspaceId(), List.of(RoomType.ROOM_PRIVATE, RoomType.ROOM_PUBLIC))
 									.map(count -> roomInAccountEntity.withOrderSort(count));
 						})
 						;
 					})
 				);
-				save.doOnNext(e-> {
+				save.map((e)-> {
+					System.out.println("kjh run!!!");
 					sinks.tryEmitNext(e);
 					//emitCount.getAndIncrement();
-					save.count().subscribe((cnt)->{
+					save.count().map((cnt)->{
 						System.out.println("kjh test <<< " + cnt);
 						if(emitCount.get() == emitCount.getAndIncrement()) {
 							sinks.tryEmitComplete();
 						}
+						return cnt;
 					});
+					return e;
+				})
+				.doOnComplete(()->{
+					System.out.println("kjh end!!!!!");
 				})
 				;
 				save.subscribe();

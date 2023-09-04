@@ -83,7 +83,7 @@ public class MainRouter implements IndexRouterSwagger{
 	public RouterFunction<ServerResponse> apiRoom(RoomHandler roomHandler){
 		return route().nest(path("/api/room"), builder -> builder
 				.POST("/create-room", accept(MediaType.APPLICATION_JSON), roomHandler::createRoom)
-				.POST("/create-room-in-account", accept(MediaType.TEXT_EVENT_STREAM), roomHandler::createRoomInAccount)
+				.POST("/create-room-in-account", roomHandler::createRoomInAccount)
 				.POST("/create-room-favorites", accept(MediaType.APPLICATION_JSON), roomHandler::createRoomFavorites)
 				.POST("/update-room-in-account", accept(MediaType.APPLICATION_JSON), roomHandler::updateRoomInAccount)
 				.POST("/update-room-favorites", accept(MediaType.APPLICATION_JSON), roomHandler::updateRoomFavorites)
