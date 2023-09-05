@@ -194,7 +194,7 @@ public interface RoomInAccountRepository extends ReactiveCrudRepository<RoomInAc
 			;
 			""")
 	Mono<Long> 
-		maxJoinRoomByAccountIdAndWorkspaceIdAndRoomType(Long accountId, Long workspaceId, List<RoomType> roomType);
+		findMaxJoinRoomByAccountIdAndWorkspaceIdAndRoomType(Long accountId, Long workspaceId, List<RoomType> roomType);
 	
 
 

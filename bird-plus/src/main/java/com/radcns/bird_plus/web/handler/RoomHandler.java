@@ -66,12 +66,12 @@ public class RoomHandler {
 			})
 			.doOnSuccess(e-> {
 				List<RoomType> roomType;
-				if(e.getRoomType().equals(RoomType.ROOM_PRIVATE) || e.getRoomType().equals(RoomType.ROOM_PRIVATE)) {
+				if(e.getRoomType().equals(RoomType.ROOM_PUBLIC) || e.getRoomType().equals(RoomType.ROOM_PRIVATE)) {
 					roomType = List.of(RoomType.ROOM_PRIVATE, RoomType.ROOM_PUBLIC);
 				}else{//(e.getRoomType().equals(RoomType.MESSENGER) || e.getRoomType().equals(RoomType.SELF)) {
 					roomType = List.of(RoomType.MESSENGER, RoomType.SELF);
 				}
-				roomInAccountRepository.countJoinRoomByAccountIdAndWorkspaceIdAndRoomType(account.getId(), e.getWorkspaceId(), roomType)
+				roomInAccountRepository.findMaxJoinRoomByAccountIdAndWorkspaceIdAndRoomType(account.getId(), e.getWorkspaceId(), roomType)
 				.flatMap(count -> 
 					roomInAccountRepository.save(
 						RoomInAccountEntity.builder()
@@ -116,6 +116,7 @@ public class RoomHandler {
 							.accountId(e.getId())
 							.workspaceId(createRoomInAccount.getWorkspaceId())
 							.roomId(createRoomInAccount.getRoomId())
+							.createBy(account.getId())
 							.build();
 							List<RoomType> roomType;
 							if(createRoomInAccount.getRoomType().equals(RoomType.ROOM_PRIVATE) || createRoomInAccount.getRoomType().equals(RoomType.ROOM_PRIVATE)) {
@@ -123,7 +124,7 @@ public class RoomHandler {
 							}else{//(e.getRoomType().equals(RoomType.MESSENGER) || e.getRoomType().equals(RoomType.SELF)) {
 								roomType = List.of(RoomType.MESSENGER, RoomType.SELF);
 							}
-							return roomInAccountRepository.maxJoinRoomByAccountIdAndWorkspaceIdAndRoomType
+							return roomInAccountRepository.findMaxJoinRoomByAccountIdAndWorkspaceIdAndRoomType
 								(roomInAccountEntity.getAccountId(), roomInAccountEntity.getWorkspaceId(), roomType)
 								.defaultIfEmpty((long)0)
 								.map(count -> roomInAccountEntity.withOrderSort(count + 1));
@@ -132,7 +133,7 @@ public class RoomHandler {
 					})
 				);
 				save.map((e)-> {
-					sinks.tryEmitNext(e);
+					sinks.tryEmitNext(e.withCreateBy(null));
 					emitCount.getAndIncrement();
 					return e;
 				})
@@ -161,7 +162,7 @@ public class RoomHandler {
 		.collectList()
 		.flatMap(roomInAccountList -> ok()
 			.contentType(MediaType.APPLICATION_JSON)
-			.body(Mono.just(response(Result._0, null)), Response.class)
+			.body(Mono.just(response(Result._0, roomInAccountList)), Response.class)
 		)
 		;
 	}
