@@ -123,24 +123,23 @@ public class RoomHandler {
 							}else{//(e.getRoomType().equals(RoomType.MESSENGER) || e.getRoomType().equals(RoomType.SELF)) {
 								roomType = List.of(RoomType.MESSENGER, RoomType.SELF);
 							}
-							return roomInAccountRepository.countJoinRoomByAccountIdAndWorkspaceIdAndRoomType
-								(roomInAccountEntity.getId(), roomInAccountEntity.getWorkspaceId(), roomType)
-									.map(count -> roomInAccountEntity.withOrderSort(count));
+							return roomInAccountRepository.maxJoinRoomByAccountIdAndWorkspaceIdAndRoomType
+								(roomInAccountEntity.getAccountId(), roomInAccountEntity.getWorkspaceId(), roomType)
+								.defaultIfEmpty((long)0)
+								.map(count -> roomInAccountEntity.withOrderSort(count + 1));
 						})
 						;
 					})
 				);
-				save.doOnNext(e-> {
+				save.map((e)-> {
 					sinks.tryEmitNext(e);
-					//emitCount.getAndIncrement();
-					save.count().subscribe((cnt)->{
-						if(emitCount.get() == emitCount.getAndIncrement()) {
-							sinks.tryEmitComplete();
-						}
-					});
+					emitCount.getAndIncrement();
+					return e;
 				})
-				;
-				save.subscribe();
+				.doFinally((e)->{
+					sinks.tryEmitComplete();
+				})
+				.subscribe();
 				return sinks.asFlux();
 			})
 		, RoomInAccountEntity.class);

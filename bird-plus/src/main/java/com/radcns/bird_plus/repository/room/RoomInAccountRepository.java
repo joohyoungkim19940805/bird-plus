@@ -176,6 +176,27 @@ public interface RoomInAccountRepository extends ReactiveCrudRepository<RoomInAc
 	Mono<Long> 
 		countJoinRoomByAccountIdAndWorkspaceIdAndRoomType(Long accountId, Long workspaceId, List<RoomType> roomType);
 	
+	@Query("""
+			SELECT
+				max(rria.order_sort)
+			FROM
+				ro_room_in_account rria
+			INNER JOIN
+				ro_room rr
+			ON
+				rria.room_id = rr.id
+			WHERE
+				rria.account_id = :#{[0]}
+			AND
+				rr.workspace_id = :#{[1]}
+			AND 
+				rr.room_type IN (:#{[2]})
+			;
+			""")
+	Mono<Long> 
+		maxJoinRoomByAccountIdAndWorkspaceIdAndRoomType(Long accountId, Long workspaceId, List<RoomType> roomType);
+	
+
 
 	@Query("""
 			SELECT
