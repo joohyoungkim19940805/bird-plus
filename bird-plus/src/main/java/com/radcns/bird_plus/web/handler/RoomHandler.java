@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
+import com.radcns.bird_plus.config.security.JwtIssuerType;
 import com.radcns.bird_plus.entity.room.RoomEntity;
 import com.radcns.bird_plus.entity.room.RoomFavoritesEntity;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity;
@@ -70,10 +71,7 @@ public class RoomHandler {
 				}else{//(e.getRoomType().equals(RoomType.MESSENGER) || e.getRoomType().equals(RoomType.SELF)) {
 					roomType = List.of(RoomType.MESSENGER, RoomType.SELF);
 				}
-				System.out.println("kjh <<<<< dfhdfghkldfkgl");
-				System.out.println(roomType);
-				System.out.println(e.getRoomType());
-				roomInAccountRepository.countJoinRoomByAccountIdAndWorkspaceIdAndRoomType(account.getId(), e.getWorkspaceId(), roomType)
+				roomInAccountRepository.findMaxJoinRoomByAccountIdAndWorkspaceIdAndRoomType(account.getId(), e.getWorkspaceId(), roomType)
 				.flatMap(count -> 
 					roomInAccountRepository.save(
 						RoomInAccountEntity.builder()
@@ -85,11 +83,15 @@ public class RoomHandler {
 					)
 				)
 				.subscribe();
+				/*roomRepository.save(
+					e.withRoomCode(List.of(accountService.generateAccessToken(account, JwtIssuerType.BOT).getToken()))
+					.withCreateAt(null)
+				).subscribe();*/
 			})
 		)//
 		.flatMap(room -> ok()
 			.contentType(MediaType.APPLICATION_JSON)
-			.body(Mono.just(response(Result._0, room.withCreateBy(null))), Response.class)
+			.body(Mono.just(response(Result._0, room)), Response.class)
 		)
 		;
 	}
@@ -100,69 +102,45 @@ public class RoomHandler {
 		.body(
 			accountService.convertJwtToAccount(request)
 			.flatMapMany(account -> {
-				System.out.println("kjh start 111111111111111111111111");
 				Sinks.Many<RoomInAccountEntity> sinks = Sinks.many().unicast().onBackpressureBuffer();
 				AtomicInteger emitCount = new AtomicInteger();
 				var save = roomInAccountRepository.saveAll(
-					//request.bodyToFlux(RoomInAccountDomain.CreateRoomInAccountRequest.class)
-					//.flatMap(createRoomInAccount -> {
 					request.bodyToFlux(RoomInAccountDomain.CreateRoomInAccountRequest.class)
 					.flatMap(createRoomInAccount -> {
-						System.out.println("kjh start 2222222222222222222");
-						System.out.println(createRoomInAccount.getWorkspaceId());
-						System.out.println(createRoomInAccount.getAccountName());
-						System.out.println(account.getId());
 						return accountRepository.findByAccountName(createRoomInAccount.getAccountName())
-						.switchIfEmpty(Mono.error(new RoomException(Result._105)))
-						.filterWhen(e -> {
-							System.out.println("kjh 99999999999999999999");
-							System.out.println(createRoomInAccount.getWorkspaceId());
-							System.out.println(createRoomInAccount.getAccountName());
-							System.out.println(e.getId());
-							return workspaceInAccountRepository.existsByWorkspaceIdAndAccountId(createRoomInAccount.getWorkspaceId(), e.getId());
-						})
-						.switchIfEmpty(Mono.error(new RoomException(Result._300)))
+						.filterWhen(e -> 
+							workspaceInAccountRepository.existsByWorkspaceIdAndAccountId(createRoomInAccount.getWorkspaceId(), e.getId())
+						)
 						.flatMap(e-> {
-							System.out.println("kjh start 33333333333333333333333333");
 							RoomInAccountEntity roomInAccountEntity = RoomInAccountEntity.builder()
 							.accountId(e.getId())
 							.workspaceId(createRoomInAccount.getWorkspaceId())
 							.roomId(createRoomInAccount.getRoomId())
+							.createBy(account.getId())
 							.build();
 							List<RoomType> roomType;
-							if(createRoomInAccount.getRoomType().equals(RoomType.ROOM_PUBLIC) || createRoomInAccount.getRoomType().equals(RoomType.ROOM_PRIVATE)) {
+							if(createRoomInAccount.getRoomType().equals(RoomType.ROOM_PRIVATE) || createRoomInAccount.getRoomType().equals(RoomType.ROOM_PRIVATE)) {
 								roomType = List.of(RoomType.ROOM_PRIVATE, RoomType.ROOM_PUBLIC);
 							}else{//(e.getRoomType().equals(RoomType.MESSENGER) || e.getRoomType().equals(RoomType.SELF)) {
 								roomType = List.of(RoomType.MESSENGER, RoomType.SELF);
 							}
-							System.out.println("kjh test 777777777777777777");
-							System.out.println(roomType);
-							System.out.println(createRoomInAccount.getRoomType());
-							return roomInAccountRepository.countJoinRoomByAccountIdAndWorkspaceIdAndRoomType
-								(roomInAccountEntity.getAccountId(), roomInAccountEntity.getWorkspaceId(), List.of(RoomType.ROOM_PRIVATE, RoomType.ROOM_PUBLIC))
-									.map(count -> roomInAccountEntity.withOrderSort(count));
+							return roomInAccountRepository.findMaxJoinRoomByAccountIdAndWorkspaceIdAndRoomType
+								(roomInAccountEntity.getAccountId(), roomInAccountEntity.getWorkspaceId(), roomType)
+								.defaultIfEmpty((long)0)
+								.map(count -> roomInAccountEntity.withOrderSort(count + 1));
 						})
 						;
 					})
 				);
 				save.map((e)-> {
-					System.out.println("kjh run!!!");
-					sinks.tryEmitNext(e);
-					//emitCount.getAndIncrement();
-					save.count().map((cnt)->{
-						System.out.println("kjh test <<< " + cnt);
-						if(emitCount.get() == emitCount.getAndIncrement()) {
-							sinks.tryEmitComplete();
-						}
-						return cnt;
-					});
+					sinks.tryEmitNext(e.withCreateBy(null));
+					emitCount.getAndIncrement();
 					return e;
 				})
-				.doOnComplete(()->{
-					System.out.println("kjh end!!!!!");
+				.doFinally((e)->{
+					sinks.tryEmitComplete();
 				})
-				;
-				save.subscribe();
+				.subscribe();
 				return sinks.asFlux();
 			})
 		, RoomInAccountEntity.class);
@@ -184,7 +162,7 @@ public class RoomHandler {
 		.collectList()
 		.flatMap(roomInAccountList -> ok()
 			.contentType(MediaType.APPLICATION_JSON)
-			.body(Mono.just(response(Result._0, null)), Response.class)
+			.body(Mono.just(response(Result._0, roomInAccountList)), Response.class)
 		)
 		;
 	}

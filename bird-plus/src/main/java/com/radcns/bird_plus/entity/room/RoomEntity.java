@@ -2,6 +2,7 @@ package com.radcns.bird_plus.entity.room;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.List;
 
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
@@ -12,6 +13,8 @@ import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+import com.radcns.bird_plus.config.security.Role;
+import com.radcns.bird_plus.config.security.TokenTemplate;
 import com.radcns.bird_plus.entity.room.constant.RoomType;
 
 import lombok.AllArgsConstructor;
@@ -29,14 +32,14 @@ import lombok.With;
 @AllArgsConstructor
 @With
 @Table(value="ro_room")
-public class RoomEntity{
+public class RoomEntity implements TokenTemplate{
 
 	@Id
 	@Column("id")
 	private Long id;
 	
 	@Column("room_code")
-	private String roomCode;
+	private List<String> roomCode;
 	
 	@Column("room_name")
 	private String roomName;
@@ -52,7 +55,8 @@ public class RoomEntity{
 	
     @Column("create_at")
     @CreatedDate
-    private LocalDateTime createAt;
+    @Builder.Default
+    private LocalDateTime createAt = LocalDateTime.now();
     
     @Column("create_by")
     @CreatedBy
@@ -60,7 +64,8 @@ public class RoomEntity{
     
     @Column("updated_at")
     @LastModifiedDate
-    private LocalDateTime updatedAt;
+    @Builder.Default
+    private LocalDateTime updatedAt = LocalDateTime.now();
 
     @Column("updated_by")
     @LastModifiedBy
@@ -71,6 +76,8 @@ public class RoomEntity{
 	
 	@Transient
 	Long updateMils = null;
+	
+
 	
 	public void setCreateAt(LocalDateTime createAt) {
 		this.createAt = createAt;
@@ -97,6 +104,31 @@ public class RoomEntity{
 			this.updateMils = updatedAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 		}
 		return this.updateMils; 
+	}
+	
+	@Transient
+	@Setter
+	String roomCodeIssuerName = null;
+	
+	@Override
+	public String getIssuer() {
+		// TODO Auto-generated method stub
+		return String.valueOf(this.id);
+	}
+	@Override
+	public String getSubject() {
+		// TODO Auto-generated method stub
+		return this.roomName;
+	}
+	@Override
+	public String getName() {
+		// TODO Auto-generated method stub
+		return this.roomCodeIssuerName;
+	}
+	@Override
+	public List<Role> getRoles() {
+		// TODO Auto-generated method stub
+		return List.of(Role.ROLE_BOT);
 	}
 	
 }
