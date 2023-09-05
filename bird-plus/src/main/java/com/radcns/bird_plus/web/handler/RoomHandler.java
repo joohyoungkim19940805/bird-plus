@@ -132,9 +132,11 @@ public class RoomHandler {
 						;
 					})
 				);
+				save.doOnError(errpr -> {
+					sinks.tryEmitNext(RoomInAccountEntity.builder().build());
+				});
 				save.map((e)-> {
 					sinks.tryEmitNext(e.withCreateBy(null));
-					emitCount.getAndIncrement();
 					return e;
 				})
 				.doFinally((e)->{
