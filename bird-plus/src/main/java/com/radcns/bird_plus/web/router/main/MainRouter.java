@@ -25,6 +25,15 @@ import static org.springframework.web.reactive.function.server.RequestPredicates
 @Configuration
 public class MainRouter implements IndexRouterSwagger{
 	
+	/*
+				.nest(path("/create"), createPathBuilder -> createPathBuilder
+					.build())
+				.nest(path("update") , updatePathBuilder -> updatePathBuilder
+					.build())
+				.nest(path("/search"), searchPathBuilder -> searchPathBuilder
+					.build())
+	 */
+	
 	@Bean
 	@Override
 	public RouterFunction<ServerResponse> index(MainHandler mainHandler){
@@ -46,13 +55,14 @@ public class MainRouter implements IndexRouterSwagger{
 	@Bean
 	public RouterFunction<ServerResponse> apiAccount(LoginHandler loginHandler){
 		return route().nest(path("/api/account"), builder -> builder
-				.GET("/is-login", accept(MediaType.APPLICATION_JSON), loginHandler::isLogin)
-				)
-				.build();
-		/*return route( GET("/api/login/isLogin").and(accept(MediaType.APPLICATION_JSON)), loginHandler::isLogin)
-				.and(route( GET("api/login/forgot-password/email").and(accept(MediaType.APPLICATION_JSON)), loginHandler::isLogin ))
-				;
-				*/
+				.nest(path("search"), searchPathBuilder -> searchPathBuilder
+						.GET("/is-login", accept(MediaType.APPLICATION_JSON), loginHandler::isLogin)
+					.build())
+				/*.nest(path("/create"), createPathBuilder -> createPathBuilder
+					.build())
+				.nest(path("update") , updatePathBuilder -> updatePathBuilder
+					.build())*/
+				).build();
 	}
 	
 	@Bean
@@ -65,11 +75,18 @@ public class MainRouter implements IndexRouterSwagger{
 	@Bean
 	public RouterFunction<ServerResponse> apiWorkspace(WorkspaceHandler workspaceHandler){
 		return route().nest(path("/api/workspace"), builder -> builder
-					.POST("/create-workspace", accept(MediaType.APPLICATION_JSON), workspaceHandler::createWorkspace)
-					.GET("/search-workspace-name", accept(MediaType.APPLICATION_JSON), workspaceHandler::searchWorkspaceName)
-					.GET("/is-workspace-joined", accept(MediaType.APPLICATION_JSON), workspaceHandler::isWorkspaceJoined)
-					.GET("/search-workspace-my-joined", accept(MediaType.APPLICATION_JSON), workspaceHandler::searchWorkspaceMyJoined)
-					.GET("/search-workspace-in-account/{workspaceId}", accept(MediaType.APPLICATION_JSON), workspaceHandler::searchWorkspaceInAccount)
+				.nest(path("/create"), createPathBuilder -> createPathBuilder
+						.POST("/workspace", accept(MediaType.APPLICATION_JSON), workspaceHandler::createWorkspace)
+					.build())
+				/*.nest(path("update") , updatePathBuilder -> updatePathBuilder
+					.build())*/
+				.nest(path("search"), searchPathBuilder -> searchPathBuilder
+						.GET("/workspace-name-list", accept(MediaType.APPLICATION_JSON), workspaceHandler::searchWorkspaceName)
+						.GET("/is-workspace-joined", accept(MediaType.APPLICATION_JSON), workspaceHandler::isWorkspaceJoined)
+						.GET("/workspace-my-joined-list", accept(MediaType.APPLICATION_JSON), workspaceHandler::searchWorkspaceMyJoined)
+						.GET("/workspace-in-account-list/{workspaceId}", accept(MediaType.APPLICATION_JSON), workspaceHandler::searchWorkspaceInAccount)
+						.GET("/workspace-detail/{workspaceId}", accept(MediaType.APPLICATION_JSON), workspaceHandler::getWorkspaceDetail)
+					.build())
 				).build();
 		/*
 		return route( POST("/api/chatting/stream").and(accept(MediaType.APPLICATION_JSON)), chattingHandler::addStream )
@@ -82,16 +99,23 @@ public class MainRouter implements IndexRouterSwagger{
 	@Bean
 	public RouterFunction<ServerResponse> apiRoom(RoomHandler roomHandler){
 		return route().nest(path("/api/room"), builder -> builder
-				.POST("/create-room", accept(MediaType.APPLICATION_JSON), roomHandler::createRoom)
-				.POST("/create-room-in-account", accept(MediaType.TEXT_EVENT_STREAM), roomHandler::createRoomInAccount)
-				.POST("/create-room-favorites", accept(MediaType.APPLICATION_JSON), roomHandler::createRoomFavorites)
-				.POST("/update-room-in-account", accept(MediaType.APPLICATION_JSON), roomHandler::updateRoomInAccount)
-				.POST("/update-room-favorites", accept(MediaType.APPLICATION_JSON), roomHandler::updateRoomFavorites)
-				.GET("/search-room", accept(MediaType.APPLICATION_JSON), roomHandler::searchRoom)
-				.GET("/search-room-my-joined", accept(MediaType.APPLICATION_JSON), roomHandler::searchRoomMyJoinedAndRoomType)
-				.GET("/search-room-my-joined-name", accept(MediaType.APPLICATION_JSON), roomHandler::searchRoomMyJoinedNameAndRoomType)
-				.GET("/search-room-favorites-my-joined", accept(MediaType.APPLICATION_JSON), roomHandler::searchRoomFavoritesMyJoined)
-				.GET("/search-room-favorites-my-joined-name", accept(MediaType.APPLICATION_JSON), roomHandler::searchRoomFavoritesMyJoinedNema)	
+				.nest(path("/create"), createPathBuilder -> createPathBuilder
+						.POST("/room", accept(MediaType.APPLICATION_JSON), roomHandler::createRoom)
+						.POST("/room-in-account", accept(MediaType.TEXT_EVENT_STREAM), roomHandler::createRoomInAccount)
+						.POST("/room-favorites", accept(MediaType.APPLICATION_JSON), roomHandler::createRoomFavorites)
+					.build())
+				.nest(path("/update"), updatePathBuilder -> updatePathBuilder
+						.POST("/room-in-account-order", accept(MediaType.APPLICATION_JSON), roomHandler::updateRoomInAccountOrder)
+						.POST("/room-favorites-order", accept(MediaType.APPLICATION_JSON), roomHandler::updateRoomFavorites)
+					.build())
+				.nest(path("/search"), searchPathBuilder -> searchPathBuilder
+						.GET("/room-list", accept(MediaType.APPLICATION_JSON), roomHandler::searchRoom)
+						.GET("/room-my-joined-list", accept(MediaType.APPLICATION_JSON), roomHandler::searchRoomMyJoinedAndRoomType)
+						.GET("/room-my-joined-name-list", accept(MediaType.APPLICATION_JSON), roomHandler::searchRoomMyJoinedNameAndRoomType)
+						.GET("/room-my-joined-favorites-list", accept(MediaType.APPLICATION_JSON), roomHandler::searchRoomFavoritesMyJoined)
+						.GET("/room-my-joined-favorites-name-list", accept(MediaType.APPLICATION_JSON), roomHandler::searchRoomFavoritesMyJoinedNema)	
+						.GET("/room-detail/{roomId}", accept(MediaType.APPLICATION_JSON), roomHandler::getRoomDetail)
+					.build())
 			).build();
 	}
 	

@@ -172,4 +172,15 @@ public class WorkspaceHandler {
 		})
 		*/
 	}
+	
+	public Mono<ServerResponse> getWorkspaceDetail(ServerRequest request){
+		Long workspaceId = Long.valueOf(request.pathVariable("workspaceId"));
+		return ok()
+		.contentType(MediaType.APPLICATION_JSON)
+		.body(
+			workspaceRepository.findById(workspaceId)
+			.map(e-> response(Result._0, e))
+		, Response.class)
+		;
+	}
 }

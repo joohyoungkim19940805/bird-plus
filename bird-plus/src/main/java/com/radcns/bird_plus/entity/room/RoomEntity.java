@@ -72,10 +72,10 @@ public class RoomEntity implements TokenTemplate{
     private Long updatedBy;
 
 	@Transient
-	Long createMils = null;
+	Long createMils;
 	
 	@Transient
-	Long updateMils = null;
+	Long updateMils;
 	
 
 	

@@ -20,6 +20,7 @@ import com.radcns.bird_plus.entity.room.RoomEntity;
 import com.radcns.bird_plus.entity.room.RoomFavoritesEntity;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity.RoomInAccountDomain;
+import com.radcns.bird_plus.entity.room.RoomInAccountEntity.RoomInAccountDomain.RoomJoinedAccountResponse;
 import com.radcns.bird_plus.entity.room.constant.RoomType;
 import com.radcns.bird_plus.repository.customer.AccountRepository;
 import com.radcns.bird_plus.repository.room.RoomFavoritesRepository;
@@ -102,8 +103,7 @@ public class RoomHandler {
 		.body(
 			accountService.convertJwtToAccount(request)
 			.flatMapMany(account -> {
-				Sinks.Many<RoomInAccountEntity> sinks = Sinks.many().unicast().onBackpressureBuffer();
-				AtomicInteger emitCount = new AtomicInteger();
+				Sinks.Many<RoomInAccountDomain.RoomJoinedAccountResponse> sinks = Sinks.many().unicast().onBackpressureBuffer();
 				var save = roomInAccountRepository.saveAll(
 					request.bodyToFlux(RoomInAccountDomain.CreateRoomInAccountRequest.class)
 					.flatMap(createRoomInAccount -> {
@@ -117,6 +117,17 @@ public class RoomHandler {
 							.workspaceId(createRoomInAccount.getWorkspaceId())
 							.roomId(createRoomInAccount.getRoomId())
 							.createBy(account.getId())
+							.roomJoinedAccountResponse(
+								RoomJoinedAccountResponse.builder()
+								.roomId(createRoomInAccount.getRoomId())
+								.accountName(e.getAccountName())
+								.fullName(e.getFullName())
+								.job_grade(e.getJobGrade())
+								.department(e.getDepartment())
+								.createMils(e.getCreateMils())
+								.updateMils(e.getUpdateMils())
+								.build()
+							)
 							.build();
 							List<RoomType> roomType;
 							if(createRoomInAccount.getRoomType().equals(RoomType.ROOM_PRIVATE) || createRoomInAccount.getRoomType().equals(RoomType.ROOM_PRIVATE)) {
@@ -133,8 +144,7 @@ public class RoomHandler {
 					})
 				);
 				save.map((e)-> {
-					sinks.tryEmitNext(e.withCreateBy(null));
-					emitCount.getAndIncrement();
+					sinks.tryEmitNext(e.getRoomJoinedAccountResponse());
 					return e;
 				})
 				.doFinally((e)->{
@@ -143,10 +153,10 @@ public class RoomHandler {
 				.subscribe();
 				return sinks.asFlux();
 			})
-		, RoomInAccountEntity.class);
+		, RoomInAccountDomain.RoomJoinedAccountResponse.class);
 	}
 	
-	public Mono<ServerResponse> updateRoomInAccount(ServerRequest request){
+	public Mono<ServerResponse> updateRoomInAccountOrder(ServerRequest request){
 		return accountService.convertJwtToAccount(request)
 		.flatMapMany(account -> 
 			roomInAccountRepository.saveAll(
@@ -457,5 +467,14 @@ public class RoomHandler {
 		, Response.class)
 		;
 	}
-
+	public Mono<ServerResponse> getRoomDetail(ServerRequest request){
+		Long roomId = Long.valueOf(request.pathVariable("roomId"));
+		return ok()
+		.contentType(MediaType.APPLICATION_JSON)
+		.body(
+			roomRepository.findById(roomId)
+			.map(e-> response(Result._0, e))
+		, Response.class)
+		;
+	}
 }

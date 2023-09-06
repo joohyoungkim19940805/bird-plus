@@ -58,10 +58,10 @@ public class WorkspaceInAccountEntity {
     private Long updatedBy;
 
 	@Transient
-	Long createMils = null;
+	Long createMils;
 	
 	@Transient
-	Long updateMils = null;
+	Long updateMils;
 	
 	public void setCreateAt(LocalDateTime createAt) {
 		this.createAt = createAt;

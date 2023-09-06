@@ -64,10 +64,13 @@ public class RoomInAccountEntity {
     private Long updatedBy;
 
 	@Transient
-	Long createMils = null;
+	Long createMils;
 	
 	@Transient
-	Long updateMils = null;
+	Long updateMils;
+	
+	@Transient
+	RoomInAccountDomain.RoomJoinedAccountResponse roomJoinedAccountResponse;
 	
 	public void setCreateAt(LocalDateTime createAt) {
 		this.createAt = createAt;
@@ -119,6 +122,19 @@ public class RoomInAccountEntity {
 			private RoomType roomType;
 			private String accountName;
 			private String fullName;
+		}
+		
+		@Getter
+		@Setter
+		@Builder
+		public static class RoomJoinedAccountResponse{
+			private Long roomId;
+			private String accountName;
+			private String fullName;
+			private String job_grade;
+			private String department;
+			private Long createMils;
+			private Long updateMils;
 		}
 	}
 }
