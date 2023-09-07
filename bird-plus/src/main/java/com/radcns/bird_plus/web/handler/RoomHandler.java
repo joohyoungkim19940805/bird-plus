@@ -3,6 +3,7 @@ package com.radcns.bird_plus.web.handler;
 import static com.radcns.bird_plus.util.Response.response;
 import static org.springframework.web.reactive.function.server.ServerResponse.ok;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -73,6 +74,7 @@ public class RoomHandler {
 					roomType = List.of(RoomType.MESSENGER, RoomType.SELF);
 				}
 				roomInAccountRepository.findMaxJoinRoomByAccountIdAndWorkspaceIdAndRoomType(account.getId(), e.getWorkspaceId(), roomType)
+				.defaultIfEmpty((long)0)
 				.flatMap(count -> 
 					roomInAccountRepository.save(
 						RoomInAccountEntity.builder()
@@ -124,8 +126,6 @@ public class RoomHandler {
 								.fullName(e.getFullName())
 								.job_grade(e.getJobGrade())
 								.department(e.getDepartment())
-								.createMils(e.getCreateMils())
-								.updateMils(e.getUpdateMils())
 								.build()
 							)
 							.build();
@@ -143,10 +143,13 @@ public class RoomHandler {
 						;
 					})
 				);
-				save.map((e)-> {
+				save.doOnNext((e)-> {
+					e.getRoomJoinedAccountResponse().setCreateMils(e.getCreateMils());
+					e.getRoomJoinedAccountResponse().setUpdateMils(e.getUpdateMils());
 					sinks.tryEmitNext(e.getRoomJoinedAccountResponse());
-					return e;
+					//return e;
 				})
+				.delayElements(Duration.ofMillis(100))
 				.doFinally((e)->{
 					sinks.tryEmitComplete();
 				})
@@ -467,6 +470,57 @@ public class RoomHandler {
 		, Response.class)
 		;
 	}
+	
+	public Mono<ServerResponse> searchRoomInAccountAllList(ServerRequest request){
+		/*
+		var params = request.queryParams();
+		Long roomId = Long.valueOf(params.getFirst("roomId"));
+		*/
+		Long roomId = Long.valueOf(request.pathVariable("roomId"));
+		
+		return ok()
+		.contentType(MediaType.TEXT_EVENT_STREAM)
+		.body(
+			accountService.convertJwtToAccount(request)
+			.filterWhen(acc -> roomInAccountRepository.existsByAccountIdAndRoomId(acc.getId(), roomId))
+			.switchIfEmpty(Mono.error(new RoomException(Result._301)))
+			.flatMapMany(account -> {
+				Sinks.Many<RoomInAccountDomain.RoomJoinedAccountResponse> sinks = Sinks.many().unicast().onBackpressureBuffer();
+				
+				roomInAccountRepository.findAllByRoomId(roomId)
+				.cache(Duration.ofDays(1))
+				.flatMap(roomInAccount -> 
+					accountRepository.findById(roomInAccount.getAccountId())
+					.cache(Duration.ofDays(1))
+					.map(targetAccount -> 
+						RoomJoinedAccountResponse.builder()
+						.roomId(roomInAccount.getRoomId())
+						.accountName(targetAccount.getAccountName())
+						.fullName(targetAccount.getFullName())
+						.job_grade(targetAccount.getJobGrade())
+						.department(targetAccount.getDepartment())
+						.createMils(roomInAccount.getCreateMils())
+						.updateMils(roomInAccount.getUpdateMils())
+						.build()
+					)
+				)
+				
+				.doOnNext(e->{
+					sinks.tryEmitNext(e);
+				})
+				//.delayElements(Duration.ofMillis(20))
+				.doFinally(e->{
+					sinks.tryEmitComplete();
+				})
+				.subscribe();
+				;
+				return sinks.asFlux();
+			})
+			
+		, RoomInAccountDomain.RoomJoinedAccountResponse.class)
+		;
+	}
+	
 	public Mono<ServerResponse> getRoomDetail(ServerRequest request){
 		Long roomId = Long.valueOf(request.pathVariable("roomId"));
 		return ok()

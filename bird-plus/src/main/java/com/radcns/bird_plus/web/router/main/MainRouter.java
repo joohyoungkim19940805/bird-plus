@@ -115,6 +115,7 @@ public class MainRouter implements IndexRouterSwagger{
 						.GET("/room-my-joined-favorites-list", accept(MediaType.APPLICATION_JSON), roomHandler::searchRoomFavoritesMyJoined)
 						.GET("/room-my-joined-favorites-name-list", accept(MediaType.APPLICATION_JSON), roomHandler::searchRoomFavoritesMyJoinedNema)	
 						.GET("/room-detail/{roomId}", accept(MediaType.APPLICATION_JSON), roomHandler::getRoomDetail)
+						.GET("/room-in-account-all-list/{roomId}", accept(MediaType.TEXT_EVENT_STREAM), roomHandler::searchRoomInAccountAllList)
 					.build())
 			).build();
 	}
