@@ -19,6 +19,8 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import com.radcns.bird_plus.config.security.JwtIssuerType;
 import com.radcns.bird_plus.entity.room.RoomEntity;
 import com.radcns.bird_plus.entity.room.RoomFavoritesEntity;
+import com.radcns.bird_plus.entity.room.RoomFavoritesEntity.RoomFavoritesDomain;
+import com.radcns.bird_plus.entity.room.RoomFavoritesEntity.RoomFavoritesMapper;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity.RoomInAccountDomain;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity.RoomInAccountDomain.RoomJoinedAccountResponse;
@@ -164,10 +166,17 @@ public class RoomHandler {
 		.flatMapMany(account -> 
 			roomInAccountRepository.saveAll(
 				request.bodyToFlux(RoomInAccountEntity.class)
-				.filter(roomInAccount -> roomInAccount.getId() != null)
 				.filterWhen(roomInAccount->
-					roomInAccountRepository.existsByAccountIdAndRoomId(account.getId(), roomInAccount.getRoomId())
-				).flatMap(roomInAccount -> roomInAccountRepository.findById(roomInAccount.getId())
+					Mono.just(roomInAccount.getId() != null)
+					.flatMap(bol->{
+						if( ! bol) {
+							return Mono.error(new RoomException(Result._300));
+						}
+						return roomFavoritesRepository.existsByAccountIdAndRoomId(account.getId(), roomInAccount.getRoomId());
+					})
+				)
+				.switchIfEmpty(Mono.error(new RoomException(Result._301)))
+				.flatMap(roomInAccount -> roomInAccountRepository.findById(roomInAccount.getId())
 					.map(newRoomInAccount->newRoomInAccount.withOrderSort(roomInAccount.getOrderSort()))
 				)
 			)
@@ -183,17 +192,25 @@ public class RoomHandler {
 	public Mono<ServerResponse> createRoomFavorites(ServerRequest request){
 		return accountService.convertJwtToAccount(request)
 		.flatMap(account -> request.bodyToMono(RoomFavoritesEntity.class)
-			.flatMap(roomFavorites -> {
-				roomFavorites.setAccountId(account.getId());
-				return roomFavoritesRepository.countByAccountIdAndWorkspaceId(account.getId(), roomFavorites.getWorkspaceId())
-						.flatMap(count -> roomFavoritesRepository.save(roomFavorites.withOrderSort(count)))
-						.map(e->e.withAccountId(null));
-				/*return roomRepository.findById(roomFavorites.getRoomId())
-					.flatMap(roomEntity -> roomFavoritesRepository.countByAccountIdAndWorkspaceId(account.getId(), roomEntity.getId()))
-					.flatMap(count -> roomFavoritesRepository.save(roomFavorites.withOrderSort(count)))
-					.map(e->e.withAccountId(null));*/
+			.flatMap(roomFavorites -> 
+				roomFavoritesRepository.existsByAccountIdAndRoomId(account.getId(), roomFavorites.getRoomId())
+				.flatMap(bol -> {
+					if(bol) {
+						return roomFavoritesRepository.deleteByAccountIdAndRoomIdAndWorkspaceId(account.getId(), roomFavorites.getRoomId(), roomFavorites.getWorkspaceId());
+					}else {
+						return roomFavoritesRepository.maxByAccountIdAndWorkspaceId(account.getId(), roomFavorites.getWorkspaceId())
+							.defaultIfEmpty((long)0)
+							.flatMap(count -> roomFavoritesRepository.save(
+									roomFavorites
+									.withAccountId(account.getId())
+									.withOrderSort(count + 1)
+								)
+							)
+							.map(e->e.withAccountId(null));
+					}
+				})
 				
-			})
+			)
 		)
 		.flatMap(roomFavorites -> ok()
 			.contentType(MediaType.APPLICATION_JSON)
@@ -202,18 +219,25 @@ public class RoomHandler {
 		;
 	}
 
-	public Mono<ServerResponse> updateRoomFavorites(ServerRequest request){
+	public Mono<ServerResponse> updateRoomFavoritesOrder(ServerRequest request){
 		return accountService.convertJwtToAccount(request)
 		.flatMapMany(account -> 
 			roomFavoritesRepository.saveAll(
-					request.bodyToFlux(RoomInAccountEntity.class)
-					.filterWhen(roomInAccount->
-						Mono.just(roomInAccount.getId() != null)
-						.flatMap(bol->roomFavoritesRepository.existsByAccountIdAndRoomId(account.getId(), roomInAccount.getRoomId()))
-					).flatMap(roomInAccount -> roomFavoritesRepository.findById(roomInAccount.getId())
-						.map(newRoomInAccount->newRoomInAccount.withOrderSort(roomInAccount.getOrderSort()))
-					)
+				request.bodyToFlux(RoomInAccountEntity.class)
+				.filterWhen(roomInAccount->
+					Mono.just(roomInAccount.getId() != null)
+					.flatMap(bol->{
+						if( ! bol) {
+							return Mono.error(new RoomException(Result._300));
+						}
+						return roomFavoritesRepository.existsByAccountIdAndRoomId(account.getId(), roomInAccount.getRoomId());
+					})
 				)
+				.switchIfEmpty(Mono.error(new RoomException(Result._301)))
+				.flatMap(roomInAccount -> roomFavoritesRepository.findById(roomInAccount.getId())
+					.map(newRoomInAccount->newRoomInAccount.withOrderSort(roomInAccount.getOrderSort()))
+				)
+			)
 		)
 		.collectList()
 		.flatMap(roomInAccountList -> ok()

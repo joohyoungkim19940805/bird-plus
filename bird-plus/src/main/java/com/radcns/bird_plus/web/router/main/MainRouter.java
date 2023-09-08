@@ -106,7 +106,7 @@ public class MainRouter implements IndexRouterSwagger{
 					.build())
 				.nest(path("/update"), updatePathBuilder -> updatePathBuilder
 						.POST("/room-in-account-order", accept(MediaType.APPLICATION_JSON), roomHandler::updateRoomInAccountOrder)
-						.POST("/room-favorites-order", accept(MediaType.APPLICATION_JSON), roomHandler::updateRoomFavorites)
+						.POST("/room-favorites-order", accept(MediaType.APPLICATION_JSON), roomHandler::updateRoomFavoritesOrder)
 					.build())
 				.nest(path("/search"), searchPathBuilder -> searchPathBuilder
 						.GET("/room-list", accept(MediaType.APPLICATION_JSON), roomHandler::searchRoom)

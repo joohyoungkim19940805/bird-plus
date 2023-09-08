@@ -3,6 +3,8 @@ package com.radcns.bird_plus.entity.room;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
@@ -110,5 +112,21 @@ public class RoomFavoritesEntity {
 			private Integer orderSort;
 			private RoomType roomType;
 		}
+		
+		@Getter
+		@Setter
+		public static class CreateRoomFavoritesRoomRequest {
+			private Long roomId;
+			private Long workspaceId;
+		}
+	}
+	
+	@Mapper
+	public interface RoomFavoritesMapper{
+		RoomFavoritesMapper INSTANCE = Mappers.getMapper(RoomFavoritesMapper.class);
+		
+		RoomFavoritesEntity entity(RoomFavoritesDomain.CreateRoomFavoritesRoomRequest vo);
+		
+		
 	}
 }

@@ -1,5 +1,7 @@
 package com.radcns.bird_plus.repository.room;
 
+import java.util.List;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
@@ -7,6 +9,7 @@ import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import com.radcns.bird_plus.entity.room.RoomFavoritesEntity;
 import com.radcns.bird_plus.entity.room.RoomFavoritesEntity.RoomFavoritesDomain;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity.RoomInAccountDomain;
+import com.radcns.bird_plus.entity.room.constant.RoomType;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -16,6 +19,61 @@ public interface RoomFavoritesRepository extends ReactiveCrudRepository<RoomFavo
 	Mono<Long> countByAccountIdAndWorkspaceId(Long accountId, Long workspaceId);
 	
 	Mono<Boolean> existsByAccountIdAndRoomId(Long accountId, Long roomId);
+	
+	Mono<Void> deleteByAccountIdAndRoomIdAndWorkspaceId(Long accountId, Long roomId, Long workspaceId);
+	
+	@Query("""
+			SELECT 
+				max(rrf.order_sort)
+			FROM
+				ro_room_favorites rrf
+			WHERE
+				rrf.account_id = :#{[0]}
+			AND
+				rrf.workspace_id = :#{[1]}
+			""")
+	Mono<Long> maxByAccountIdAndWorkspaceId(Long accountId, Long workspaceId);
+	
+	@Query("""
+			SELECT
+				count(1)
+			FROM
+				ro_room_favorites rrf
+			INNER JOIN
+				ro_room rr
+			ON
+				rrf.room_id = rr.id
+			WHERE
+				rrf.account_id = :#{[0]}
+			AND
+				rr.workspace_id = :#{[1]}
+			AND 
+				rr.room_type IN (:#{[2]})
+			;
+			""")
+	Mono<Long> 
+		countJoinRoomByAccountIdAndWorkspaceIdAndRoomType(Long accountId, Long workspaceId, List<RoomType> roomType);
+	
+	@Query("""
+			SELECT
+				max(rria.order_sort)
+			FROM
+				ro_room_favorites rrf
+			INNER JOIN
+				ro_room rr
+			ON
+				rrf.room_id = rr.id
+			WHERE
+				rrf.account_id = :#{[0]}
+			AND
+				rr.workspace_id = :#{[1]}
+			AND 
+				rr.room_type IN (:#{[2]})
+			;
+			""")
+	Mono<Long> 
+		findMaxJoinRoomByAccountIdAndWorkspaceIdAndRoomType(Long accountId, Long workspaceId, List<RoomType> roomType);
+	
 	
 	@Query("""
 			SELECT
