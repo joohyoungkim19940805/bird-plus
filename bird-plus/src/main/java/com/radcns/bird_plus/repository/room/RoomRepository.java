@@ -11,7 +11,11 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface RoomRepository extends ReactiveCrudRepository<RoomEntity,Long>{
-
+	
+	Mono<Boolean> existsByCreateByAndWorkspaceIdAndRoomType(Long createBy, Long workspaceId, RoomType roomType);
+	
+	Mono<RoomEntity> findByCreateByAndWorkspaceIdAndRoomType(Long createBy, Long workspaceId, RoomType roonType);
+	
 	@Query("""
 			SELECT
 				*

@@ -66,7 +66,8 @@ public class RoomHandler {
 		.flatMap(account -> request.bodyToMono(RoomEntity.class)
 			.flatMap(room ->{
 				room.setCreateBy(account.getId());
-				return roomRepository.save(room);
+				return roomRepository.save(room)
+				.doOnSuccess(e->e.withCreateBy(null));
 			})
 			.doOnSuccess(e-> {
 				List<RoomType> roomType;
@@ -99,6 +100,51 @@ public class RoomHandler {
 			.body(Mono.just(response(Result._0, room)), Response.class)
 		)
 		;
+	}
+	public Mono<ServerResponse> createMySelfRoom(ServerRequest request){
+		Long workspaceId = Long.valueOf(request.pathVariable("workspaceId"));
+		;
+		return ok()
+		.contentType(MediaType.APPLICATION_JSON)
+		.body(
+			accountService.convertJwtToAccount(request)
+			.flatMap(e->{
+				return roomRepository.existsByCreateByAndWorkspaceIdAndRoomType(e.getId(), workspaceId, RoomType.SELF)
+				.flatMap(bol -> {
+					if(bol) {
+						return roomRepository.findByCreateByAndWorkspaceIdAndRoomType(e.getId(), workspaceId, RoomType.SELF);
+					}else {
+						return roomRepository.save(
+							RoomEntity
+							.builder()
+							.createBy(e.getId())
+							.roomName(e.getFullName())
+							.workspaceId(workspaceId)
+							.roomType(RoomType.SELF)
+							.build()
+						)
+						.doOnSuccess(roomEntity->{
+							roomEntity.setCreateBy(null);
+							roomInAccountRepository.findMaxJoinRoomByAccountIdAndWorkspaceIdAndRoomType(e.getId(), workspaceId, List.of(RoomType.SELF))
+							.defaultIfEmpty((long)0)
+							.flatMap(count -> 
+								roomInAccountRepository.save(
+									RoomInAccountEntity.builder()
+									.roomId(roomEntity.getId())
+									.accountId(e.getId())
+									.orderSort(count + 1)
+									.workspaceId(workspaceId)
+									.build()
+								)
+							)
+							.subscribe();
+						})
+						;
+					}
+				});
+			})
+			.map(e->response(Result._0, e))
+		, Response.class);
 	}
 	
 	public Mono<ServerResponse> createRoomInAccount(ServerRequest request){
@@ -172,7 +218,7 @@ public class RoomHandler {
 						if( ! bol) {
 							return Mono.error(new RoomException(Result._300));
 						}
-						return roomFavoritesRepository.existsByAccountIdAndRoomId(account.getId(), roomInAccount.getRoomId());
+						return roomInAccountRepository.existsByAccountIdAndRoomId(account.getId(), roomInAccount.getRoomId());
 					})
 				)
 				.switchIfEmpty(Mono.error(new RoomException(Result._301)))
@@ -551,7 +597,7 @@ public class RoomHandler {
 		.contentType(MediaType.APPLICATION_JSON)
 		.body(
 			roomRepository.findById(roomId)
-			.map(e-> response(Result._0, e))
+			.map(e-> response(Result._0, e.withCreateBy(null)))
 		, Response.class)
 		;
 	}

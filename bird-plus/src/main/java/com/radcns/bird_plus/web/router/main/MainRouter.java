@@ -7,8 +7,8 @@ import org.springframework.web.reactive.function.server.RouterFunction;
 
 import org.springframework.web.reactive.function.server.ServerResponse;
 
+import com.radcns.bird_plus.web.handler.AccountHandler;
 import com.radcns.bird_plus.web.handler.ChattingHandler;
-import com.radcns.bird_plus.web.handler.LoginHandler;
 import com.radcns.bird_plus.web.handler.MainHandler;
 import com.radcns.bird_plus.web.handler.RoomHandler;
 import com.radcns.bird_plus.web.handler.WorkspaceHandler;
@@ -53,10 +53,11 @@ public class MainRouter implements IndexRouterSwagger{
 	}
 
 	@Bean
-	public RouterFunction<ServerResponse> apiAccount(LoginHandler loginHandler){
+	public RouterFunction<ServerResponse> apiAccount(AccountHandler accountHandler){
 		return route().nest(path("/api/account"), builder -> builder
 				.nest(path("search"), searchPathBuilder -> searchPathBuilder
-						.GET("/is-login", accept(MediaType.APPLICATION_JSON), loginHandler::isLogin)
+						.GET("/is-login", accept(MediaType.APPLICATION_JSON), accountHandler::isLogin)
+						.GET("/get-account-info", accept(MediaType.APPLICATION_JSON), accountHandler::getAccountInfo)
 					.build())
 				/*.nest(path("/create"), createPathBuilder -> createPathBuilder
 					.build())
@@ -101,6 +102,7 @@ public class MainRouter implements IndexRouterSwagger{
 		return route().nest(path("/api/room"), builder -> builder
 				.nest(path("/create"), createPathBuilder -> createPathBuilder
 						.POST("/room", accept(MediaType.APPLICATION_JSON), roomHandler::createRoom)
+						.POST("/my-self-room/{workspaceId}", accept(MediaType.APPLICATION_JSON), roomHandler::createMySelfRoom)
 						.POST("/room-in-account", accept(MediaType.TEXT_EVENT_STREAM), roomHandler::createRoomInAccount)
 						.POST("/room-favorites", accept(MediaType.APPLICATION_JSON), roomHandler::createRoomFavorites)
 					.build())

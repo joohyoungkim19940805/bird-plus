@@ -179,7 +179,7 @@ public class WorkspaceHandler {
 		.contentType(MediaType.APPLICATION_JSON)
 		.body(
 			workspaceRepository.findById(workspaceId)
-			.map(e-> response(Result._0, e))
+			.map(e-> response(Result._0, e.withOwnerAccountId(null).withCreateBy(null)))
 		, Response.class)
 		;
 	}

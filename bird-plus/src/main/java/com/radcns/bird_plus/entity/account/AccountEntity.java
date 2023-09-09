@@ -24,6 +24,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.With;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
@@ -32,6 +34,7 @@ import org.mapstruct.factory.Mappers;
 @Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
+@With
 @ToString
 @Table(value="ac_account")
 public class AccountEntity implements TokenTemplate{
