@@ -5,18 +5,24 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
+import org.springframework.web.server.handler.FilteringWebHandler;
 
 import com.radcns.bird_plus.config.security.JwtVerifyHandler;
 import com.radcns.bird_plus.entity.chatting.ChattingEntity;
 import com.radcns.bird_plus.repository.chatting.ChattingRepository;
 import com.radcns.bird_plus.repository.customer.AccountRepository;
+import com.radcns.bird_plus.repository.room.RoomInAccountRepository;
 import com.radcns.bird_plus.service.AccountService;
+import com.radcns.bird_plus.util.Response;
+import com.radcns.bird_plus.util.WorkspaceBroker;
+import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
 
 import io.jsonwebtoken.Claims;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.core.publisher.Sinks.EmitResult;
 
+import static com.radcns.bird_plus.util.Response.response;
 import static org.springframework.web.reactive.function.server.ServerResponse.ok;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +42,12 @@ public class ChattingHandler {
 	
 	@Autowired
 	private AccountService accountService;
+	
+	@Autowired
+	private WorkspaceBroker workspaceBorker;
+	
+	@Autowired
+	private RoomInAccountRepository roomInAccountRepository;
 	
 	/**
 	unicast() : 하나의 Subscriber 만 허용한다. 즉, 하나의 Client 만 연결할 수 있다.
@@ -61,60 +73,44 @@ public class ChattingHandler {
 		채팅 저장시 페이징용 max 순번 저장 (room 기준으로)
 		동일 순번이 저장될 수 있으므로 클라이언트에서는 id나 or createAt(createMils)으로 정렬 필요
 	*/
+	//ConcurrentMap<K, V>
+	//ConcurrentHashMap<K, V>
 	public Mono<ServerResponse> sendStream(ServerRequest request){
-		//chattingSink.emitComplete(null);
-		//chattingSink.currentSubscriberCount();
-		return request.bodyToMono(String.class)
-				/*.doOnNext(chatting->{
-					chattingSink.tryEmitNext(chatting);
-				})*/
-				//chattingSink.actuals()
-				.flatMap(chatting -> {
-					String token = request.headers().firstHeader(HttpHeaders.AUTHORIZATION);
-					Claims claims = jwtVerifyHandler.getJwt(token).getBody();
-					ChattingEntity chattingEntity = ChattingEntity
-							.builder()
-							//.accountId(Long.parseLong(claims.getSubject()))
-							.accountName(claims.getIssuer())
-							.chatting(chatting)
-							.build();
-					
-					EmitResult result = chattingSink.tryEmitNext(chattingEntity);
-					//chattingSink.
+		return ok()
+		.contentType(MediaType.APPLICATION_JSON)
+		.body(
+			accountService.convertJwtToAccount(request)
+			.flatMap(account -> {
+				return request.bodyToMono(ChattingEntity.class)
+				.flatMap(chattingEntity -> chattingRepository.save(chattingEntity.withAccountId(account.getId())))
+				.doOnSuccess(e->{
+					EmitResult result = workspaceBorker.sendChatting(e);
 					if (result.isFailure()) {
 						// do something here, since emission failed
 					}
-					
-					return accountRepository.findByAccountNameAndEmail(claims.getIssuer(), claims.getSubject())
-							.map(e->chattingEntity.withAccountId(e.getId()));
 				})
-				.flatMap(chattingEntity->{
-					return ok().contentType(MediaType.APPLICATION_JSON).body(
-							chattingRepository.save(chattingEntity).map(e->e.withAccountId(null)), ChattingEntity.class
-					);
-				})
-				//.log()
-				//.onErrorResume(e -> Mono.error(new UnauthorizedException(Result._999)))
 				;
-				
-		/*
-		return ok()
-				.contentType(MediaType.APPLICATION_JSON)
-				.body(request.bodyToMono(String.class).map(e->response(Result._00, e)), Response.class)
-				.onErrorResume(e -> Mono.error(new UnauthorizedException(Result._100)));
-		*/
+			})
+			.map(e-> response(Result._0, e))
+		, Response.class);
 	}
 	public Mono<ServerResponse> emissionStream(ServerRequest request) {
+		Long workspaceId = Long.valueOf(request.pathVariable("workspaceId"));
+		;
 		return ok().contentType(MediaType.TEXT_EVENT_STREAM)
-				.body(chattingSink.asFlux().map(e->{
-					accountService.convertJwtToAccount(request).subscribe(acc->{
-						System.out.println(acc);	
-						
-					});
-					e.setAccountId(null);
-					return e;
-				}), ChattingEntity.class)
-				//.log();
+				.body(
+					workspaceBorker.getManager(workspaceId).getChattingSinks().asFlux()
+					.filter(chattingEntity -> chattingEntity.getWorkspaceId().equals(workspaceId))
+					.flatMap(chattingEntity -> {
+						return accountService.convertJwtToAccount(request)
+						.filterWhen(account -> 
+							roomInAccountRepository.existsByAccountIdAndWorkspaceIdAndRoomId(account.getId(), chattingEntity.getWorkspaceId(), chattingEntity.getRoomId())
+						)
+						.map(e -> chattingEntity.withAccountId(null))
+						;
+					})
+				, ChattingEntity.class
+				)
 				;
 	}
 	

@@ -5,10 +5,8 @@ import static org.springframework.web.reactive.function.server.ServerResponse.ok
 
 import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
@@ -16,11 +14,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
-import com.radcns.bird_plus.config.security.JwtIssuerType;
 import com.radcns.bird_plus.entity.room.RoomEntity;
 import com.radcns.bird_plus.entity.room.RoomFavoritesEntity;
-import com.radcns.bird_plus.entity.room.RoomFavoritesEntity.RoomFavoritesDomain;
-import com.radcns.bird_plus.entity.room.RoomFavoritesEntity.RoomFavoritesMapper;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity.RoomInAccountDomain;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity.RoomInAccountDomain.RoomJoinedAccountResponse;
@@ -30,7 +25,6 @@ import com.radcns.bird_plus.repository.room.RoomFavoritesRepository;
 import com.radcns.bird_plus.repository.room.RoomInAccountRepository;
 import com.radcns.bird_plus.repository.room.RoomRepository;
 import com.radcns.bird_plus.repository.workspace.WorkspaceInAccountRepository;
-import com.radcns.bird_plus.repository.workspace.WorkspaceRepository;
 import com.radcns.bird_plus.service.AccountService;
 import com.radcns.bird_plus.util.Response;
 import com.radcns.bird_plus.util.exception.RoomException;

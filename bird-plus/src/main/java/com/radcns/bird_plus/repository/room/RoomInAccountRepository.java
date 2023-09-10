@@ -19,6 +19,8 @@ public interface RoomInAccountRepository extends ReactiveCrudRepository<RoomInAc
 	
 	Mono<Boolean> existsByAccountIdAndRoomId(Long accountId, Long roomId);
 	
+	Mono<Boolean> existsByAccountIdAndWorkspaceIdAndRoomId(Long accountId, Long workspaceId, Long roomId);
+	
 	Flux<RoomInAccountEntity> findAllByRoomId(Long roomId);
 
 	/*

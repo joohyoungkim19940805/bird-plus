@@ -43,6 +43,9 @@ public class ChattingEntity {
     @Column("room_id")
 	private Long roomId;
     
+    @Column("workspace_id")
+    private Long workspaceId;
+    
     @Column(value="chatting")
     private String chatting;
     

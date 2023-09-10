@@ -195,9 +195,8 @@ public class AccountService  {
     				auth = null;
     			}
     		}else {
-	    		String[] paths = request.path().split("/");
 	    		
-	    		auth = paths.length == 0 ? "" : paths[paths.length - 1];
+	    		auth = request.pathVariable("auth");
 
 	    		if(auth.contains("bearer-")) {
 	    			auth = auth.replace("bearer-","");
