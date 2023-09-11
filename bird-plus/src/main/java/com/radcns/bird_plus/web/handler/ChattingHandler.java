@@ -82,7 +82,14 @@ public class ChattingHandler {
 			accountService.convertJwtToAccount(request)
 			.flatMap(account -> {
 				return request.bodyToMono(ChattingEntity.class)
-				.flatMap(chattingEntity -> chattingRepository.save(chattingEntity.withAccountId(account.getId())))
+				.flatMap(chattingEntity -> 
+					chattingRepository.save(
+						chattingEntity
+						.withAccountId(account.getId())
+						.withCreateBy(account.getId())
+						.withUpdatedBy(account.getId())
+					)
+				)
 				.doOnSuccess(e->{
 					EmitResult result = workspaceBorker.sendChatting(e);
 					if (result.isFailure()) {

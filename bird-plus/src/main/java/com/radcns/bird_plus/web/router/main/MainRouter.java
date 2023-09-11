@@ -69,8 +69,12 @@ public class MainRouter implements IndexRouterSwagger{
 	@Bean
 	public RouterFunction<ServerResponse> apiChatting(ChattingHandler chattingHandler){
 		return route().nest(path("/api/chatting"), builder -> builder
-					.POST("/send-stream", accept(MediaType.APPLICATION_JSON), chattingHandler::sendStream)
-					.GET("/emission-stream/{workspaceId}/{auth}", chattingHandler::emissionStream)
+				.nest(path("/create"), createPathBuilder -> createPathBuilder
+							.POST("/send-stream", accept(MediaType.APPLICATION_JSON), chattingHandler::sendStream)
+						.build())
+				.nest(path("search"), searchPathBuilder -> searchPathBuilder
+							.GET("/emission-stream/{workspaceId}/{auth}", chattingHandler::emissionStream)
+						.build())
 				).build();
 	}
 	@Bean
