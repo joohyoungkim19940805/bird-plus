@@ -120,5 +120,22 @@ public class ChattingHandler {
 				)
 				;
 	}
-	
+	public Mono<ServerResponse> searchChattingList(ServerRequest request){
+		
+		accountService.convertJwtToAccount(request)
+		.flatMap(account -> {
+			var param = request.queryParams();
+			Long workspaceId = Long.valueOf(param.getFirst("workspaceId"));
+			Long roomId = Long.valueOf(param.getFirst("roomId"));
+			if(workspaceId == null || roomId == null) {
+				return Mono.empty();
+			}
+			
+			return null;
+		});
+		
+		return ok()
+				.contentType(MediaType.APPLICATION_JSON)
+				.body(null, Object.class);
+	}
 }

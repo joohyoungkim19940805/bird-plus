@@ -100,4 +100,10 @@ public class ChattingEntity {
 		}
 		return this.updateMils; 
 	}
+	
+	public static class ChattingDomain{
+		@Getter
+		@Setter
+		public static class 
+	}
 }

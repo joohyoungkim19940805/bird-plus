@@ -14,6 +14,12 @@ import org.springframework.context.annotation.ComponentScan;
 
 //@ServletComponentScan
 
+/*
+[추후 리펙토링 필요한 내용들]
+ 2023 09 11 [FO] - 챗팅 해드처럼 데이터를 가져오는 방식을(SSE) 각 room list에 적용 -> 리프레쉬 비용을 절감할 수 있도록 함
+			[FO] - room 생성 후 room에 초대 된 사용자에게 push 할 수 있어야함, 현재는 X(방 만든 사용자가 채팅쳐야 할 것임 (채팅 sse로 동작할 것임)) -> SSE 방식으로 변경 필요
+			
+*/
 //매핑할 패키지 경로를 지정한다. 해당 클래스 외의 패키지 경로를 매핑하고 싶을 때(Autowired bean이 안잡힐 때)
 @ComponentScan(basePackages = {
 								"com.radcns.bird_plus.*"
