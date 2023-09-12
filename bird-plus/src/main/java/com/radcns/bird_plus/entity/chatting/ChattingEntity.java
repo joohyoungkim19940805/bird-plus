@@ -12,6 +12,7 @@ import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+import io.r2dbc.postgresql.codec.Json;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -47,7 +48,7 @@ public class ChattingEntity {
     private Long workspaceId;
     
     @Column(value="chatting")
-    private String chatting;
+    private Json chatting;
     
     @Column("is_delete")
     private Boolean isDelete;
@@ -101,9 +102,73 @@ public class ChattingEntity {
 		return this.updateMils; 
 	}
 	
+	public void setChatting(String chatting) {
+		this.chatting = Json.of(chatting);
+	}
+
+	public String getChatting() {
+		return this.chatting.asString();
+	}
+	
 	public static class ChattingDomain{
+		
+		@Builder(toBuilder = true)
 		@Getter
 		@Setter
-		public static class 
+		@NoArgsConstructor
+		@AllArgsConstructor
+		@ToString
+		@With
+		public static class ChattingResponse{
+			private Long chattingId;
+			private Long roomId;
+			private Long workspaceId;
+			private Json chatting;
+			private LocalDateTime createAt;
+			private LocalDateTime updatedAt;
+			private String fullName;
+			private String accountName;
+			
+			@Transient
+			private Long createMils;
+			
+			@Transient
+			private Long updateMils;
+			
+			public void setCreateAt(LocalDateTime createAt) {
+				this.createAt = createAt;
+				this.createMils = createAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+			}
+			public void setUpdatedAt(LocalDateTime updateAt) {
+				this.updatedAt = updateAt;
+				this.updateMils = updateAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+			}
+
+			public Long getCreateMils() {
+				if(this.createAt == null) {
+					return null;
+				}else if(this.createMils == null) {
+					this.createMils = createAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+					
+				}
+				return this.createMils; 
+			}
+			public Long getUpdateMils() {
+				if(this.updatedAt == null) {
+					return null;
+				}else if(this.updateMils == null) {
+					this.updateMils = updatedAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+				}
+				return this.updateMils; 
+			}
+			
+			public void setChatting(String chatting) {
+				this.chatting = Json.of(chatting);
+			}
+
+			public String getChatting() {
+				return this.chatting.asString();
+			}
+		}
 	}
 }

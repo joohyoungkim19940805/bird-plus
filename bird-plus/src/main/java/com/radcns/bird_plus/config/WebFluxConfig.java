@@ -1,10 +1,16 @@
 package com.radcns.bird_plus.config;
 
+import java.security.KeyFactory;
 import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.SecureRandom;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
-
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
@@ -29,6 +35,7 @@ import com.radcns.bird_plus.config.security.JwtVerifyHandler;
 
 import com.radcns.bird_plus.util.CommonUtil;
 import com.radcns.bird_plus.util.CreateRandomCodeUtil;
+import com.radcns.bird_plus.util.KeyPairUtil;
 
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -51,7 +58,16 @@ public class WebFluxConfig implements ApplicationContextAware, WebFluxConfigurer
 	@Autowired
 	private ObjectMapper objectMapper;
 	
-	
+    @Value("${key.pair.file.dir}")
+	private String keyPairFileDir;    
+
+    @Value("${key.public.name}")
+	private String keyPublicName;
+    
+    @Value("${key.private.name}")
+	private String keyPrivateName;
+
+    
 	@Override
 	public void configureHttpMessageCodecs(ServerCodecConfigurer configurer) {
 		configurer.defaultCodecs().jackson2JsonEncoder(
@@ -119,8 +135,10 @@ public class WebFluxConfig implements ApplicationContextAware, WebFluxConfigurer
 	}
 	
 	@Bean
-	public KeyPair keyPair() {
-		return Keys.keyPairFor(SignatureAlgorithm.RS256);
+	public KeyPair keyPair() throws NoSuchAlgorithmException {
+		var keyPairUtil = new KeyPairUtil(keyPairFileDir, keyPublicName, keyPrivateName);
+		return keyPairUtil.getKeyPair();
+		//return keyPair;//Keys.keyPairFor(SignatureAlgorithm.RS256);
 	}
 	
 	@Bean

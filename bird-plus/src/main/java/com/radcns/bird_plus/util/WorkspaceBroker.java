@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentMap;
 import org.springframework.stereotype.Component;
 
 import com.radcns.bird_plus.entity.chatting.ChattingEntity;
+import com.radcns.bird_plus.entity.chatting.ChattingEntity.ChattingDomain;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks.EmitResult;
@@ -25,7 +26,7 @@ public class WorkspaceBroker{
 		return WorkspaceBroker.manager.get(workspaceId).size();
 	}
 	
-	public EmitResult sendChatting(ChattingEntity chattingEntity) {
+	public EmitResult sendChatting(ChattingDomain.ChattingResponse chattingEntity) {
 		
 		EmitResult result = this.getManager(chattingEntity.getWorkspaceId())
 			.getChattingSinks()

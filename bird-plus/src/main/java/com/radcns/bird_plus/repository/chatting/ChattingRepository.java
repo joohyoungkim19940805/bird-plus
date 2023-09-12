@@ -13,15 +13,14 @@ import reactor.core.publisher.Mono;
 public interface ChattingRepository extends ReactiveCrudRepository<ChattingEntity, Long> {
 	@Query("""
 			SELECT
-				ch.workspace_id,
+				ch.chatting_id,
 				ch.room_id,
+				ch.workspace_id,
 				ch.chatting,
 				ch.create_at,
 				ch.update_at,
 				aa.full_name,
 				aa.account_name,
-				aa.job_grade,
-				aa.department,
 			FROM
 				ch_chatting ch
 			INNER JOIN

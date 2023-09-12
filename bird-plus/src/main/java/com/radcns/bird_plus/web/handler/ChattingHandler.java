@@ -9,6 +9,8 @@ import org.springframework.web.server.handler.FilteringWebHandler;
 
 import com.radcns.bird_plus.config.security.JwtVerifyHandler;
 import com.radcns.bird_plus.entity.chatting.ChattingEntity;
+import com.radcns.bird_plus.entity.chatting.ChattingEntity.ChattingDomain;
+import com.radcns.bird_plus.entity.chatting.ChattingEntity.ChattingDomain.ChattingResponse;
 import com.radcns.bird_plus.repository.chatting.ChattingRepository;
 import com.radcns.bird_plus.repository.customer.AccountRepository;
 import com.radcns.bird_plus.repository.room.RoomInAccountRepository;
@@ -18,6 +20,7 @@ import com.radcns.bird_plus.util.WorkspaceBroker;
 import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
 
 import io.jsonwebtoken.Claims;
+import io.r2dbc.postgresql.codec.Json;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.core.publisher.Sinks.EmitResult;
@@ -91,7 +94,19 @@ public class ChattingHandler {
 					)
 				)
 				.doOnSuccess(e->{
-					EmitResult result = workspaceBorker.sendChatting(e);
+					
+					EmitResult result = workspaceBorker.sendChatting(
+						ChattingResponse.builder()
+							.chattingId(e.getId())
+							.roomId(e.getRoomId())
+							.workspaceId(e.getWorkspaceId())
+							.chatting(Json.of(e.getChatting()))
+							.createAt(e.getCreateAt())
+							.updatedAt(e.getUpdatedAt())
+							.fullName(account.getFullName())
+							.accountName(account.getAccountName())
+						.build()
+					);
 					if (result.isFailure()) {
 						// do something here, since emission failed
 					}
@@ -105,20 +120,26 @@ public class ChattingHandler {
 		Long workspaceId = Long.valueOf(request.pathVariable("workspaceId"));
 		;
 		return ok().contentType(MediaType.TEXT_EVENT_STREAM)
-				.body(
-					workspaceBorker.getManager(workspaceId).getChattingSinks().asFlux()
-					.filter(chattingEntity -> chattingEntity.getWorkspaceId().equals(workspaceId))
-					.flatMap(chattingEntity -> {
-						return accountService.convertJwtToAccount(request)
-						.filterWhen(account -> 
-							roomInAccountRepository.existsByAccountIdAndWorkspaceIdAndRoomId(account.getId(), chattingEntity.getWorkspaceId(), chattingEntity.getRoomId())
-						)
-						.map(e -> chattingEntity.withAccountId(null))
-						;
+			.body(
+				workspaceBorker.getManager(workspaceId).getChattingSinks().asFlux()
+				.filter(chattingEntity -> chattingEntity.getWorkspaceId().equals(workspaceId))
+				.flatMap(chattingEntity -> {
+					return accountService.convertJwtToAccount(request)
+					.flatMap(account -> 
+						roomInAccountRepository.existsByAccountIdAndWorkspaceIdAndRoomId(account.getId(), chattingEntity.getWorkspaceId(), chattingEntity.getRoomId())
+					)
+					.flatMap(bol ->{
+						if(bol) {
+							return Mono.just(chattingEntity);
+						}else {
+							return Mono.empty();
+						}
 					})
-				, ChattingEntity.class
-				)
-				;
+					;
+				})
+			, ChattingDomain.ChattingResponse.class
+			)
+			;
 	}
 	public Mono<ServerResponse> searchChattingList(ServerRequest request){
 		

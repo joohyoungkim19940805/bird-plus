@@ -105,7 +105,7 @@
 		<dependency>
 		    <groupId>org.postgresql</groupId>
 		    <artifactId>r2dbc-postgresql</artifactId>
-		    <version>1.0.0.RELEASE</version>
+		    <version>1.0.2.RELEASE</version>
 		    <scope>runtime</scope>
 			<exclusions>
 				<exclusion>
@@ -113,6 +113,11 @@
     	 			<artifactId>reactor-netty-core</artifactId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+		<dependency>
+		    <groupId>io.r2dbc</groupId>
+		    <artifactId>r2dbc-postgresql</artifactId>
+		    <version>0.8.13.RELEASE</version>
 		</dependency>
 		
 		<dependency>
