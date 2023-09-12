@@ -74,6 +74,7 @@ public class MainRouter implements IndexRouterSwagger{
 						.build())
 				.nest(path("search"), searchPathBuilder -> searchPathBuilder
 							.GET("/emission-stream/{workspaceId}/{auth}", chattingHandler::emissionStream)
+							.GET("/chatting-list", accept(MediaType.APPLICATION_JSON), chattingHandler::searchChattingList)
 						.build())
 				).build();
 	}

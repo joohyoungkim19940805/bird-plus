@@ -28,7 +28,11 @@ import reactor.core.publisher.Sinks.EmitResult;
 import static com.radcns.bird_plus.util.Response.response;
 import static org.springframework.web.reactive.function.server.ServerResponse.ok;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 
 @Component
@@ -143,7 +147,7 @@ public class ChattingHandler {
 	}
 	public Mono<ServerResponse> searchChattingList(ServerRequest request){
 		
-		accountService.convertJwtToAccount(request)
+		var result = accountService.convertJwtToAccount(request)
 		.flatMap(account -> {
 			var param = request.queryParams();
 			Long workspaceId = Long.valueOf(param.getFirst("workspaceId"));
@@ -152,11 +156,21 @@ public class ChattingHandler {
 				return Mono.empty();
 			}
 			
-			return null;
+			PageRequest pageRequest = PageRequest.of(
+				Integer.valueOf(param.getOrDefault("page", List.of("0")).get(0)),
+				Integer.valueOf(param.getOrDefault("size", List.of("10")).get(0))	
+			);
+			return chattingRepository.findAllJoinAccountByWokrpsaceIdAndRoomId(account.getId(), workspaceId, pageRequest)
+				.collectList()
+				.zipWith(chattingRepository.countJoinAccountByWokrpsaceIdAndRoomId(account.getId(), workspaceId))
+				.map(entityTuples -> 
+					new PageImpl<>(entityTuples.getT1(), pageRequest, entityTuples.getT2())
+				)
+				;
 		});
 		
 		return ok()
-				.contentType(MediaType.APPLICATION_JSON)
-				.body(null, Object.class);
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(result.map(e-> response(Result._0)), Response.class);
 	}
 }

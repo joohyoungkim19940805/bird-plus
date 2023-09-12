@@ -6,6 +6,7 @@ import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 
 import com.radcns.bird_plus.entity.account.AccountEntity;
 import com.radcns.bird_plus.entity.chatting.ChattingEntity;
+import com.radcns.bird_plus.entity.chatting.ChattingEntity.ChattingDomain;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -39,7 +40,7 @@ public interface ChattingRepository extends ReactiveCrudRepository<ChattingEntit
 				:#{[2].pageSize}
 			;
 			""")
-	Flux<ChattingEntity> findAllJoinAccountByWokrpsaceIdAndRoomId(Long workspaceId, Long roomId, Pageable pageble);
+	Flux<ChattingDomain.ChattingResponse> findAllJoinAccountByWokrpsaceIdAndRoomId(Long workspaceId, Long roomId, Pageable pageble);
 	@Query("""
 			SELECT
 				count(1)
