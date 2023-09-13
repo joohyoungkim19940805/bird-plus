@@ -14,14 +14,14 @@ import reactor.core.publisher.Mono;
 public interface ChattingRepository extends ReactiveCrudRepository<ChattingEntity, Long> {
 	@Query("""
 			SELECT
-				ch.chatting_id,
+				ch.id,
 				ch.room_id,
 				ch.workspace_id,
 				ch.chatting,
 				ch.create_at,
 				ch.update_at,
 				aa.full_name,
-				aa.account_name,
+				aa.account_name
 			FROM
 				ch_chatting ch
 			INNER JOIN
@@ -33,7 +33,8 @@ public interface ChattingRepository extends ReactiveCrudRepository<ChattingEntit
 			AND
 				ch.room_id = :#{[1]}
 			ORDER BY
-				ch.create_at DESC
+				ch.create_at 
+			DESC
 			OFFSET
 				:#{[2].offset}
 			LIMIT
@@ -54,8 +55,6 @@ public interface ChattingRepository extends ReactiveCrudRepository<ChattingEntit
 				ch.workspace_id = :#{[0]}
 			AND
 				ch.room_id = :#{[1]}
-			ORDER BY
-				ch.create_at DESC
 			;
 			""")
 	Mono<Long> countJoinAccountByWokrpsaceIdAndRoomId(Long workspaceId, Long roomId);

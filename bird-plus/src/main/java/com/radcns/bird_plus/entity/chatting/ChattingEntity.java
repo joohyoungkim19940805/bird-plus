@@ -2,6 +2,7 @@ package com.radcns.bird_plus.entity.chatting;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.List;
 
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
@@ -61,14 +62,17 @@ public class ChattingEntity {
     @CreatedBy
     private Long createBy;
     
-    @Column("updated_at")
+    @Column("update_at")
     @LastModifiedDate
-    private LocalDateTime updatedAt;
+    private LocalDateTime updateAt;
 
-    @Column("updated_by")
+    @Column("update_by")
     @LastModifiedBy
-    private Long updatedBy;
+    private Long updateBy;
 
+    @Column("update_by_array")
+    private List<Long> updateByArray;
+    
 	@Transient
 	Long createMils;
 	
@@ -80,7 +84,7 @@ public class ChattingEntity {
 		this.createMils = createAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 	}
 	public void setUpdatedAt(LocalDateTime updateAt) {
-		this.updatedAt = updateAt;
+		this.updateAt = updateAt;
 		this.updateMils = updateAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 	}
 
@@ -94,10 +98,10 @@ public class ChattingEntity {
 		return this.createMils; 
 	}
 	public Long getUpdateMils() {
-		if(this.updatedAt == null) {
+		if(this.updateAt == null) {
 			return null;
 		}else if(this.updateMils == null) {
-			this.updateMils = updatedAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+			this.updateMils = updateAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 		}
 		return this.updateMils; 
 	}
@@ -120,12 +124,12 @@ public class ChattingEntity {
 		@ToString
 		@With
 		public static class ChattingResponse{
-			private Long chattingId;
+			private Long id;
 			private Long roomId;
 			private Long workspaceId;
 			private Json chatting;
 			private LocalDateTime createAt;
-			private LocalDateTime updatedAt;
+			private LocalDateTime updateAt;
 			private String fullName;
 			private String accountName;
 			
@@ -139,8 +143,8 @@ public class ChattingEntity {
 				this.createAt = createAt;
 				this.createMils = createAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 			}
-			public void setUpdatedAt(LocalDateTime updateAt) {
-				this.updatedAt = updateAt;
+			public void setUpdateAt(LocalDateTime updateAt) {
+				this.updateAt = updateAt;
 				this.updateMils = updateAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 			}
 
@@ -153,11 +157,11 @@ public class ChattingEntity {
 				}
 				return this.createMils; 
 			}
-			public Long getUpdateMils() {
-				if(this.updatedAt == null) {
+			public Long getUpdatedMils() {
+				if(this.updateAt == null) {
 					return null;
 				}else if(this.updateMils == null) {
-					this.updateMils = updatedAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+					this.updateMils = updateAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 				}
 				return this.updateMils; 
 			}

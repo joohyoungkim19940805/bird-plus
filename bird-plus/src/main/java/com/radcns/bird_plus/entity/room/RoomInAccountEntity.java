@@ -55,13 +55,13 @@ public class RoomInAccountEntity {
     @CreatedBy
     private Long createBy;
     
-    @Column("updated_at")
+    @Column("update_at")
     @LastModifiedDate
-    private LocalDateTime updatedAt;
+    private LocalDateTime updateAt;
 
-    @Column("updated_by")
+    @Column("update_by")
     @LastModifiedBy
-    private Long updatedBy;
+    private Long updateBy;
 
 	@Transient
 	Long createMils;
@@ -77,7 +77,7 @@ public class RoomInAccountEntity {
 		this.createMils = createAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 	}
 	public void setUpdatedAt(LocalDateTime updateAt) {
-		this.updatedAt = updateAt;
+		this.updateAt = updateAt;
 		this.updateMils = updateAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 	}
 
@@ -90,11 +90,11 @@ public class RoomInAccountEntity {
 		}
 		return this.createMils; 
 	}
-	public Long getUpdateMils() {
-		if(this.updatedAt == null) {
+	public Long getUpdatedMils() {
+		if(this.updateAt == null) {
 			return null;
 		}else if(this.updateMils == null) {
-			this.updateMils = updatedAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+			this.updateMils = updateAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 		}
 		return this.updateMils; 
 	}

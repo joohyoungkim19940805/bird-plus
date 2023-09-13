@@ -94,19 +94,21 @@ public class ChattingHandler {
 						chattingEntity
 						.withAccountId(account.getId())
 						.withCreateBy(account.getId())
-						.withUpdatedBy(account.getId())
+						.withUpdateBy(account.getId())
+						.withAccountId(account.getId())
+						.withUpdateByArray(List.of(account.getId()))
+						.withAccountName(account.getAccountName())
 					)
 				)
 				.doOnSuccess(e->{
-					
 					EmitResult result = workspaceBorker.sendChatting(
 						ChattingResponse.builder()
-							.chattingId(e.getId())
+							.id(e.getId())
 							.roomId(e.getRoomId())
 							.workspaceId(e.getWorkspaceId())
 							.chatting(Json.of(e.getChatting()))
 							.createAt(e.getCreateAt())
-							.updatedAt(e.getUpdatedAt())
+							.updateAt(e.getUpdateAt())
 							.fullName(account.getFullName())
 							.accountName(account.getAccountName())
 						.build()
@@ -160,17 +162,17 @@ public class ChattingHandler {
 				Integer.valueOf(param.getOrDefault("page", List.of("0")).get(0)),
 				Integer.valueOf(param.getOrDefault("size", List.of("10")).get(0))	
 			);
-			return chattingRepository.findAllJoinAccountByWokrpsaceIdAndRoomId(account.getId(), workspaceId, pageRequest)
+			return chattingRepository.findAllJoinAccountByWokrpsaceIdAndRoomId(workspaceId, roomId, pageRequest)
 				.collectList()
-				.zipWith(chattingRepository.countJoinAccountByWokrpsaceIdAndRoomId(account.getId(), workspaceId))
+				.zipWith(chattingRepository.countJoinAccountByWokrpsaceIdAndRoomId(workspaceId, roomId))
 				.map(entityTuples -> 
 					new PageImpl<>(entityTuples.getT1(), pageRequest, entityTuples.getT2())
 				)
 				;
 		});
-		
+
 		return ok()
 			.contentType(MediaType.APPLICATION_JSON)
-			.body(result.map(e-> response(Result._0)), Response.class);
+			.body(result.map(e-> response(Result._0, e)), Response.class);
 	}
 }
