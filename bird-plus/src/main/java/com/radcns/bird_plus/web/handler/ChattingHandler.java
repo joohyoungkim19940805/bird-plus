@@ -28,6 +28,7 @@ import reactor.core.publisher.Sinks.EmitResult;
 import static com.radcns.bird_plus.util.Response.response;
 import static org.springframework.web.reactive.function.server.ServerResponse.ok;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -107,8 +108,8 @@ public class ChattingHandler {
 							.roomId(e.getRoomId())
 							.workspaceId(e.getWorkspaceId())
 							.chatting(Json.of(e.getChatting()))
-							.createAt(e.getCreateAt())
-							.updateAt(e.getUpdateAt())
+							.createAt(LocalDateTime.now())
+							.updateAt(LocalDateTime.now())
 							.fullName(account.getFullName())
 							.accountName(account.getAccountName())
 						.build()

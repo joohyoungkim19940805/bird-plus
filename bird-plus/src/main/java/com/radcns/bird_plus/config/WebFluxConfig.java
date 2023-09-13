@@ -136,6 +136,9 @@ public class WebFluxConfig implements ApplicationContextAware, WebFluxConfigurer
 	
 	@Bean
 	public KeyPair keyPair() throws NoSuchAlgorithmException {
+		if(keyPairFileDir == null || keyPairFileDir.isEmpty()) {
+			keyPairFileDir = System.getProperty("user.home");
+		}
 		var keyPairUtil = new KeyPairUtil(keyPairFileDir, keyPublicName, keyPrivateName);
 		return keyPairUtil.getKeyPair();
 		//return keyPair;//Keys.keyPairFor(SignatureAlgorithm.RS256);
