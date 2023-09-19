@@ -535,6 +535,17 @@ public class RoomHandler {
 		;
 	}
 	
+	public Mono<ServerResponse> getRoomDetail(ServerRequest request){
+		Long roomId = Long.valueOf(request.pathVariable("roomId"));
+		return ok()
+		.contentType(MediaType.APPLICATION_JSON)
+		.body(
+			roomRepository.findById(roomId)
+			.map(e-> response(Result._0, e.withCreateBy(null)))
+		, Response.class)
+		;
+	}
+	
 	public Mono<ServerResponse> searchRoomInAccountAllList(ServerRequest request){
 		/*
 		var params = request.queryParams();
@@ -585,14 +596,17 @@ public class RoomHandler {
 		;
 	}
 	
-	public Mono<ServerResponse> getRoomDetail(ServerRequest request){
+	public Mono<ServerResponse> isRoomFavorites(ServerRequest request){
 		Long roomId = Long.valueOf(request.pathVariable("roomId"));
+		
 		return ok()
 		.contentType(MediaType.APPLICATION_JSON)
 		.body(
-			roomRepository.findById(roomId)
-			.map(e-> response(Result._0, e.withCreateBy(null)))
-		, Response.class)
-		;
+			accountService.convertJwtToAccount(request)	
+			.flatMap(account -> 
+				roomFavoritesRepository.existsByAccountIdAndRoomId(account.getId(), roomId)
+			)
+			.map(e-> response(Result._0, e))
+		, Response.class);
 	}
 }
