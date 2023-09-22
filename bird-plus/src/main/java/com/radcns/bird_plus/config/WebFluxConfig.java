@@ -124,10 +124,12 @@ public class WebFluxConfig implements ApplicationContextAware, WebFluxConfigurer
 	    return viewResolver;
 	}
 	
+	/*
 	@Bean
 	public CommonUtil commonUtil() {
 		return new CommonUtil();
 	}
+	*/
 	
 	@Bean
 	public CreateRandomCodeUtil createRandomCodeUtil() {

@@ -25,7 +25,6 @@ import com.radcns.bird_plus.entity.account.AccountEntity;
 import com.radcns.bird_plus.entity.account.AccountLogEntity;
 import com.radcns.bird_plus.repository.customer.AccountLogRepository;
 import com.radcns.bird_plus.repository.customer.AccountRepository;
-import com.radcns.bird_plus.util.CommonUtil;
 import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
 import com.radcns.bird_plus.util.exception.AccountException;
 
