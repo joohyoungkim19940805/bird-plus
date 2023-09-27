@@ -6,5 +6,5 @@ package com.radcns.bird_plus.config.security;
  *
  */
 public enum Role {
-	ROLE_MASTER, ROLE_USER, ROLE_GUEST, ROLE_BOT;
+	ROLE_MASTER, ROLE_USER, ROLE_GUEST, ROLE_BOT, ROLE_APP;
 }
