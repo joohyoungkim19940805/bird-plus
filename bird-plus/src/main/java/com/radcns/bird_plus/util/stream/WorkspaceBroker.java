@@ -1,4 +1,4 @@
-package com.radcns.bird_plus.util;
+package com.radcns.bird_plus.util.stream;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -25,7 +25,7 @@ public class WorkspaceBroker{
 		}
 		return WorkspaceBroker.manager.get(workspaceId).size();
 	}
-	
+	/*
 	public EmitResult sendChatting(ChattingDomain.ChattingResponse chattingEntity) {
 		
 		EmitResult result = this.getManager(chattingEntity.getWorkspaceId())
@@ -36,7 +36,17 @@ public class WorkspaceBroker{
 		}
 		return result;
 	}
-
+	*/
+	public <T> EmitResult send(ServerSentStreamTemplate<T> serverSentStreamTemplate) {
+		
+		EmitResult result = this.getManager(serverSentStreamTemplate.getWorkspaceId())
+			.getWorkspaceSinks()
+			.tryEmitNext(serverSentStreamTemplate);
+		if (result.isFailure()) {
+			// do something here, since emission failed
+		}
+		return result;
+	}
 	public WorkspaceManager getManager(Long workspaceId){
 		if( ! WorkspaceBroker.manager.containsKey(workspaceId)) {
 			var workspaceManager = new WorkspaceManager();

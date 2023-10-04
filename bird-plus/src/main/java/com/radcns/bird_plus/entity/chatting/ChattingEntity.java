@@ -171,6 +171,9 @@ public class ChattingEntity {
 			}
 
 			public String getChatting() {
+				if(this.chatting == null) {
+					return "";
+				}
 				return this.chatting.asString();
 			}
 		}

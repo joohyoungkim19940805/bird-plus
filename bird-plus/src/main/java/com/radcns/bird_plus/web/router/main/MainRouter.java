@@ -9,6 +9,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 
 import com.radcns.bird_plus.web.handler.AccountHandler;
 import com.radcns.bird_plus.web.handler.ChattingHandler;
+import com.radcns.bird_plus.web.handler.EventStreamHandler;
 import com.radcns.bird_plus.web.handler.MainHandler;
 import com.radcns.bird_plus.web.handler.RoomHandler;
 import com.radcns.bird_plus.web.handler.WorkspaceHandler;
@@ -70,14 +71,21 @@ public class MainRouter implements IndexRouterSwagger{
 	public RouterFunction<ServerResponse> apiChatting(ChattingHandler chattingHandler){
 		return route().nest(path("/api/chatting"), builder -> builder
 				.nest(path("/create"), createPathBuilder -> createPathBuilder
-							.POST("/send-stream", accept(MediaType.APPLICATION_JSON), chattingHandler::sendStream)
+							.POST("/send-chatting", accept(MediaType.APPLICATION_JSON), chattingHandler::sendStream)
 						.build())
 				.nest(path("/search"), searchPathBuilder -> searchPathBuilder
-							.GET("/emission-stream/{workspaceId}/{auth}", chattingHandler::emissionStream)
 							.GET("/chatting-list", accept(MediaType.APPLICATION_JSON), chattingHandler::searchChattingList)
 						.build())
 				).build();
 	}
+	
+	@Bean
+	public RouterFunction<ServerResponse> apiEventStream(EventStreamHandler eventStreamHandler){
+		return route().nest(path("/api/event-stream"), builder -> builder
+					.GET("/workspace/{workspaceId}/{auth}", eventStreamHandler::emissionStream)
+				).build();
+	}
+	
 	@Bean
 	public RouterFunction<ServerResponse> apiWorkspace(WorkspaceHandler workspaceHandler){
 		return route().nest(path("/api/workspace"), builder -> builder
