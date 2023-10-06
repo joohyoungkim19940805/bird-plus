@@ -5,6 +5,11 @@ import java.lang.reflect.Type;
 
 import org.springframework.data.annotation.Transient;
 
+import com.radcns.bird_plus.entity.chatting.ChattingEntity.ChattingDomain.ChattingResponse;
+import com.radcns.bird_plus.entity.room.RoomEntity;
+import com.radcns.bird_plus.entity.room.RoomInAccountEntity;
+import com.radcns.bird_plus.entity.room.RoomInAccountEntity.RoomInAccountDomain.RoomJoinedAccountResponse;
+
 import lombok.Getter;
 
 public abstract class ServerSentStreamTemplate<T> {
@@ -36,7 +41,9 @@ public abstract class ServerSentStreamTemplate<T> {
 	}
 	
 	public enum ServerSentStreamType{
-		CHTTING_ACCEPT, ROOM_ACCEPT;
-
+		CHTTING_ACCEPT, ROOM_ACCEPT, ROOM_IN_ACCOUNT_ACCEPT;
+		public final static Class<ChattingResponse> CHTTING_ACCEPT_CAST_CLASS = ChattingResponse.class;
+		public final static Class<RoomInAccountEntity> ROOM_ACCEPT_CAST_CLASS = RoomInAccountEntity.class;
+		public final static Class<RoomJoinedAccountResponse> ROOM_IN_ACCOUNT_ACCEPT_CAST_CLASS = RoomJoinedAccountResponse.class;
 	}
 }

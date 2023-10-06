@@ -116,7 +116,8 @@ public class MainRouter implements IndexRouterSwagger{
 				.nest(path("/create"), createPathBuilder -> createPathBuilder
 						.POST("/room", accept(MediaType.APPLICATION_JSON), roomHandler::createRoom)
 						.POST("/my-self-room/{workspaceId}", accept(MediaType.APPLICATION_JSON), roomHandler::createMySelfRoom)
-						.POST("/room-in-account", accept(MediaType.TEXT_EVENT_STREAM), roomHandler::createRoomInAccount)
+						//.POST("/room-in-account", accept(MediaType.TEXT_EVENT_STREAM), roomHandler::createRoomInAccount)
+						.POST("/room-in-account", accept(MediaType.APPLICATION_JSON), roomHandler::createRoomInAccount)
 						.POST("/room-favorites", accept(MediaType.APPLICATION_JSON), roomHandler::createRoomFavorites)
 					.build())
 				.nest(path("/update"), updatePathBuilder -> updatePathBuilder

@@ -23,6 +23,8 @@ public interface RoomInAccountRepository extends ReactiveCrudRepository<RoomInAc
 	
 	Flux<RoomInAccountEntity> findAllByRoomId(Long roomId);
 
+	Mono<RoomInAccountEntity> findByRoomIdAndAccountId(Long roomId, Long accountId);
+	
 	/*
 	@Query("""
 			SELECT

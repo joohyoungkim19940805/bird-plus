@@ -2,6 +2,7 @@ package com.radcns.bird_plus.entity.room;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.List;
 
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
@@ -102,15 +103,16 @@ public class RoomInAccountEntity {
 	public static class RoomInAccountDomain{
 		@Getter
 		@Setter
+		@Builder
 		public static class MyJoinedRoomListResponse{
 			private Long id;
 			private Long roomId;
-			private String roomCode;
+			private List<String> roomCode;
 			private String roomName;
 			private Boolean isEnabled;
 			private Long workspaceId;
 			private Long joinedCount;
-			private Integer orderSort;
+			private Long orderSort;
 			private RoomType roomType;
 		}
 		
@@ -129,10 +131,12 @@ public class RoomInAccountEntity {
 		@Builder
 		public static class RoomJoinedAccountResponse{
 			private Long roomId;
+			private String roomName;
 			private String accountName;
 			private String fullName;
 			private String job_grade;
 			private String department;
+			private RoomType roomType;
 			private Long createMils;
 			private Long updateMils;
 		}

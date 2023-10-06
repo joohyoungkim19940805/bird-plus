@@ -29,7 +29,7 @@ public class EventStreamHandler {
 	
 	public Mono<ServerResponse> emissionStream(ServerRequest request) {
 		Long workspaceId = Long.valueOf(request.pathVariable("workspaceId"));
-		;
+		
 		return ok().contentType(MediaType.TEXT_EVENT_STREAM)
 			.body(
 				workspaceBorker.getManager(workspaceId).getWorkspaceSinks().asFlux()
@@ -39,6 +39,10 @@ public class EventStreamHandler {
 						.flatMap(account -> {
 							if(serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.CHTTING_ACCEPT)) {
 								return eventStreamService.chattingEmissionStream(serverSentTemplate, account);	
+							}else if(serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.ROOM_ACCEPT)) {
+								return eventStreamService.roomEmissionStream(serverSentTemplate, account);
+							}else if(serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.ROOM_IN_ACCOUNT_ACCEPT)){
+								return Mono.just(serverSentTemplate);
 							}
 							return Mono.empty();
 						});

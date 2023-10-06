@@ -43,6 +43,10 @@ public class WorkspaceBroker{
 			.getWorkspaceSinks()
 			.tryEmitNext(serverSentStreamTemplate);
 		if (result.isFailure()) {
+			System.out.println("==========================================================");
+			System.out.println("emit failure !!");
+			System.out.println("==========================================================");
+			
 			// do something here, since emission failed
 		}
 		return result;

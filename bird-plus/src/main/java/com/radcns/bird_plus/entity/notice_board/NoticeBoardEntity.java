@@ -1,4 +1,4 @@
-package com.radcns.bird_plus.entity.chatting;
+package com.radcns.bird_plus.entity.notice_board;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -13,7 +13,8 @@ import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import io.r2dbc.postgresql.codec.Json;
+import com.radcns.bird_plus.entity.chatting.ChattingEntity;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,35 +23,32 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.With;
 
+import io.r2dbc.postgresql.codec.Json;
+
 @Builder(toBuilder = true)
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
 @With
-@Table(value="ch_chatting")
-public class ChattingEntity {
-	
+@Table(value="no_notice_board")
+public class NoticeBoardEntity {
 	@Id
 	@Column("id")
 	private Long id;
 	
-    @Column("account_id")
+	@Column("account_id")
 	private Long accountId;
-    
-    @Column("account_name")
-    private String accountName;
-    
-    @Column("room_id")
+	
+	@Column("room_id")
 	private Long roomId;
-    
-    @Column("workspace_id")
-    private Long workspaceId;
-    
-    @Column(value="chatting")
-    private Json chatting;
-    
+	
+	@Column("workspace_id")
+	private Long workspaceId;
+	
+	@Column("content")
+	private Json content;
+	
     @Column("is_delete")
     private Boolean isDelete;
 
@@ -124,16 +122,15 @@ public class ChattingEntity {
 		return this.updateMilsArray;
 	}
 	
-	public void setChatting(String chatting) {
-		this.chatting = Json.of(chatting);
+	public void setContent(String chatting) {
+		this.content = Json.of(chatting);
 	}
 
-	public String getChatting() {
-		return this.chatting.asString();
+	public String getContent() {
+		return this.content.asString();
 	}
 	
-	public static class ChattingDomain{
-		
+	public static class NoticeBoardDomain{
 		@Builder(toBuilder = true)
 		@Getter
 		@Setter
@@ -141,11 +138,11 @@ public class ChattingEntity {
 		@AllArgsConstructor
 		@ToString
 		@With
-		public static class ChattingResponse{
+		public static class NoticeBoardResponse{
 			private Long id;
 			private Long roomId;
 			private Long workspaceId;
-			private Json chatting;
+			private Json content;
 			private LocalDateTime createAt;
 			private LocalDateTime updateAt;
 			private String fullName;
@@ -156,7 +153,6 @@ public class ChattingEntity {
 			
 			@Transient
 			private Long updateMils;
-			
 			public void setCreateAt(LocalDateTime createAt) {
 				this.createAt = createAt;
 				this.createMils = createAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
@@ -185,15 +181,17 @@ public class ChattingEntity {
 			}
 			
 			public void setChatting(String chatting) {
-				this.chatting = Json.of(chatting);
+				this.content = Json.of(chatting);
 			}
 
 			public String getChatting() {
-				if(this.chatting == null) {
+				if(this.content == null) {
 					return "";
 				}
-				return this.chatting.asString();
+				return this.content.asString();
 			}
+			
 		}
 	}
+	
 }
