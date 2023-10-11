@@ -31,8 +31,8 @@ import io.r2dbc.postgresql.codec.Json;
 @NoArgsConstructor
 @AllArgsConstructor
 @With
-@Table(value="no_notice_board")
-public class NoticeBoardEntity {
+@Table(value="no_notice_board_group")
+public class NoticeBoardGroupEntity {
 	@Id
 	@Column("id")
 	private Long id;

@@ -4,6 +4,7 @@ import static com.radcns.bird_plus.util.Response.response;
 import static org.springframework.web.reactive.function.server.ServerResponse.ok;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,8 +64,8 @@ public class RoomHandler {
 	
 	public Mono<ServerResponse> createRoom(ServerRequest request){
 		return accountService.convertJwtToAccount(request)
-		.flatMap(account -> request.bodyToMono(RoomEntity.class)
-			.flatMap(room ->{
+		.flatMap(account -> 
+			request.bodyToMono(RoomEntity.class).flatMap(room ->{
 				room.setCreateBy(account.getId());
 				return roomRepository.save(room)
 				.doOnSuccess(e->e.withCreateBy(null));
@@ -119,7 +120,6 @@ public class RoomHandler {
 	}
 	public Mono<ServerResponse> createMySelfRoom(ServerRequest request){
 		Long workspaceId = Long.valueOf(request.pathVariable("workspaceId"));
-		;
 		return ok()
 		.contentType(MediaType.APPLICATION_JSON)
 		.body(
@@ -174,82 +174,6 @@ public class RoomHandler {
 	}
 	
 	public Mono<ServerResponse> createRoomInAccount(ServerRequest request){
-		/*return accountService.convertJwtToAccount(request)
-		.flatMapMany(account -> {
-			return roomInAccountRepository.saveAll(
-				request.bodyToFlux(RoomInAccountDomain.CreateRoomInAccountRequest.class)
-				.flatMap(createRoomInAccount -> {
-					return accountRepository.findByAccountName(createRoomInAccount.getAccountName())
-					.filterWhen(e -> 
-						workspaceInAccountRepository.existsByWorkspaceIdAndAccountId(createRoomInAccount.getWorkspaceId(), e.getId())
-					)
-					.flatMap(e-> {
-						RoomInAccountEntity roomInAccountEntity = RoomInAccountEntity.builder()
-						.accountId(e.getId())
-						.workspaceId(createRoomInAccount.getWorkspaceId())
-						.roomId(createRoomInAccount.getRoomId())
-						.createBy(account.getId())
-						.roomJoinedAccountResponse(
-							RoomJoinedAccountResponse.builder()
-							.roomId(createRoomInAccount.getRoomId())
-							.accountName(e.getAccountName())
-							.fullName(e.getFullName())
-							.job_grade(e.getJobGrade())
-							.department(e.getDepartment())
-							.roomType(createRoomInAccount.getRoomType())
-							.build()
-						)
-						.build();
-						List<RoomType> roomType;
-						if(createRoomInAccount.getRoomType().equals(RoomType.ROOM_PRIVATE) || createRoomInAccount.getRoomType().equals(RoomType.ROOM_PRIVATE)) {
-							roomType = List.of(RoomType.ROOM_PRIVATE, RoomType.ROOM_PUBLIC);
-						}else{//(e.getRoomType().equals(RoomType.MESSENGER) || e.getRoomType().equals(RoomType.SELF)) {
-							roomType = List.of(RoomType.MESSENGER, RoomType.SELF);
-						}
-						return roomInAccountRepository.findMaxJoinRoomByAccountIdAndWorkspaceIdAndRoomType
-							(roomInAccountEntity.getAccountId(), roomInAccountEntity.getWorkspaceId(), roomType)
-							.defaultIfEmpty((long)0)
-							.map(count -> roomInAccountEntity.withOrderSort(count + 1));
-					})
-					;
-				})
-			)
-			.doOnNext((e)-> {
-				System.out.println("kjh test 444 <<<<< ");
-				System.out.println(e);
-				e.getRoomJoinedAccountResponse().setCreateMils(e.getCreateMils());
-				e.getRoomJoinedAccountResponse().setUpdateMils(e.getUpdateMils());
-				workspaceBorker.send(
-					new ServerSentStreamTemplate<RoomJoinedAccountResponse>(
-						e.getWorkspaceId(),
-						e.getRoomId(),
-						e.getRoomJoinedAccountResponse(),
-						ServerSentStreamType.ROOM_IN_ACCOUNT_ACCEPT
-					) {}
-				);
-				
-				e.setAccountId(null);
-				e.setRoomJoinedAccountResponse(null);
-				workspaceBorker.send(
-					new ServerSentStreamTemplate<RoomInAccountEntity>(
-						e.getWorkspaceId(),
-						e.getRoomId(),
-						e,
-						ServerSentStreamType.ROOM_ACCEPT
-					) {}
-				);
-				//sinks.tryEmitNext(e.getRoomJoinedAccountResponse());
-				//return e;
-			})
-			.delayElements(Duration.ofMillis(100));
-		})
-		.collectList()
-		.flatMap(roomInAccountEntity -> ok()
-			.contentType(MediaType.APPLICATION_JSON)
-			.body(Mono.just(response(Result._0, null)), Response.class)
-		)
-		;*/
-		//return null;
 		return ok()
 		//.contentType(MediaType.TEXT_EVENT_STREAM)
 		.contentType(MediaType.APPLICATION_JSON)
@@ -338,7 +262,8 @@ public class RoomHandler {
 	
 	public Mono<ServerResponse> updateRoomInAccountOrder(ServerRequest request){
 		return accountService.convertJwtToAccount(request)
-		.flatMapMany(account -> 
+		//.flatMapMany(account -> 
+		.flatMap(account -> {
 			roomInAccountRepository.saveAll(
 				request.bodyToFlux(RoomInAccountEntity.class)
 				.filterWhen(roomInAccount->
@@ -352,16 +277,25 @@ public class RoomHandler {
 				)
 				.switchIfEmpty(Mono.error(new RoomException(Result._301)))
 				.flatMap(roomInAccount -> roomInAccountRepository.findById(roomInAccount.getId())
-					.map(newRoomInAccount->newRoomInAccount.withOrderSort(roomInAccount.getOrderSort()))
+					.map(newRoomInAccount->
+						newRoomInAccount
+							.withOrderSort(roomInAccount.getOrderSort())
+							//.withUpdateAt(LocalDateTime.now())
+					)
 				)
-			)
-		)
-		.collectList()
+			).subscribe();
+			return ok()
+				.contentType(MediaType.APPLICATION_JSON)
+				.body(Mono.just(response(Result._0, null)), Response.class);
+		})
+		;
+		/*.collectList()
 		.flatMap(roomInAccountList -> ok()
 			.contentType(MediaType.APPLICATION_JSON)
 			.body(Mono.just(response(Result._0, roomInAccountList)), Response.class)
 		)
 		;
+		*/
 	}
 	
 	public Mono<ServerResponse> createRoomFavorites(ServerRequest request){
@@ -396,7 +330,8 @@ public class RoomHandler {
 
 	public Mono<ServerResponse> updateRoomFavoritesOrder(ServerRequest request){
 		return accountService.convertJwtToAccount(request)
-		.flatMapMany(account -> 
+		//.flatMapMany(account -> 
+		.flatMap(account -> {
 			roomFavoritesRepository.saveAll(
 				request.bodyToFlux(RoomInAccountEntity.class)
 				.filterWhen(roomInAccount->
@@ -410,16 +345,25 @@ public class RoomHandler {
 				)
 				.switchIfEmpty(Mono.error(new RoomException(Result._301)))
 				.flatMap(roomInAccount -> roomFavoritesRepository.findById(roomInAccount.getId())
-					.map(newRoomInAccount->newRoomInAccount.withOrderSort(roomInAccount.getOrderSort()))
+					.map(newRoomInAccount->
+						newRoomInAccount
+							.withOrderSort(roomInAccount.getOrderSort())
+							//.withUpdateAt(LocalDateTime.now())
+					)
 				)
-			)
-		)
-		.collectList()
+			).subscribe();
+			return ok()
+				.contentType(MediaType.APPLICATION_JSON)
+				.body(Mono.just(response(Result._0, null)), Response.class);
+		})
+		;
+		/*.collectList()
 		.flatMap(roomInAccountList -> ok()
 			.contentType(MediaType.APPLICATION_JSON)
-			.body(Mono.just(response(Result._0, null)), Response.class)
+			.body(Mono.just(response(Result._0, roomInAccountList)), Response.class)
 		)
 		;
+		*/
 	}
 	
 	public Mono<ServerResponse> searchRoom(ServerRequest request){

@@ -10,9 +10,9 @@ import com.radcns.bird_plus.entity.notice_board.NoticeBoardEntity.NoticeBoardDom
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-public interface NoticeBoardRepository extends ReactiveCrudRepository<NoticeBoardEntity, Long>{
+public interface NoticeBoardGroupRepository extends ReactiveCrudRepository<NoticeBoardEntity, Long>{
 
-	/*@Query("""
+	@Query("""
 			SELECT
 				nnb.id,
 				nnb.room_id,
@@ -20,52 +20,42 @@ public interface NoticeBoardRepository extends ReactiveCrudRepository<NoticeBoar
 				nnb.chatting,
 				nnb.create_at,
 				nnb.update_at,
-				nnb.full_name,
+				aa.full_name,
+				aa.account_name
 			FROM
 				no_notice_board nnb
+			INNER JOIN
+				ac_account aa
+			ON
+				nnb.account_id = aa.id
 			WHERE
 				nnb.workspace_id = :#{[0]}
 			AND
 				nnb.room_id = :#{[1]}
-			AND
-				nnb.group_id = :#{[2]}
 			ORDER BY
 				nnb.create_at 
 			DESC
 			OFFSET
-				:#{[3].offset}
+				:#{[2].offset}
 			LIMIT
-				:#{[3].pageSize}
+				:#{[2].pageSize}
 			;
-			""")*/
-	Flux<NoticeBoardDomain.NoticeBoardResponse> findAllByWokrpsaceIdAndRoomIdAndGroupId(Long workspaceId, Long roomId, Long groupId, Pageable pageble);
-	
-	/*@Query("""
+			""")
+	Flux<NoticeBoardDomain.NoticeBoardResponse> findAllJoinAccountByWokrpsaceIdAndRoomId(Long workspaceId, Long roomId, Pageable pageble);
+	@Query("""
 			SELECT
 				count(1)
 			FROM
 				no_notice_board nnb
+			INNER JOIN
+				ac_account aa
+			ON
+				nnb.account_id = aa.id
 			WHERE
 				nnb.workspace_id = :#{[0]}
 			AND
 				nnb.room_id = :#{[1]}
-			AND
-				nnb.group_id = :#{[2]}
 			;
-			""")*/
-	Mono<Long> countByWokrpsaceIdAndRoomIdAndGroupId(Long workspaceId, Long roomId, Long groupId);
-	
-	@Query("""
-			SELECT
-				MAX(nnb.order_sort)
-			FROM
-				no_notice_board nnb
-			WHERE
-				nnb.workspace_id = :#{[0]}
-			AND
-				nnb.room_id = :#{[1]}
-			AND
-				nnb.group_id = :#{[2]}
 			""")
-	Mono<Long> findMaxByWorkspaceIdAndRoomIdAndGroupId(Long workspaceId, Long roomId, Long groupId);
+	Mono<Long> countJoinAccountByWokrpsaceIdAndRoomId(Long workspaceId, Long roomId);
 }
