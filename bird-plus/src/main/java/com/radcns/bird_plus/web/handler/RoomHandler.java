@@ -4,7 +4,6 @@ import static com.radcns.bird_plus.util.Response.response;
 import static org.springframework.web.reactive.function.server.ServerResponse.ok;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,7 +64,10 @@ public class RoomHandler {
 	public Mono<ServerResponse> createRoom(ServerRequest request){
 		return accountService.convertJwtToAccount(request)
 		.flatMap(account -> 
-			request.bodyToMono(RoomEntity.class).flatMap(room ->{
+			request.bodyToMono(RoomEntity.class)
+			.filterWhen(e-> workspaceInAccountRepository.existsByWorkspaceIdAndAccountId(e.getWorkspaceId(), account.getId()))
+			.switchIfEmpty(Mono.error(new WorkspaceException(Result._201)))
+			.flatMap(room ->{
 				room.setCreateBy(account.getId());
 				return roomRepository.save(room)
 				.doOnSuccess(e->e.withCreateBy(null));
@@ -124,6 +126,8 @@ public class RoomHandler {
 		.contentType(MediaType.APPLICATION_JSON)
 		.body(
 			accountService.convertJwtToAccount(request)
+			.filterWhen(e-> workspaceInAccountRepository.existsByWorkspaceIdAndAccountId(workspaceId, e.getId()))
+			.switchIfEmpty(Mono.error(new WorkspaceException(Result._201)))
 			.flatMap(e->{
 				return roomRepository.existsByCreateByAndWorkspaceIdAndRoomType(e.getId(), workspaceId, RoomType.SELF)
 				.flatMap(bol -> {
@@ -375,7 +379,7 @@ public class RoomHandler {
 				var param = request.queryParams();
 				Long workspaceId = Long.valueOf(param.getFirst("workspaceId"));
 				if(workspaceId == null) {
-					return Mono.empty();
+					return Mono.error(new WorkspaceException(Result._200));
 				}
 				RoomType roomType;
 				try {
@@ -407,42 +411,11 @@ public class RoomHandler {
 				)
 				;
 			})
-			.switchIfEmpty(Mono.error(new WorkspaceException(Result._200)))
+			//.switchIfEmpty(Mono.error(new WorkspaceException(Result._200)))
 			.map(list -> response(Result._0, list))
 		, Response.class);
 	}
 
-	/*
-	public Mono<ServerResponse> searchRoomMyJoined(ServerRequest request){
-		return ok()
-		.contentType(MediaType.APPLICATION_JSON)
-		.body(
-			accountService.convertJwtToAccount(request)
-			.flatMap(account -> {
-				var param = request.queryParams();
-				Long workspaceId = Long.valueOf(param.getFirst("workspaceId"));
-				if(workspaceId == null) {
-					return Mono.empty();
-				}
-
-				PageRequest pageRequest = PageRequest.of(
-					Integer.valueOf(param.getOrDefault("page", List.of("0")).get(0)),
-					Integer.valueOf(param.getOrDefault("size", List.of("10")).get(0))	
-				);
-				
-				return roomInAccountRepository.findAllJoinRoomByAccountIdAndWorkspaceId(account.getId(), workspaceId, pageRequest)
-				.collectList()
-				.zipWith(roomInAccountRepository.countJoinRoomByAccountIdAndWorkspaceId(account.getId(), workspaceId))
-				.map(entityTuples -> 
-					new PageImpl<>(entityTuples.getT1(), pageRequest, entityTuples.getT2())
-				)
-				;
-			})
-			.switchIfEmpty(Mono.error(new WorkspaceException(Result._200)))
-			.map(list -> response(Result._0, list))
-		, Response.class);
-	}
-	*/
 	public Mono<ServerResponse> searchRoomMyJoinedAndRoomType(ServerRequest request){
 		return ok()
 		.contentType(MediaType.APPLICATION_JSON)
@@ -452,7 +425,7 @@ public class RoomHandler {
 				var param = request.queryParams();
 				Long workspaceId = Long.valueOf(param.getFirst("workspaceId"));
 				if(workspaceId == null) {
-					return Mono.empty();
+					return Mono.error(new WorkspaceException(Result._200));
 				}
 				List<RoomType> roomType;
 				try {
@@ -473,7 +446,7 @@ public class RoomHandler {
 				)
 				;
 			})
-			.switchIfEmpty(Mono.error(new WorkspaceException(Result._200)))
+			//.switchIfEmpty(Mono.error(new WorkspaceException(Result._200)))
 			.map(list -> response(Result._0, list))
 		, Response.class);
 	}
@@ -486,7 +459,7 @@ public class RoomHandler {
 				var param = request.queryParams();
 				Long workspaceId = Long.valueOf(param.getFirst("workspaceId"));
 				if(workspaceId == null) {
-					return Mono.empty();
+					return Mono.error(new WorkspaceException(Result._200));
 				}
 				List<RoomType> roomType;
 				try {
@@ -512,47 +485,11 @@ public class RoomHandler {
 				)
 				;
 			})
-			.switchIfEmpty(Mono.error(new WorkspaceException(Result._200)))
+			//.switchIfEmpty(Mono.error(new WorkspaceException(Result._200)))
 			.map(list -> response(Result._0, list))
 		, Response.class); 
 	}
 	
-	/*
-	public Mono<ServerResponse> searchRoomMyJoinedName(ServerRequest request){
-		return ok()
-		.contentType(MediaType.APPLICATION_JSON)
-		.body(
-			accountService.convertJwtToAccount(request)
-			.flatMap(account -> {
-				var param = request.queryParams();
-				Long workspaceId = Long.valueOf(param.getFirst("workspaceId"));
-				if(workspaceId == null) {
-					return Mono.empty();
-				}
-
-				String roomName = param.getOrDefault("roomName", List.of("")).get(0);
-				//if(roomName == null) {
-				//	return Mono.empty();
-				//}
-				
-				PageRequest pageRequest = PageRequest.of(
-					Integer.valueOf(param.getOrDefault("page", List.of("0")).get(0)),
-					Integer.valueOf(param.getOrDefault("size", List.of("10")).get(0))	
-				);
-				
-				return roomInAccountRepository.findAllJoinRoomByAccountIdAndWorkspaceIdAndRoomName(account.getId(), workspaceId, roomName, pageRequest)
-				.collectList()
-				.zipWith(roomInAccountRepository.countJoinRoomByAccountIdAndWorkspaceIdAndRoomName(account.getId(), workspaceId, roomName))
-				.map(entityTuples -> 
-					new PageImpl<>(entityTuples.getT1(), pageRequest, entityTuples.getT2())
-				)
-				;
-			})
-			.switchIfEmpty(Mono.error(new WorkspaceException(Result._200)))
-			.map(list -> response(Result._0, list))
-		, Response.class); 
-	}
-	*/
 	public Mono<ServerResponse> searchRoomFavoritesMyJoined(ServerRequest request){
 		return ok()
 		.contentType(MediaType.APPLICATION_JSON)
@@ -562,7 +499,7 @@ public class RoomHandler {
 				var param = request.queryParams();
 				Long workspaceId = Long.valueOf(param.getFirst("workspaceId"));
 				if(workspaceId == null) {
-					return Mono.empty();
+					return Mono.error(new WorkspaceException(Result._200));
 				}
 
 				PageRequest pageRequest = PageRequest.of(
@@ -578,7 +515,7 @@ public class RoomHandler {
 				)
 				;
 			})
-			.switchIfEmpty(Mono.error(new WorkspaceException(Result._200)))
+			//.switchIfEmpty(Mono.error(new WorkspaceException(Result._200)))
 			.map(list -> response(Result._0, list))
 		, Response.class);
 	}

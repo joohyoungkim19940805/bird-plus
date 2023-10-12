@@ -5,57 +5,68 @@ import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 
 import com.radcns.bird_plus.entity.notice_board.NoticeBoardEntity;
+import com.radcns.bird_plus.entity.notice_board.NoticeBoardGroupEntity;
 import com.radcns.bird_plus.entity.notice_board.NoticeBoardEntity.NoticeBoardDomain;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-public interface NoticeBoardGroupRepository extends ReactiveCrudRepository<NoticeBoardEntity, Long>{
+public interface NoticeBoardGroupRepository extends ReactiveCrudRepository<NoticeBoardGroupEntity, Long>{
 
-	@Query("""
+	/*@Query("""
 			SELECT
-				nnb.id,
-				nnb.room_id,
-				nnb.workspace_id,
-				nnb.chatting,
-				nnb.create_at,
-				nnb.update_at,
-				aa.full_name,
-				aa.account_name
+				nnbg.id,
+				nnbg.room_id,
+				nnbg.workspace_id,
+				nnbg.chatting,
+				nnbg.create_at,
+				nnbg.update_at,
+				nnbg.full_name,
 			FROM
-				no_notice_board nnb
-			INNER JOIN
-				ac_account aa
-			ON
-				nnb.account_id = aa.id
+				no_notice_board_group nnbg
 			WHERE
-				nnb.workspace_id = :#{[0]}
+				nnbg.workspace_id = :#{[0]}
 			AND
-				nnb.room_id = :#{[1]}
+				nnbg.room_id = :#{[1]}
+			AND
+				nngb.group_id = :#{[2]}
 			ORDER BY
-				nnb.create_at 
+				nnbg.create_at 
 			DESC
 			OFFSET
-				:#{[2].offset}
+				:#{[3].offset}
 			LIMIT
-				:#{[2].pageSize}
+				:#{[3].pageSize}
 			;
-			""")
-	Flux<NoticeBoardDomain.NoticeBoardResponse> findAllJoinAccountByWokrpsaceIdAndRoomId(Long workspaceId, Long roomId, Pageable pageble);
-	@Query("""
+			""")*/
+	Flux<NoticeBoardGroupEntity> findAllByWorkspaceIdAndRoomIdAndParentGroupId(Long workspaceId, Long roomId, Long parentGroupId, Pageable pageble);
+
+	/*@Query("""
 			SELECT
 				count(1)
 			FROM
-				no_notice_board nnb
-			INNER JOIN
-				ac_account aa
-			ON
-				nnb.account_id = aa.id
+				no_notice_board_group nnbg
 			WHERE
-				nnb.workspace_id = :#{[0]}
+				nnbg.workspace_id = :#{[0]}
 			AND
-				nnb.room_id = :#{[1]}
+				nnbg.room_id = :#{[1]}
+			AND
+				nnbg.group_id = :#{[2]}
 			;
+			""")*/
+	Mono<Long> countByWorkspaceIdAndRoomIdAndParentGroupId(Long workspaceId, Long roomId, Long parentGroupId);
+	
+	@Query("""
+			SELECT
+				MAX(nnb.order_sort)
+			FROM
+				no_notice_board_group nnbg
+			WHERE
+				nnbg.workspace_id = :#{[0]}
+			AND
+				nnbg.room_id = :#{[1]}
+			AND
+				nnbg.parent_group_id = :#{[2]}
 			""")
-	Mono<Long> countJoinAccountByWokrpsaceIdAndRoomId(Long workspaceId, Long roomId);
+	Mono<Long> findMaxByWorkspaceIdAndRoomIdAndParentGroupId(Long workspaceId, Long roomId, Long parentGroupId);
 }

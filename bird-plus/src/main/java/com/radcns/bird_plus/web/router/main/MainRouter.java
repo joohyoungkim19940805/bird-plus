@@ -11,6 +11,7 @@ import com.radcns.bird_plus.web.handler.AccountHandler;
 import com.radcns.bird_plus.web.handler.ChattingHandler;
 import com.radcns.bird_plus.web.handler.EventStreamHandler;
 import com.radcns.bird_plus.web.handler.MainHandler;
+import com.radcns.bird_plus.web.handler.NoticeBoardHandler;
 import com.radcns.bird_plus.web.handler.RoomHandler;
 import com.radcns.bird_plus.web.handler.WorkspaceHandler;
 
@@ -90,7 +91,7 @@ public class MainRouter implements IndexRouterSwagger{
 	public RouterFunction<ServerResponse> apiWorkspace(WorkspaceHandler workspaceHandler){
 		return route().nest(path("/api/workspace"), builder -> builder
 				.nest(path("/create"), createPathBuilder -> createPathBuilder
-						.POST("/workspace", accept(MediaType.APPLICATION_JSON), workspaceHandler::createWorkspace)
+						.POST("/", accept(MediaType.APPLICATION_JSON), workspaceHandler::createWorkspace)
 					.build())
 				/*.nest(path("update") , updatePathBuilder -> updatePathBuilder
 					.build())*/
@@ -114,7 +115,7 @@ public class MainRouter implements IndexRouterSwagger{
 	public RouterFunction<ServerResponse> apiRoom(RoomHandler roomHandler){
 		return route().nest(path("/api/room"), builder -> builder
 				.nest(path("/create"), createPathBuilder -> createPathBuilder
-						.POST("/room", accept(MediaType.APPLICATION_JSON), roomHandler::createRoom)
+						.POST("/", accept(MediaType.APPLICATION_JSON), roomHandler::createRoom)
 						.POST("/my-self-room/{workspaceId}", accept(MediaType.APPLICATION_JSON), roomHandler::createMySelfRoom)
 						//.POST("/room-in-account", accept(MediaType.TEXT_EVENT_STREAM), roomHandler::createRoomInAccount)
 						.POST("/room-in-account", accept(MediaType.APPLICATION_JSON), roomHandler::createRoomInAccount)
@@ -135,6 +136,19 @@ public class MainRouter implements IndexRouterSwagger{
 						.GET("/is-room-favorites/{roomId}", accept(MediaType.APPLICATION_JSON), roomHandler::isRoomFavorites)
 					.build())
 			).build();
+	}
+	
+	@Bean
+	public RouterFunction<ServerResponse> apiNoticeBoard(NoticeBoardHandler noticeBoardHandler){
+		return route().nest(path("/api/notice-board"), builder -> builder
+				.nest(path("/create"), createPathBuilder -> createPathBuilder
+						.POST("/", accept(MediaType.APPLICATION_JSON), noticeBoardHandler::createNoticeBoard)
+						.POST("/group", accept(MediaType.APPLICATION_JSON), noticeBoardHandler::createNoticeBoardGroup)
+						.build())
+				.nest(path("/search"), searchPathBuilder -> searchPathBuilder
+							.GET("/notice-board-list", accept(MediaType.APPLICATION_JSON), noticeBoardHandler::searchNoticeBoardAndGroup)
+						.build())
+				).build();
 	}
 	
 	/*

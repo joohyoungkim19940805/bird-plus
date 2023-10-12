@@ -2,7 +2,7 @@ package com.radcns.bird_plus.entity.notice_board;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.List;
+
 
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
@@ -13,17 +13,13 @@ import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import com.radcns.bird_plus.entity.chatting.ChattingEntity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 import lombok.With;
-
-import io.r2dbc.postgresql.codec.Json;
 
 @Builder(toBuilder = true)
 @Getter
@@ -46,12 +42,21 @@ public class NoticeBoardEntity {
 	@Column("workspace_id")
 	private Long workspaceId;
 	
-	@Column("content")
-	private Json content;
+	@Column("parent_group_id")
+	private Long parentGroupId;
+	
+	@Column("order_sort")
+	private Long orderSort;
+	
+	@Column("full_name")
+	private String fullName;
+	
+	@Column("title")
+	private String title;
 	
     @Column("is_delete")
     private Boolean isDelete;
-
+    
     @Column("create_at")
     @CreatedDate
     private LocalDateTime createAt;
@@ -68,8 +73,8 @@ public class NoticeBoardEntity {
     @LastModifiedBy
     private Long updateBy;
 
-    @Transient
-    List<Long> updateMilsArray;
+	@Column("group_id")
+	private Long groupId;
     
 	@Transient
 	Long createMils;
@@ -103,77 +108,9 @@ public class NoticeBoardEntity {
 		}
 		return this.updateMils; 
 	}
-	
-	public void setContent(String chatting) {
-		this.content = Json.of(chatting);
-	}
 
-	public String getContent() {
-		return this.content.asString();
-	}
-	
 	public static class NoticeBoardDomain{
-		@Builder(toBuilder = true)
-		@Getter
-		@Setter
-		@NoArgsConstructor
-		@AllArgsConstructor
-		@ToString
-		@With
-		public static class NoticeBoardResponse{
-			private Long id;
-			private Long roomId;
-			private Long workspaceId;
-			private Json content;
-			private LocalDateTime createAt;
-			private LocalDateTime updateAt;
-			private String fullName;
-			private String accountName;
-			
-			@Transient
-			private Long createMils;
-			
-			@Transient
-			private Long updateMils;
-			public void setCreateAt(LocalDateTime createAt) {
-				this.createAt = createAt;
-				this.createMils = createAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-			}
-			public void setUpdateAt(LocalDateTime updateAt) {
-				this.updateAt = updateAt;
-				this.updateMils = updateAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-			}
-
-			public Long getCreateMils() {
-				if(this.createAt == null) {
-					return null;
-				}else if(this.createMils == null) {
-					this.createMils = createAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-					
-				}
-				return this.createMils; 
-			}
-			public Long getUpdatedMils() {
-				if(this.updateAt == null) {
-					return null;
-				}else if(this.updateMils == null) {
-					this.updateMils = updateAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-				}
-				return this.updateMils; 
-			}
-			
-			public void setChatting(String chatting) {
-				this.content = Json.of(chatting);
-			}
-
-			public String getChatting() {
-				if(this.content == null) {
-					return "";
-				}
-				return this.content.asString();
-			}
-			
-		}
+		
 	}
 	
 }

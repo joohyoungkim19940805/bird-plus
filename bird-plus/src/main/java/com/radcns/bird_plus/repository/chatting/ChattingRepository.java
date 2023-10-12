@@ -42,7 +42,7 @@ public interface ChattingRepository extends ReactiveCrudRepository<ChattingEntit
 				:#{[2].pageSize}
 			;
 			""")
-	Flux<ChattingDomain.ChattingResponse> findAllJoinAccountByWokrpsaceIdAndRoomId(Long workspaceId, Long roomId, Pageable pageble);
+	Flux<ChattingDomain.ChattingResponse> findAllJoinAccountByWorkspaceIdAndRoomId(Long workspaceId, Long roomId, Pageable pageble);
 	@Query("""
 			SELECT
 				count(1)
@@ -58,5 +58,5 @@ public interface ChattingRepository extends ReactiveCrudRepository<ChattingEntit
 				ch.room_id = :#{[1]}
 			;
 			""")
-	Mono<Long> countJoinAccountByWokrpsaceIdAndRoomId(Long workspaceId, Long roomId);
+	Mono<Long> countJoinAccountByWorkspaceIdAndRoomId(Long workspaceId, Long roomId);
 }

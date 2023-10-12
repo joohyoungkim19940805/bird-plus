@@ -1,13 +1,7 @@
 package com.radcns.bird_plus.util.stream;
 
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-
-import org.springframework.data.annotation.Transient;
-
 import com.radcns.bird_plus.entity.chatting.ChattingEntity.ChattingDomain.ChattingResponse;
 import com.radcns.bird_plus.entity.notice_board.NoticeBoardEntity;
-import com.radcns.bird_plus.entity.room.RoomEntity;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity.RoomInAccountDomain.RoomJoinedAccountResponse;
 

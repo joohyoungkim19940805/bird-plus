@@ -70,12 +70,6 @@ public class ChattingEntity {
     @LastModifiedBy
     private Long updateBy;
 
-    @Column("update_by_array")
-    private List<Long> updateByArray;
-    
-    @Column("update_at_array")
-    private List<LocalDateTime> updateAtArray;
-    
     @Transient
     List<Long> updateMilsArray;
     
@@ -92,10 +86,6 @@ public class ChattingEntity {
 	public void setUpdatedAt(LocalDateTime updateAt) {
 		this.updateAt = updateAt;
 		this.updateMils = updateAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-	}
-	public void setUpdateAtArray(List<LocalDateTime> updateAtArray) {
-		this.updateAtArray = updateAtArray;
-		this.updateMilsArray = updateAtArray.stream().map(e->e.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()).toList();
 	}
 	
 	public Long getCreateMils() {
@@ -115,15 +105,7 @@ public class ChattingEntity {
 		}
 		return this.updateMils; 
 	}
-	public List<Long> getUpdateMilsArray(){
-		if(this.updateAtArray == null) {
-			return null;
-		}else if(this.updateMilsArray == null) {
-			this.updateMilsArray = updateAtArray.stream().map(e->e.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()).toList();
-		}
-		return this.updateMilsArray;
-	}
-	
+
 	public void setChatting(String chatting) {
 		this.chatting = Json.of(chatting);
 	}

@@ -26,9 +26,6 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.With;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
-
 @Getter
 @Setter
 @Builder(toBuilder = true)
@@ -141,22 +138,7 @@ public class AccountEntity implements TokenTemplate{
 	    	private String email;
 	    }
     }
-    /**
-     * 
-     * @author kim.joohyoung
-     * BasicUserDTO dto = BasicMapper.INSTANCE.convert(user);
-     */
-    @Mapper
-    public interface AccountMapper{
-    	AccountMapper INSTANCE = Mappers.getMapper(AccountMapper.class);
 
-    	AccountEntity entity(AccountDomain.ChangePasswordRequest vo);
-    	AccountEntity entity(AccountDomain.AccountVerifyRequest vo);
-
-    	AccountDomain.ChangePasswordRequest changePasswordRequest(AccountEntity entity);
-    	
-    	AccountDomain.AccountVerifyRequest accountVerifyRequest(AccountEntity entity);
-    }
 	@Override
 	public String getIssuer() {
 		// TODO Auto-generated method stub

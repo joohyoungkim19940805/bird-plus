@@ -821,7 +821,7 @@ const getStart = new class GetStart{
 				return;
 			}
 			isOneClick = true;
-			fetch('/api/workspace/create/workspace', {
+			fetch('/api/workspace/create/', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
@@ -871,7 +871,7 @@ const getStart = new class GetStart{
 	}
 
 	createStartMenuEvent(startMenuPage){
-		let [downloadPage, webVersionPage, createWorkspacePage, searchWorkspacePage]	= startMenuPage.querySelectorAll('[data-page="download_page"], [data-page="web_version_page"], [data-page="create_workspace_page"], [data-page="search_workspace_apge"]')
+		let [downloadPage, webVersionPage, createWorkspacePage, searchWorkspacePage] = startMenuPage.querySelectorAll('[data-page="download_page"], [data-page="web_version_page"], [data-page="create_workspace_page"], [data-page="search_workspace_apge"]')
 		downloadPage.onclick = () => {}
 		webVersionPage.onclick = () => {}
 		createWorkspacePage.onclick = () => this.showCreateWorkspacePage();

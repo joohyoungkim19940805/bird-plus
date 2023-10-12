@@ -38,7 +38,7 @@ public interface NoticeBoardRepository extends ReactiveCrudRepository<NoticeBoar
 				:#{[3].pageSize}
 			;
 			""")*/
-	Flux<NoticeBoardDomain.NoticeBoardResponse> findAllByWokrpsaceIdAndRoomIdAndGroupId(Long workspaceId, Long roomId, Long groupId, Pageable pageble);
+	Flux<NoticeBoardEntity> findAllByWorkspaceIdAndRoomIdAndParentGroupId(Long workspaceId, Long roomId, Long parentGroupId, Pageable pageble);
 	
 	/*@Query("""
 			SELECT
@@ -53,7 +53,7 @@ public interface NoticeBoardRepository extends ReactiveCrudRepository<NoticeBoar
 				nnb.group_id = :#{[2]}
 			;
 			""")*/
-	Mono<Long> countByWokrpsaceIdAndRoomIdAndGroupId(Long workspaceId, Long roomId, Long groupId);
+	Mono<Long> countByWorkspaceIdAndRoomIdAndParentGroupId(Long workspaceId, Long roomId, Long parentGroupId);
 	
 	@Query("""
 			SELECT
@@ -65,7 +65,7 @@ public interface NoticeBoardRepository extends ReactiveCrudRepository<NoticeBoar
 			AND
 				nnb.room_id = :#{[1]}
 			AND
-				nnb.group_id = :#{[2]}
+				nnb.parent_group_id = :#{[2]}
 			""")
-	Mono<Long> findMaxByWorkspaceIdAndRoomIdAndGroupId(Long workspaceId, Long roomId, Long groupId);
+	Mono<Long> findMaxByWorkspaceIdAndRoomIdAndParentGroupId(Long workspaceId, Long roomId, Long parentGroupId);
 }
