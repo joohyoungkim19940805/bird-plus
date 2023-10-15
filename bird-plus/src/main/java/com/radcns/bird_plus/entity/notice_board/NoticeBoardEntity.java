@@ -28,7 +28,7 @@ import lombok.With;
 @AllArgsConstructor
 @With
 @Table(value="no_notice_board")
-public class NoticeBoardEntity {
+public class NoticeBoardEntity implements NoticeBoardInheritsTable{
 	@Id
 	@Column("id")
 	private Long id;
@@ -72,9 +72,9 @@ public class NoticeBoardEntity {
     @Column("update_by")
     @LastModifiedBy
     private Long updateBy;
-
-	@Column("group_id")
-	private Long groupId;
+    
+    @Column("group_id")
+    private Long groupId;
     
 	@Transient
 	Long createMils;
@@ -82,15 +82,17 @@ public class NoticeBoardEntity {
 	@Transient
 	Long updateMils;
 	
+	@Override
 	public void setCreateAt(LocalDateTime createAt) {
 		this.createAt = createAt;
 		this.createMils = createAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 	}
-	public void setUpdatedAt(LocalDateTime updateAt) {
+	@Override
+	public void setUpdateAt(LocalDateTime updateAt) {
 		this.updateAt = updateAt;
 		this.updateMils = updateAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 	}
-	
+	@Override
 	public Long getCreateMils() {
 		if(this.createAt == null) {
 			return null;
@@ -100,6 +102,7 @@ public class NoticeBoardEntity {
 		}
 		return this.createMils; 
 	}
+	@Override
 	public Long getUpdateMils() {
 		if(this.updateAt == null) {
 			return null;
@@ -108,9 +111,8 @@ public class NoticeBoardEntity {
 		}
 		return this.updateMils; 
 	}
-
+	
 	public static class NoticeBoardDomain{
 		
 	}
-	
 }

@@ -2,6 +2,7 @@ package com.radcns.bird_plus.util.stream;
 
 import com.radcns.bird_plus.entity.chatting.ChattingEntity.ChattingDomain.ChattingResponse;
 import com.radcns.bird_plus.entity.notice_board.NoticeBoardEntity;
+import com.radcns.bird_plus.entity.notice_board.NoticeBoardInheritsTable;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity.RoomInAccountDomain.RoomJoinedAccountResponse;
 
@@ -40,6 +41,6 @@ public abstract class ServerSentStreamTemplate<T> {
 		public final static Class<ChattingResponse> CHTTING_ACCEPT_CAST_CLASS = ChattingResponse.class;
 		public final static Class<RoomInAccountEntity> ROOM_ACCEPT_CAST_CLASS = RoomInAccountEntity.class;
 		public final static Class<RoomJoinedAccountResponse> ROOM_IN_ACCOUNT_ACCEPT_CAST_CLASS = RoomJoinedAccountResponse.class;
-		public final static Class<NoticeBoardEntity> NOTICE_BOARD_ACCEPT_CAST_CLASS = NoticeBoardEntity.class;
+		public final static Class<NoticeBoardInheritsTable> NOTICE_BOARD_ACCEPT_CAST_CLASS = NoticeBoardInheritsTable.class;
 	}
 }

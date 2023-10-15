@@ -38,7 +38,9 @@ public interface NoticeBoardRepository extends ReactiveCrudRepository<NoticeBoar
 				:#{[3].pageSize}
 			;
 			""")*/
-	Flux<NoticeBoardEntity> findAllByWorkspaceIdAndRoomIdAndParentGroupId(Long workspaceId, Long roomId, Long parentGroupId, Pageable pageble);
+	//Flux<NoticeBoardEntity> findAllByWorkspaceIdAndRoomIdAndParentGroupId(Long workspaceId, Long roomId, Long parentGroupId, Pageable pageble);
+	
+	Flux<NoticeBoardEntity> findAllByWorkspaceIdAndRoomIdAndParentGroupId(Long workspaceId, Long roomId, Long parentGroupId);
 	
 	/*@Query("""
 			SELECT

@@ -43,6 +43,8 @@ public class EventStreamHandler {
 								return eventStreamService.roomEmissionStream(serverSentTemplate, account);
 							}else if(serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.ROOM_IN_ACCOUNT_ACCEPT)){
 								return Mono.just(serverSentTemplate);
+							}else if(serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.NOTICE_BOARD_ACCEPT) ) {
+								return eventStreamService.noticeBoardEmissionStream(serverSentTemplate, account);	
 							}
 							return Mono.empty();
 						});

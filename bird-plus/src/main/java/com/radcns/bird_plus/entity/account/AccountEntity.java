@@ -111,7 +111,7 @@ public class AccountEntity implements TokenTemplate{
 		}
 		return this.createMils; 
 	}
-	public Long getUpdatedMils() {
+	public Long getUpdateMils() {
 		if(this.updateAt == null) {
 			return null;
 		}else if(this.updateMils == null) {

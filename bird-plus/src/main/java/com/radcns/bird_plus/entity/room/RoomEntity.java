@@ -83,7 +83,7 @@ public class RoomEntity implements TokenTemplate{
 		this.createAt = createAt;
 		this.createMils = createAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 	}
-	public void setUpdatedAt(LocalDateTime updateAt) {
+	public void setUpdateAt(LocalDateTime updateAt) {
 		this.updateAt = updateAt;
 		this.updateMils = updateAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 	}
@@ -97,7 +97,7 @@ public class RoomEntity implements TokenTemplate{
 		}
 		return this.createMils; 
 	}
-	public Long getUpdatedMils() {
+	public Long getUpdateMils() {
 		if(this.updateAt == null) {
 			return null;
 		}else if(this.updateMils == null) {

@@ -15,6 +15,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 
 import com.radcns.bird_plus.entity.notice_board.NoticeBoardEntity;
 import com.radcns.bird_plus.entity.notice_board.NoticeBoardGroupEntity;
+import com.radcns.bird_plus.entity.notice_board.NoticeBoardInheritsTable;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity;
 import com.radcns.bird_plus.repository.notice_board.NoticeBoardGroupRepository;
 import com.radcns.bird_plus.repository.notice_board.NoticeBoardRepository;
@@ -46,6 +47,7 @@ public class NoticeBoardHandler {
 	@Autowired
 	private WorkspaceInAccountRepository workspaceInAccountRepository;
 
+	//roomInAccountRepository.existsByAccountIdAndWorkspaceIdAndRoomId(e.getId(), workspaceId, roomId)
 	public Mono<ServerResponse> createNoticeBoardGroup(ServerRequest request){
 		return ok()
 		.contentType(MediaType.APPLICATION_JSON)
@@ -53,22 +55,30 @@ public class NoticeBoardHandler {
 			accountService.convertJwtToAccount(request)
 			.flatMap(account -> 
 				request.bodyToMono(NoticeBoardGroupEntity.class)
-				.filterWhen(noticeBoardGroup -> roomInAccountRepository.existsByAccountIdAndRoomId(account.getId(), noticeBoardGroup.getRoomId()))
+				.filterWhen(noticeBoardGroup -> roomInAccountRepository.existsByAccountIdAndWorkspaceIdAndRoomId(account.getId(), noticeBoardGroup.getWorkspaceId(), noticeBoardGroup.getRoomId()))
 				.switchIfEmpty(Mono.error(new RoomException(Result._301)))
 				.flatMap(noticeBoardGroup -> {
-					if(noticeBoardGroup.getId() == null) {
+					 Mono<NoticeBoardGroupEntity> save;
+					if(noticeBoardGroup.getGroupId() == null) {
 						noticeBoardGroup.setAccountId(account.getId());
+						noticeBoardGroup.setFullName(account.getFullName());
+						save = noticeBoardGroupRepository.save(noticeBoardGroup);
+					}else {
+						save = noticeBoardGroupRepository.findById(noticeBoardGroup.getGroupId()).flatMap((e) -> {
+							e.setTitle(noticeBoardGroup.getTitle());
+							return noticeBoardGroupRepository.save(e);
+						});
 					}
-					workspaceBorker.send(
-							new ServerSentStreamTemplate<NoticeBoardGroupEntity>(
-								noticeBoardGroup.getWorkspaceId(),
-								noticeBoardGroup.getRoomId(),
-								noticeBoardGroup,
+					return save.doOnSuccess(result->{
+						result.setAccountId(null);
+						workspaceBorker.send(
+							new ServerSentStreamTemplate<NoticeBoardInheritsTable>(
+								result.getWorkspaceId(),
+								result.getRoomId(),
+								result,
 								ServerSentStreamType.NOTICE_BOARD_ACCEPT
 							) {}
 						);
-					return noticeBoardGroupRepository.save(noticeBoardGroup).doOnSuccess(result->{
-
 					});
 				})
 			)
@@ -84,22 +94,24 @@ public class NoticeBoardHandler {
 			accountService.convertJwtToAccount(request)
 			.flatMap(account -> 
 				request.bodyToMono(NoticeBoardEntity.class)
-				.filterWhen(noticeBoardGroup -> roomInAccountRepository.existsByAccountIdAndRoomId(account.getId(), noticeBoardGroup.getRoomId()))
+				.filterWhen(noticeBoard-> roomInAccountRepository.existsByAccountIdAndRoomId(account.getId(), noticeBoard.getRoomId()))
 				.switchIfEmpty(Mono.error(new RoomException(Result._301)))
-				.flatMap(noticeBoardGroup -> {
-					if(noticeBoardGroup.getId() == null) {
-						noticeBoardGroup.setAccountId(account.getId());
+				.flatMap(noticeBoard -> {
+					if(noticeBoard.getId() == null) {
+						noticeBoard.setAccountId(account.getId());
+						noticeBoard.setFullName(account.getFullName());
 					}
-					workspaceBorker.send(
-						new ServerSentStreamTemplate<NoticeBoardEntity>(
-							noticeBoardGroup.getWorkspaceId(),
-							noticeBoardGroup.getRoomId(),
-							noticeBoardGroup,
-							ServerSentStreamType.NOTICE_BOARD_ACCEPT
-						) {}
-					);
-					return noticeBoardRepository.save(noticeBoardGroup).doOnSuccess(result->{
-						
+
+					return noticeBoardRepository.save(noticeBoard).doOnSuccess(result->{
+						result.setAccountId(null);
+						workspaceBorker.send(
+							new ServerSentStreamTemplate<NoticeBoardInheritsTable>(
+								result.getWorkspaceId(),
+								result.getRoomId(),
+								result,
+								ServerSentStreamType.NOTICE_BOARD_ACCEPT
+							) {}
+						);
 					});
 				})
 			)
@@ -121,22 +133,21 @@ public class NoticeBoardHandler {
 		.contentType(MediaType.APPLICATION_JSON)
 		.body(
 			accountService.convertJwtToAccount(request)
-			.filterWhen(e-> workspaceInAccountRepository.existsByWorkspaceIdAndAccountId(workspaceId, e.getId()))
-			.filterWhen(e->  roomInAccountRepository.existsByAccountIdAndRoomId(roomId, e.getId()))
-			.switchIfEmpty(Mono.error(new WorkspaceException(Result._201)))
+			.filterWhen(e->  roomInAccountRepository.existsByAccountIdAndWorkspaceIdAndRoomId(e.getId(), workspaceId, roomId))
+			.switchIfEmpty(Mono.error(new WorkspaceException(Result._301)))
 			.flatMap(account -> {
-				Long parentGroupId = Long.valueOf(param.getFirst("parentGroupId"));
-				PageRequest pageRequest = PageRequest.of(
-					Integer.valueOf(param.getOrDefault("page", List.of("0")).get(0)),
-					Integer.valueOf(param.getOrDefault("size", List.of("10")).get(0))	
-				);
+				String parentGroupIdObject = param.getFirst("parentGroupId");
+				Long parentGroupId = null;
+				if(parentGroupIdObject != null) {
+					parentGroupId = Long.valueOf(parentGroupIdObject);
+				}
 				
-				return noticeBoardRepository.findAllByWorkspaceIdAndRoomIdAndParentGroupId(workspaceId, roomId, parentGroupId, pageRequest)
+				return noticeBoardRepository.findAllByWorkspaceIdAndRoomIdAndParentGroupId(workspaceId, roomId, parentGroupId)
 				.collectList()
-				.zipWith(noticeBoardRepository.countByWorkspaceIdAndRoomIdAndParentGroupId(workspaceId, roomId, parentGroupId))
+				/*.zipWith(noticeBoardRepository.countByWorkspaceIdAndRoomIdAndParentGroupId(workspaceId, roomId, parentGroupId))
 				.map(entityTuples -> 
 					new PageImpl<>(entityTuples.getT1(), pageRequest, entityTuples.getT2())
-				)
+				)*/
 				;
 			})
 			//.switchIfEmpty(Mono.error(new WorkspaceException(Result._200)))
