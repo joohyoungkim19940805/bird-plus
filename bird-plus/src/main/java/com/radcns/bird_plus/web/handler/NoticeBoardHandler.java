@@ -24,6 +24,7 @@ import com.radcns.bird_plus.repository.workspace.WorkspaceInAccountRepository;
 import com.radcns.bird_plus.service.AccountService;
 import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
 import com.radcns.bird_plus.util.Response;
+import com.radcns.bird_plus.util.exception.NoticeBoardException;
 import com.radcns.bird_plus.util.exception.RoomException;
 import com.radcns.bird_plus.util.exception.WorkspaceException;
 import com.radcns.bird_plus.util.stream.ServerSentStreamTemplate;
@@ -87,6 +88,68 @@ public class NoticeBoardHandler {
 		;
 	}
 	
+	public Mono<ServerResponse> deleteNoticeBoardGroup(ServerRequest request){
+		return ok()
+		.contentType(MediaType.APPLICATION_JSON)
+		.body(
+			accountService.convertJwtToAccount(request)
+			.flatMap(account -> 
+			request.bodyToMono(NoticeBoardGroupEntity.class)
+			.filterWhen(noticeBoardGroup -> roomInAccountRepository.existsByAccountIdAndWorkspaceIdAndRoomId(account.getId(), noticeBoardGroup.getWorkspaceId(), noticeBoardGroup.getRoomId()))
+			.switchIfEmpty(Mono.error(new RoomException(Result._301)))
+			.flatMap(noticeBoardGroup -> {
+				if(noticeBoardGroup.getGroupId() == null) {
+					return Mono.error(new NoticeBoardException(Result._400));
+				}
+				return noticeBoardGroupRepository.deleteById(noticeBoardGroup.getGroupId()).doOnSuccess(result->{
+					noticeBoardGroup.setAccountId(null);
+					workspaceBorker.send(
+						new ServerSentStreamTemplate<NoticeBoardInheritsTable>(
+							noticeBoardGroup.getWorkspaceId(),
+							noticeBoardGroup.getRoomId(),
+							noticeBoardGroup,
+							ServerSentStreamType.NOTICE_BOARD_DELETE_ACCEPT
+						) {}
+					);
+				});
+			})
+		)
+		.map(e-> response(Result._0, e))
+		, Response.class)
+		;
+	}
+	
+	public Mono<ServerResponse> deleteNoticeBoard(ServerRequest request){
+		return ok()
+		.contentType(MediaType.APPLICATION_JSON)
+		.body(
+			accountService.convertJwtToAccount(request)
+			.flatMap(account -> 
+			request.bodyToMono(NoticeBoardEntity.class)
+			.filterWhen(noticeBoard -> roomInAccountRepository.existsByAccountIdAndWorkspaceIdAndRoomId(account.getId(), noticeBoard.getWorkspaceId(), noticeBoard.getRoomId()))
+			.switchIfEmpty(Mono.error(new RoomException(Result._301)))
+			.flatMap(noticeBoard -> {
+				if(noticeBoard.getId() == null) {
+					return Mono.error(new NoticeBoardException(Result._400));
+				}
+				return noticeBoardGroupRepository.deleteById(noticeBoard.getGroupId()).doOnSuccess(result->{
+					noticeBoard.setAccountId(null);
+					workspaceBorker.send(
+						new ServerSentStreamTemplate<NoticeBoardInheritsTable>(
+							noticeBoard.getWorkspaceId(),
+							noticeBoard.getRoomId(),
+							noticeBoard,
+							ServerSentStreamType.NOTICE_BOARD_DELETE_ACCEPT
+						) {}
+					);
+				});
+			})
+		)
+		.map(e-> response(Result._0, e))
+		, Response.class)
+		;
+	}
+	
 	public Mono<ServerResponse> createNoticeBoard(ServerRequest request){
 		return ok()
 		.contentType(MediaType.APPLICATION_JSON)
@@ -97,12 +160,19 @@ public class NoticeBoardHandler {
 				.filterWhen(noticeBoard-> roomInAccountRepository.existsByAccountIdAndRoomId(account.getId(), noticeBoard.getRoomId()))
 				.switchIfEmpty(Mono.error(new RoomException(Result._301)))
 				.flatMap(noticeBoard -> {
+					 Mono<NoticeBoardEntity> save;
 					if(noticeBoard.getId() == null) {
 						noticeBoard.setAccountId(account.getId());
 						noticeBoard.setFullName(account.getFullName());
+						save = noticeBoardRepository.save(noticeBoard);
+					}else {
+						save = noticeBoardRepository.findById(noticeBoard.getId()).flatMap((e) -> {
+							e.setTitle(noticeBoard.getTitle());
+							return noticeBoardRepository.save(e);
+						});
 					}
 
-					return noticeBoardRepository.save(noticeBoard).doOnSuccess(result->{
+					return save.doOnSuccess(result->{
 						result.setAccountId(null);
 						workspaceBorker.send(
 							new ServerSentStreamTemplate<NoticeBoardInheritsTable>(

@@ -20,6 +20,7 @@ public interface ExceptionCodeConstant {
 		_300(300, "존재하지 않는 방입니다.", "INVALID ROOM"),
 		_301(301, "해당 방에 접근 할 권한이 없습니다.", "ROOM ACCESS DEFINED"),
 		_302(302, "이미 존재하는 방입니다.", "ROOM ACCESS DEFINED"),
+		_400(400, "삭제하려는 게시판이 존재하지 않습니다.", "INVALID NOTICE BOARD"),
 		_999(999, "처리에 실패하였습니다. 잠시 후 다시 시도해주십시오.", "SERVER NOT DEFINED THIS ERROR")
 		;
 		private int code;
