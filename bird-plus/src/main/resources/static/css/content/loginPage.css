@@ -53,6 +53,10 @@
     overflow-wrap: anywhere;
 }
 
+.content_wrapper .get_start_wrapper .get_start_container.startEnd .content_container > * {
+	transition: initial;
+}
+
 .content_wrapper .get_start_wrapper .get_start_container .get_start{
 	color: white;
 	border: solid;

@@ -8,6 +8,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
+import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
@@ -27,12 +28,16 @@ import reactor.core.publisher.Mono;
 import java.net.URI;
 
 @Configuration
-@EnableReactiveMethodSecurity
+@EnableWebFluxSecurity
+@EnableReactiveMethodSecurity(useAuthorizationManager=true)
 @Component
 public class WebFluxSecurityConfig {
 	
 	@Autowired
 	private JwtVerifyHandler jwtVerifyHandler;
+	
+	@Autowired
+    private SecurityContextRepository securityContextRepository;
 	/*
 	@Bean
 	public MapReactiveUserDetailsService userDetailsService() {
@@ -111,9 +116,9 @@ public class WebFluxSecurityConfig {
 			                .anyExchange().authenticated()
                 )
                 
-                .addFilterAt(bearerAuthenticationFilter(authManager), SecurityWebFiltersOrder.HTTP_BASIC)
+                .addFilterAt(bearerAuthenticationFilter(authManager), SecurityWebFiltersOrder.AUTHENTICATION)
                 
-                //.securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
+                .securityContextRepository(securityContextRepository)
                 .build();
     }
     AuthenticationWebFilter bearerAuthenticationFilter(ReactiveAuthenticationManager authManager) {
@@ -121,7 +126,7 @@ public class WebFluxSecurityConfig {
     	AuthenticationWebFilter bearerAuthenticationFilter = new AuthenticationWebFilter(authManager);
     	bearerAuthenticationFilter.setServerAuthenticationConverter(new ServerHttpBearerAuthenticationConverter(this.jwtVerifyHandler));
         bearerAuthenticationFilter.setRequiresAuthenticationMatcher(ServerWebExchangeMatchers.pathMatchers("/**"));
-        
+        bearerAuthenticationFilter.setSecurityContextRepository(securityContextRepository);
         return bearerAuthenticationFilter;
     }
 }

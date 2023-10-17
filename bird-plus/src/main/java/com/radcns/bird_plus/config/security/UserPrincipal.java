@@ -2,6 +2,9 @@ package com.radcns.bird_plus.config.security;
 
 import java.security.Principal;
 
+import lombok.ToString;
+
+@ToString
 public class UserPrincipal implements Principal {
     private String id;
     private String name;

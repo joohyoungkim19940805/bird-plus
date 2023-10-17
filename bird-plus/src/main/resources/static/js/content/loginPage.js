@@ -394,6 +394,7 @@ const getStart = new class GetStart{
 			});
 		}).then(() => {
 			this.createRoomContainer.classList.add('start');
+			this.getStartContainer.classList.add('startEnd');
 		});
 		
 	}

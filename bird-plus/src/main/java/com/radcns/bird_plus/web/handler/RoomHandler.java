@@ -62,7 +62,7 @@ public class RoomHandler {
 	private WorkspaceBroker workspaceBorker;
 	
 	public Mono<ServerResponse> createRoom(ServerRequest request){
-		return accountService.convertJwtToAccount(request)
+		return accountService.convertRequestToAccount(request)
 		.flatMap(account -> 
 			request.bodyToMono(RoomEntity.class)
 			.filterWhen(e-> workspaceInAccountRepository.existsByWorkspaceIdAndAccountId(e.getWorkspaceId(), account.getId()))
@@ -125,7 +125,7 @@ public class RoomHandler {
 		return ok()
 		.contentType(MediaType.APPLICATION_JSON)
 		.body(
-			accountService.convertJwtToAccount(request)
+			accountService.convertRequestToAccount(request)
 			.filterWhen(e-> workspaceInAccountRepository.existsByWorkspaceIdAndAccountId(workspaceId, e.getId()))
 			.switchIfEmpty(Mono.error(new WorkspaceException(Result._201)))
 			.flatMap(e->{
@@ -182,7 +182,7 @@ public class RoomHandler {
 		//.contentType(MediaType.TEXT_EVENT_STREAM)
 		.contentType(MediaType.APPLICATION_JSON)
 		.body(
-			accountService.convertJwtToAccount(request)
+			accountService.convertRequestToAccount(request)
 			.flatMap(account -> {
 				//Sinks.Many<RoomInAccountDomain.RoomJoinedAccountResponse> sinks = Sinks.many().unicast().onBackpressureBuffer();
 				var save = roomInAccountRepository.saveAll(
@@ -265,7 +265,7 @@ public class RoomHandler {
 	}
 	
 	public Mono<ServerResponse> updateRoomInAccountOrder(ServerRequest request){
-		return accountService.convertJwtToAccount(request)
+		return accountService.convertRequestToAccount(request)
 		//.flatMapMany(account -> 
 		.flatMap(account -> {
 			roomInAccountRepository.saveAll(
@@ -303,7 +303,7 @@ public class RoomHandler {
 	}
 	
 	public Mono<ServerResponse> createRoomFavorites(ServerRequest request){
-		return accountService.convertJwtToAccount(request)
+		return accountService.convertRequestToAccount(request)
 		.flatMap(account -> request.bodyToMono(RoomFavoritesEntity.class)
 			.flatMap(roomFavorites -> 
 				roomFavoritesRepository.existsByAccountIdAndRoomId(account.getId(), roomFavorites.getRoomId())
@@ -333,7 +333,7 @@ public class RoomHandler {
 	}
 
 	public Mono<ServerResponse> updateRoomFavoritesOrder(ServerRequest request){
-		return accountService.convertJwtToAccount(request)
+		return accountService.convertRequestToAccount(request)
 		//.flatMapMany(account -> 
 		.flatMap(account -> {
 			roomFavoritesRepository.saveAll(
@@ -374,7 +374,7 @@ public class RoomHandler {
 		return ok()
 		.contentType(MediaType.APPLICATION_JSON)
 		.body(
-			accountService.convertJwtToAccount(request)
+			accountService.convertRequestToAccount(request)
 			.flatMap(account -> {
 				var param = request.queryParams();
 				Long workspaceId = Long.valueOf(param.getFirst("workspaceId"));
@@ -420,7 +420,7 @@ public class RoomHandler {
 		return ok()
 		.contentType(MediaType.APPLICATION_JSON)
 		.body(
-			accountService.convertJwtToAccount(request)
+			accountService.convertRequestToAccount(request)
 			.flatMap(account -> {
 				var param = request.queryParams();
 				Long workspaceId = Long.valueOf(param.getFirst("workspaceId"));
@@ -454,7 +454,7 @@ public class RoomHandler {
 		return ok()
 		.contentType(MediaType.APPLICATION_JSON)
 		.body(
-			accountService.convertJwtToAccount(request)
+			accountService.convertRequestToAccount(request)
 			.flatMap(account -> {
 				var param = request.queryParams();
 				Long workspaceId = Long.valueOf(param.getFirst("workspaceId"));
@@ -494,7 +494,7 @@ public class RoomHandler {
 		return ok()
 		.contentType(MediaType.APPLICATION_JSON)
 		.body(
-			accountService.convertJwtToAccount(request)
+			accountService.convertRequestToAccount(request)
 			.flatMap(account -> {
 				var param = request.queryParams();
 				Long workspaceId = Long.valueOf(param.getFirst("workspaceId"));
@@ -524,7 +524,7 @@ public class RoomHandler {
 		return ok()
 		.contentType(MediaType.APPLICATION_JSON)
 		.body(
-			accountService.convertJwtToAccount(request)
+			accountService.convertRequestToAccount(request)
 			.flatMap(account -> {
 				var param = request.queryParams();
 				Long workspaceId = Long.valueOf(param.getFirst("workspaceId"));
@@ -572,17 +572,17 @@ public class RoomHandler {
 		return ok()
 		.contentType(MediaType.TEXT_EVENT_STREAM)
 		.body(
-			accountService.convertJwtToAccount(request)
+			accountService.convertRequestToAccount(request)
 			.filterWhen(acc -> roomInAccountRepository.existsByAccountIdAndRoomId(acc.getId(), roomId))
 			.switchIfEmpty(Mono.error(new RoomException(Result._301)))
 			.flatMapMany(account -> {
 				Sinks.Many<RoomInAccountDomain.RoomJoinedAccountResponse> sinks = Sinks.many().unicast().onBackpressureBuffer();
 				
 				roomInAccountRepository.findAllByRoomId(roomId)
-				.cache(Duration.ofDays(1))
+				//.cache(Duration.ofDays(1))
 				.flatMap(roomInAccount -> 
 					accountRepository.findById(roomInAccount.getAccountId())
-					.cache(Duration.ofDays(1))
+					//.cache(Duration.ofDays(1))
 					.map(targetAccount -> 
 						RoomJoinedAccountResponse.builder()
 						.roomId(roomInAccount.getRoomId())
@@ -618,7 +618,7 @@ public class RoomHandler {
 		return ok()
 		.contentType(MediaType.APPLICATION_JSON)
 		.body(
-			accountService.convertJwtToAccount(request)	
+			accountService.convertRequestToAccount(request)	
 			.flatMap(account -> 
 				roomFavoritesRepository.existsByAccountIdAndRoomId(account.getId(), roomId)
 			)

@@ -90,7 +90,7 @@ public class ChattingHandler {
 		return ok()
 		.contentType(MediaType.APPLICATION_JSON)
 		.body(
-			accountService.convertJwtToAccount(request)
+			accountService.convertRequestToAccount(request)
 			.flatMap(account -> {
 				return request.bodyToMono(ChattingEntity.class)
 				.flatMap(chattingEntity -> 
@@ -145,7 +145,7 @@ public class ChattingHandler {
 
 	public Mono<ServerResponse> searchChattingList(ServerRequest request){
 		
-		var result = accountService.convertJwtToAccount(request)
+		var result = accountService.convertRequestToAccount(request)
 		.flatMap(account -> {
 			var param = request.queryParams();
 			Long workspaceId = Long.valueOf(param.getFirst("workspaceId"));

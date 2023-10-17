@@ -7,6 +7,7 @@ import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.jackson.io.JacksonDeserializer;
 
 import io.jsonwebtoken.security.SignatureException;
+import lombok.Getter;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jws;
 import reactor.core.publisher.Mono;
@@ -76,6 +77,7 @@ public class JwtVerifyHandler {
     	}
     }
 
+    @Getter
     public class VerificationResult {
         public Claims claims;
         public String token;

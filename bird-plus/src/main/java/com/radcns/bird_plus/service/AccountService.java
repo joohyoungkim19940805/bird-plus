@@ -10,6 +10,8 @@ import io.jsonwebtoken.jackson.io.JacksonSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,7 @@ import com.radcns.bird_plus.config.security.JwtVerifyHandler;
 import com.radcns.bird_plus.config.security.Role;
 import com.radcns.bird_plus.config.security.Token;
 import com.radcns.bird_plus.config.security.TokenTemplate;
+import com.radcns.bird_plus.config.security.UserPrincipal;
 import com.radcns.bird_plus.entity.account.AccountEntity;
 import com.radcns.bird_plus.entity.account.AccountLogEntity;
 import com.radcns.bird_plus.repository.customer.AccountLogRepository;
@@ -178,49 +181,15 @@ public class AccountService  {
     	);
     	*/
     }
-
-    public String searchJwtTokenAsString(ServerRequest request) {
-    	String auth = request
-    			.headers()
-                .firstHeader(HttpHeaders.AUTHORIZATION);
-    	if(auth == null || auth.isEmpty()) {
-    		HttpCookie obj = request
-    				.cookies()
-    				.getFirst(HttpHeaders.AUTHORIZATION);
-    		if(obj != null) {
-    			auth = obj.getValue();
-    			if(auth.isEmpty()) {
-    				auth = null;
-    			}
-    		}else {
-	    		
-	    		auth = request.pathVariable("auth");
-
-	    		if(auth.contains("bearer-")) {
-	    			auth = auth.replace("bearer-","");
-	    		}else {
-	    			auth = null;
-	    		}
-
-    		}
-    	}
-    	return auth;
-    }
     
-    public Mono<AccountEntity> convertJwtToAccount(ServerRequest request) {
-    	String token = searchJwtTokenAsString(request);
-    	if(token == null) {
-    		return Mono.empty();
-    	}
+    public Mono<AccountEntity> convertRequestToAccount(ServerRequest request) {
     	
-    	Jws<Claims> jws = jwtVerifyHandler.getJwt(token);
-		Claims claims = jws.getBody();
-		Date expiration = claims.getExpiration();
-		if(expiration.before(new Date())) {
-			return Mono.empty();
-		}
-		
-    	return accountRepository.findByEmail(claims.getSubject())
-    			.switchIfEmpty(accountRepository.findByAccountName(claims.getIssuer()));
+    	return ReactiveSecurityContextHolder.getContext()
+    			.map(SecurityContext::getAuthentication)
+    			.flatMap(auth->{
+    				UserPrincipal userPrincipal = (UserPrincipal)auth.getPrincipal();
+	    			return accountRepository.findByEmail(userPrincipal.getId())
+	    			.switchIfEmpty(accountRepository.findByAccountName(userPrincipal.getName()));
+    			});
     }
 }

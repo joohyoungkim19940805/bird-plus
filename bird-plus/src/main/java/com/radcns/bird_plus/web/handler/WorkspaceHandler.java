@@ -45,7 +45,7 @@ public class WorkspaceHandler {
 	
 	public Mono<ServerResponse> createWorkspace(ServerRequest request){
 		//serverRequest.bodyToMono()
-		return accountService.convertJwtToAccount(request)
+		return accountService.convertRequestToAccount(request)
 		.flatMap(account -> request.bodyToMono(WorkspaceEntity.class)
 			.flatMap(workspace->{
 				//create by 용도를 아직 못정하여 account id를 둘 다 저장
@@ -93,7 +93,7 @@ public class WorkspaceHandler {
 		return ok()
 		.contentType(MediaType.APPLICATION_JSON)
 		.body(
-			accountService.convertJwtToAccount(request)
+			accountService.convertRequestToAccount(request)
 			.flatMap(account -> workspaceInAccountRepository.existsByAccountId(account.getId()))
 			.map(isExists -> response(Result._0, isExists))
 		, Response.class)
@@ -106,7 +106,7 @@ public class WorkspaceHandler {
 		return ok()
 		.contentType(MediaType.APPLICATION_JSON)
 		.body(
-			accountService.convertJwtToAccount(request)
+			accountService.convertRequestToAccount(request)
 			.flatMap(e->{
 				var param = request.queryParams();
 				PageRequest pageRequest = PageRequest.of(
@@ -131,7 +131,7 @@ public class WorkspaceHandler {
 		return ok()
 		.contentType(MediaType.APPLICATION_JSON)
 		.body(
-			accountService.convertJwtToAccount(request)
+			accountService.convertRequestToAccount(request)
 			.filterWhen(e -> workspaceInAccountRepository.existsByWorkspaceIdAndAccountId(workspaceId, e.getId()))
 			.switchIfEmpty(Mono.error(new WorkspaceException(Result._200)))
 			.flatMap(account -> {

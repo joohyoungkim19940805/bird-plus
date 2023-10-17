@@ -35,7 +35,7 @@ public class EventStreamHandler {
 				workspaceBorker.getManager(workspaceId).getWorkspaceSinks().asFlux()
 				//.filter(serverSentTemplate -> serverSentTemplate.getWorkspaceId().equals(workspaceId) && serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.CHTTING_ACCEPT))
 				.flatMap(serverSentTemplate -> {
-					return accountService.convertJwtToAccount(request)
+					return accountService.convertRequestToAccount(request)
 						.flatMap(account -> {
 							if(serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.CHTTING_ACCEPT)) {
 								return eventStreamService.chattingEmissionStream(serverSentTemplate, account);	

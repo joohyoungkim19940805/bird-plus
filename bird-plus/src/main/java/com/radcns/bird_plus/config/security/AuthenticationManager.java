@@ -2,16 +2,18 @@ package com.radcns.bird_plus.config.security;
 
 import lombok.AllArgsConstructor;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import com.radcns.bird_plus.repository.customer.AccountRepository;
-import com.radcns.bird_plus.service.AccountService;
-import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
-import com.radcns.bird_plus.util.exception.AccountException;
+import io.jsonwebtoken.Claims;
 import reactor.core.publisher.Mono;
 
 
@@ -19,27 +21,39 @@ import reactor.core.publisher.Mono;
 @AllArgsConstructor
 public class AuthenticationManager implements ReactiveAuthenticationManager {
 
-    @Autowired
-	private AccountRepository accountRepository;
+	@Autowired
+	private JwtVerifyHandler jwtVerifyHandler;
 	
     @Override
     public Mono<Authentication> authenticate(Authentication authentication) {
-    	System.out.println("kjh test <<<<123 ");
-    	System.out.println(authentication.getCredentials());
-    	System.out.println(authentication.getDetails());
-    	System.out.println(authentication.getName());
-    	System.out.println(authentication.getAuthorities());
-    	System.out.println(authentication.getAuthorities().toArray()[0]);
-    	System.out.println(((org.springframework.security.core.authority.SimpleGrantedAuthority)authentication.getAuthorities().toArray()[0]).getAuthority())	;
-    	System.out.println(authentication.getAuthorities().stream().anyMatch(e->e.getAuthority().equals(Role.ROLE_GUEST.name())));
-    	authentication.getAuthorities().stream().anyMatch(e->e.getAuthority().equals(Role.ROLE_BOT.name()));
-    	UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
-    	System.out.println(principal.getId());
-    	System.out.println(principal.getName());
+    	
+    	/*
     	return accountRepository.findByEmail(principal.getId())
             //.filter(user -> user.getIsEnabled())
             .switchIfEmpty(Mono.error(new AccountException(Result._104)))
             .map(user -> authentication);
+        */
+    	return Mono.just(authentication.getCredentials().toString())
+		.flatMap(jwtVerifyHandler::check)
+		.flatMap(verificationResult-> {
+			Claims claims = verificationResult.claims;
+			String subject = claims.getSubject();
+			@SuppressWarnings("unchecked")
+			List<String> roles = claims.get("role", List.class);
+			var authorities = roles.stream()
+					.map(SimpleGrantedAuthority::new)
+					.toList();
+			
+			if (subject == null)
+				return Mono.empty(); // invalid value for any of jwt auth parts
+			
+			var principal = new UserPrincipal(subject, claims.getIssuer());
+			Authentication auth = new UsernamePasswordAuthenticationToken(principal, verificationResult.getToken(), authorities);
+			ReactiveSecurityContextHolder.withAuthentication(auth);
+			
+			return Mono.justOrEmpty(auth);
+		});
+    	//return null;
     }
     /*
     @Override
@@ -61,4 +75,5 @@ public class AuthenticationManager implements ReactiveAuthenticationManager {
             });
     }
     */
+    
 }

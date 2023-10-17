@@ -36,7 +36,7 @@ public class AccountHandler {
 		return ok()
 		.contentType(MediaType.APPLICATION_JSON)
 		.body(
-			accountService.convertJwtToAccount(request).doOnNext(e->e.withId(null)), Response.class
+			accountService.convertRequestToAccount(request).doOnNext(e->e.withId(null)), Response.class
 		);
 	}
 	
