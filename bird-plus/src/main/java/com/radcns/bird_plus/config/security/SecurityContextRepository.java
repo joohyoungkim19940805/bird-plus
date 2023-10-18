@@ -20,7 +20,7 @@ public class SecurityContextRepository implements ServerSecurityContextRepositor
 
     @Override
     public Mono<Void> save(ServerWebExchange swe, SecurityContext sc) {
-    	//throw new UnsupportedOperationException("save is auto implement so not used this method.");
+    	//throw new UnsupportedOperationException("save is auto implement. so not used this method.");
         
     	return ServerHttpBearerAuthenticationConverter.extract(swe)
     	.map(token -> new UsernamePasswordAuthenticationToken(token, token))

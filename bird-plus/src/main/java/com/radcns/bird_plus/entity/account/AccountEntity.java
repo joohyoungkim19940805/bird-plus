@@ -87,12 +87,7 @@ public class AccountEntity implements TokenTemplate{
     @LastModifiedBy
     private Long updateBy;
 
-	@Transient
-	Long createMils;
-	
-	@Transient
-	Long updateMils;
-	
+	/*
 	public void setCreateAt(LocalDateTime createAt) {
 		this.createAt = createAt;
 		this.createMils = createAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
@@ -119,7 +114,7 @@ public class AccountEntity implements TokenTemplate{
 		}
 		return this.updateMils; 
 	}
-    
+    */
     public static class AccountDomain{
 	    @Data
 	    @Builder

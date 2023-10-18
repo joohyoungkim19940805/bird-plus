@@ -118,7 +118,7 @@ public class AccountService  {
 	    		.switchIfEmpty(
 	    			Mono.error(new AccountException(Result._103))
 	    		).flatMap(account -> {
-	        		if ( ! account.getIsEnabled()) {
+	    			if ( ! account.getIsEnabled()) {
 	        			// 이메일 전송이 오래걸리므로 응답에 3~6초씩 걸림
 						// 병목이 발생하지 않도록 별도 스레드를 통해 처리한다.
 	        			Mono.fromRunnable(()->{

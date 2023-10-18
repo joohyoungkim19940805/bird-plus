@@ -78,4 +78,10 @@ public interface IndexRouterSwagger {
     	)
     })
     public RouterFunction<ServerResponse> index(MainHandler mainHandler);
+
+    public static void main(String a[]) {
+    	String test = "accountEntity";
+    	System.out.println(test.endsWith("Entity"));
+    	new AccountEntity().getAccountName();
+    }
 }

@@ -27,6 +27,14 @@ import org.springframework.context.annotation.ComponentScan;
 @SpringBootApplication
 public class BirdPlusApplication {
     public static void main(String[] args) {
+		/*String profiles = System.getenv("MY_SERVER_PROFILES");
+		System.out.println(profiles);
+		System.out.println("test<<<<<");
+		if(profiles == null) {
+			//System.set
+		}else {
+			//System.setProperty("spring.profiles.active", "prd");
+		}*/
 		SpringApplication.run(BirdPlusApplication.class, args);		
 	}
 	
