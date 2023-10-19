@@ -1,9 +1,19 @@
 package com.radcns.bird_plus;
 
+import javax.sql.DataSource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.event.ContextStartedEvent;
+import org.springframework.context.event.EventListener;
+
+import com.radcns.bird_plus.AutoDbMappingGenerater.AutoDbMappingGeneraterOption;
 
 //import com.hide_and_fps.project.entity.Customer;
 //import com.hide_and_fps.project.repository.testRepository;
@@ -25,7 +35,7 @@ import org.springframework.context.annotation.ComponentScan;
 								"com.radcns.bird_plus.*"
 							  })
 @SpringBootApplication
-public class BirdPlusApplication {
+public class BirdPlusApplication implements ApplicationRunner {
     public static void main(String[] args) {
 		/*String profiles = System.getenv("MY_SERVER_PROFILES");
 		System.out.println(profiles);
@@ -37,7 +47,32 @@ public class BirdPlusApplication {
 		}*/
 		SpringApplication.run(BirdPlusApplication.class, args);		
 	}
-	
+    
+    @Value("spring.datasource.url")
+    String url;
+    
+    @Value("spring.r2dbc.username")
+    String username;
+    
+    @Value("spring.r2dbc.password")
+    String password;
+    
+    @Value("spring.r2dbc.properties.schema")
+    String schema;
+    
+	@Override
+	public void run(ApplicationArguments args) throws Exception {
+		// TODO Auto-generated method stub
+	   	System.out.println("kjh test afterPropertiesSet");
+	   	new AutoDbMappingGenerater(AutoDbMappingGeneraterOption.builder()
+	   		.url(url)
+	   		.username(username)
+	   		.password(password)
+	   		.schema(schema)
+   			.build()
+	   	);
+	}
+
     /**
      * Spring Data R2dbc 는 연결될 때 데이터베이스에서 SQL 스크립트를 실행할 수 있도록 
      * ConnectionFactoryInitializer를 제공합니다 . 

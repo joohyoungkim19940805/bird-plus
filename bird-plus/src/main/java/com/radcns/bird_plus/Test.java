@@ -25,16 +25,16 @@ import spoon.support.JavaOutputProcessor;
 
 public class Test {
 	public static void main(String a[]) {
-		Launcher spoon = new Launcher();
+		SpoonAPI spoon = new Launcher();
 		spoon.addInputResource("src/main/java/com/radcns/bird_plus");
 		CtModel model = spoon.buildModel();
 		Environment env = spoon.getEnvironment();
 		env.setAutoImports(true);
 		env.setNoClasspath(true);
 		env.setShouldCompile(true);
-		env.setComplianceLevel(7);
+		env.setComplianceLevel(14);
 		
-		spoon.getModelBuilder().generateProcessedSourceFiles(OutputType.COMPILATION_UNITS);
+		//spoon.getModelBuilder().generateProcessedSourceFiles(OutputType.CLASSES);
 		//spoon.getModelBuilder().compile(InputType.FILES);
 		
 		//System.out.println(Stream.of(spoon.getEnvironment().getSourceClasspath()).toList());

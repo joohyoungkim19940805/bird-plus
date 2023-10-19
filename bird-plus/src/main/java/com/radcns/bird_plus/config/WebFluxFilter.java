@@ -15,7 +15,7 @@ public class WebFluxFilter implements HandlerFilterFunction<ServerResponse, Serv
 
     @Override
     public Mono<ServerResponse> filter(ServerRequest request, HandlerFunction<ServerResponse> next) {
-        System.out.println("kjh test <<<");
+        System.out.println("kjh testaaa <<<");
         
         return next.handle(request).doOnNext(resonse -> {
         	if(resonse.cookies().get(HttpHeaders.AUTHORIZATION).size() == 0) {
