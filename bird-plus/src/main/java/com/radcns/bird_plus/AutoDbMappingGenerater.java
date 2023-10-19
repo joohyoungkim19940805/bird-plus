@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +21,7 @@ import java.util.stream.Stream;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 import spoon.Launcher;
 import spoon.SpoonAPI;
 import spoon.compiler.Environment;
@@ -31,7 +33,7 @@ import spoon.reflect.visitor.filter.AbstractFilter;
 public class AutoDbMappingGenerater  {
 	
 	protected static volatile ConcurrentMap<String, TableRecord> tableMemory = new ConcurrentHashMap<>();
-	protected static volatile ConcurrentMap<String, List<String>> createPackageHistory = new ConcurrentHashMap<>();
+	protected static volatile ConcurrentMap<String, List<String>> packageHistory = new ConcurrentHashMap<>();
 	protected static final SpoonAPI spoon = new Launcher();
 	static {
 		CtModel model = spoon.buildModel();
@@ -41,7 +43,7 @@ public class AutoDbMappingGenerater  {
 		env.setShouldCompile(true);
 		env.setComplianceLevel(14);
 	}
-	Mono<Map<String, Map<String, CtFieldReference<?>>>> entityFilter = Mono.fromCallable(()->{
+	protected Mono<Map<String, Map<String, CtFieldReference<?>>>> entityFilter = Mono.fromCallable(()->{
 		return spoon.getFactory().Package().getRootPackage().getElements(new AbstractFilter<CtClass<?>>() {
 			@Override
 			public boolean matches(CtClass<?> element) {
@@ -49,12 +51,13 @@ public class AutoDbMappingGenerater  {
 			};
 		});
 	})
+	.subscribeOn(Schedulers.boundedElastic())
 	.flatMapMany(Flux::fromIterable)
 	.collectMap(
 			k -> k.getSimpleName(), 
 			v -> v.getAllFields().stream().collect(Collectors.toMap(fieldsK -> fieldsK.getSimpleName(), fieldsV -> fieldsV)))
 	;
-	Mono<Map<String, Map<String, CtFieldReference<?>>>> repositoryFilter = Mono.fromCallable(()->{
+	protected Mono<Map<String, Map<String, CtFieldReference<?>>>> repositoryFilter = Mono.fromCallable(()->{
 		return spoon.getFactory().Package().getRootPackage().getElements(new AbstractFilter<CtClass<?>>() {
 			@Override
 			public boolean matches(CtClass<?> element) {
@@ -62,17 +65,19 @@ public class AutoDbMappingGenerater  {
 			};
 		});
 	})
+	.subscribeOn(Schedulers.boundedElastic())
 	.flatMapMany(Flux::fromIterable)
 	.collectMap(
 			k -> k.getSimpleName(), 
 			v -> v.getAllFields().stream().collect(Collectors.toMap(fieldsK -> fieldsK.getSimpleName(), fieldsV -> fieldsV)))
 	;
-    private final AutoDbMappingGeneraterOption option;
+	protected final AutoDbMappingGeneraterOption option;
     
-	private final String defaultRootDirectories = System.getProperty("user.dir") + "\\\\";
+	protected final String defaultRootDirectories = System.getProperty("user.dir") + "\\\\";
 	
 	public AutoDbMappingGenerater(AutoDbMappingGeneraterOption option) {
 		this.option = option;
+		createDefaultDirectories();
 		spoon.addInputResource(option.defaultRootPath.stream().collect(Collectors.joining("\\\\")));
 
 		/*
@@ -151,7 +156,7 @@ public class AutoDbMappingGenerater  {
 	
 	private String createGroupPackage(String tableName) {
 		String firstName = tableName.substring(option.tableNameToEntityStartCharAt).split("_")[0].toLowerCase();
-		if(createPackageHistory.containsKey(tableName)) {
+		if(packageHistory.containsKey(tableName)) {
 			return firstName;
 		}
 		Path entityPath =  Paths.get(
@@ -170,7 +175,7 @@ public class AutoDbMappingGenerater  {
 			Files.createDirectories(entityPath);
 			Files.createDirectories(repositoryPath);
 		} catch (IOException ignore) {}
-		createPackageHistory.put(tableName, List.of(entityPath.toString(), repositoryPath.toString()));
+		packageHistory.put(tableName, List.of(entityPath.toString(), repositoryPath.toString()));
 		return firstName;
 	}
 	
@@ -227,7 +232,7 @@ public class AutoDbMappingGenerater  {
         			}catch (SQLException e) {
         				e.printStackTrace();
 					}
-        		}).subscribe();
+        		}).subscribeOn(Schedulers.boundedElastic()).subscribe();
 	    	}
         } catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -253,6 +258,10 @@ public class AutoDbMappingGenerater  {
 		private final List<String> defaultRootPath;
 		private final String entityName;
 		private final String repositoryName;
+		private final Class<?> entityExtendsClass;
+		private final List<Class<?>> entityImplamentList;
+		private final Class<?> repositoryExtendsClass;
+		private final List<Class<?>> repositoryImplamentList;
 		private final Map<String, Map<Class<? extends Annotation>, Map<String, Object>>> defaultEntityFieldAnnotation;
 		private final Map<Class<? extends Annotation>, Map<String, Object>> defaultEntityClassAnnotation;
 
@@ -265,8 +274,13 @@ public class AutoDbMappingGenerater  {
 			defaultRootPath = builder.defaultRootPath;
 			entityName = builder.entityName;
 			repositoryName = builder.repositoryName;
+			entityExtendsClass = builder.entityExtendsClass;
+			entityImplamentList = builder.entityImplamentList;
+			repositoryExtendsClass = builder.repositoryExtendsClass;
+			repositoryImplamentList = builder.repositoryImplamentList;
 			defaultEntityFieldAnnotation = builder.defaultEntityFieldAnnotation;
 			defaultEntityClassAnnotation = builder.defaultEntityClassAnnotation;
+			
 		}
 		
 		public static AutoDbMappingGeneraterOptionBuilder builder(){
@@ -282,14 +296,18 @@ public class AutoDbMappingGenerater  {
 			//List.of("src", "main", "java", "com", "radncs", "bird_plus");
 			private String entityName = "Entity";
 			private String repositoryName = "Repository";
-			private Map<String, Map<Class<? extends Annotation>, Map<String, Object>>> defaultEntityFieldAnnotation; /* = Map.of(
+			private Class<?> entityExtendsClass;
+			private List<Class<?>> entityImplamentList;
+			private Class<?> repositoryExtendsClass;
+			private List<Class<?>> repositoryImplamentList;
+			private Map<String, Map<Class<? extends Annotation>, Map<String, Object>>> defaultEntityFieldAnnotation = Collections.emptyMap(); /* = Map.of(
 						"create_at", Map.of(CreatedDate.class, Collections.emptyMap()),
 						"create_by", Map.of(CreatedBy.class, Collections.emptyMap()),
 						"update_at", Map.of(LastModifiedDate.class, Collections.emptyMap()),
 						"update_by", Map.of(LastModifiedBy.class, Collections.emptyMap()),
 						"password", Map.of(JsonProperty.class, Map.of("access", JsonProperty.Access.WRITE_ONLY))
 					);*/
-			private Map<Class<? extends Annotation>, Map<String, Object>> defaultEntityClassAnnotation; /* = Map.of(
+			private Map<Class<? extends Annotation>, Map<String, Object>> defaultEntityClassAnnotation = Collections.emptyMap(); /* = Map.of(
 						Getter.class, Collections.emptyMap(),
 						Setter.class, Collections.emptyMap(),
 						Builder.class, Map.of("toBuilder", true),
@@ -340,6 +358,22 @@ public class AutoDbMappingGenerater  {
 			}
 			public AutoDbMappingGeneraterOptionBuilder defaultEntityClassAnnotation(Map<Class<? extends Annotation>, Map<String, Object>> defaultEntityClassAnnotation) {
 				this.defaultEntityClassAnnotation = defaultEntityClassAnnotation;
+				return this;
+			}
+			public AutoDbMappingGeneraterOptionBuilder entityExtendsClass(Class<?> entityExtendsClass) {
+				this.entityExtendsClass = entityExtendsClass;
+				return this;
+			}
+			public AutoDbMappingGeneraterOptionBuilder entityImplamentList(List<Class<?>> entityImplamentList) {
+				this.entityImplamentList = entityImplamentList;
+				return this;
+			}
+			public AutoDbMappingGeneraterOptionBuilder repositoryExtendsClass(Class<?> repositoryExtendsClass) {
+				this.repositoryExtendsClass = repositoryExtendsClass;
+				return this;
+			}
+			public AutoDbMappingGeneraterOptionBuilder repositoryImplamentList(List<Class<?>> repositoryImplamentList) {
+				this.repositoryImplamentList = repositoryImplamentList;
 				return this;
 			}
 			public AutoDbMappingGeneraterOption build() {
