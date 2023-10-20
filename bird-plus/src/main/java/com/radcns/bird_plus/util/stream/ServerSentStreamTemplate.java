@@ -8,7 +8,7 @@ import com.radcns.bird_plus.entity.room.RoomInAccountEntity.RoomInAccountDomain.
 
 import lombok.Getter;
 
-public abstract class ServerSentStreamTemplate<T> {
+public class ServerSentStreamTemplate<T> {
 	
 	@Getter 
 	private final Long workspaceId;

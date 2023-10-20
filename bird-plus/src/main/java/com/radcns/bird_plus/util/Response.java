@@ -14,10 +14,10 @@ public class Response{
 	private String summary;// = "SUCCESS";
 	private Object data;
 	
-	public Response() {
+	private Response() {
 
 	}
-	public Response(Object data) {
+	private Response(Object data) {
 		this.data = data;
 	}
 	

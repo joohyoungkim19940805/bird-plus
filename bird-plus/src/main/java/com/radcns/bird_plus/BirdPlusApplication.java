@@ -64,13 +64,6 @@ public class BirdPlusApplication implements ApplicationRunner {
 	public void run(ApplicationArguments args) throws Exception {
 		// TODO Auto-generated method stub
 	   	System.out.println("kjh test afterPropertiesSet");
-	   	new AutoDbMappingGenerater(AutoDbMappingGeneraterOption.builder()
-	   		.url(url)
-	   		.username(username)
-	   		.password(password)
-	   		.schema(schema)
-   			.build()
-	   	);
 	}
 
     /**
