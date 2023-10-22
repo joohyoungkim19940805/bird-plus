@@ -22,6 +22,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
+
 import com.radcns.bird_plus.AutoDbMappingGenerater.UnderType.UnderTypeRecord;
 
 import reactor.core.publisher.Flux;
@@ -30,6 +33,8 @@ import reactor.core.scheduler.Schedulers;
 import spoon.Launcher;
 import spoon.compiler.Environment;
 import spoon.reflect.CtModel;
+import spoon.reflect.declaration.CtAnnotation;
+import spoon.reflect.declaration.CtAnnotationType;
 import spoon.reflect.declaration.CtClass;
 import spoon.reflect.declaration.CtField;
 import spoon.reflect.declaration.CtInterface;
@@ -120,7 +125,13 @@ public class AutoDbMappingGenerater  {
 				System.out.println(repository);
 				scanningDB().doOnNext(tableRecord->{
 					if(i.get() == 0) {
-						createEntity(tableRecord);
+						CtClass<?> entity = createEntity(tableRecord);
+						
+						tableRecord.columnMapper.entrySet().stream().map(e -> {
+							CtField<?> field = createField(e.getValue());
+							
+							return null;
+						});
 					}
 					i.getAndIncrement();
 				}).subscribe();
@@ -273,6 +284,7 @@ public class AutoDbMappingGenerater  {
 			}
 		}).flatMapMany(Flux::fromIterable).flatMap(e->e);
 	}
+	
 	private CtClass<?> createEntity(TableRecord tableRecord) {
 		Path packagePath = packageHistory.get(tableRecord.name)[0];
 		String packageNames = 
@@ -327,12 +339,29 @@ public class AutoDbMappingGenerater  {
 				prevType = genericType;
 			}
 		}else{
-			type = spoon.getFactory().Code().createCtTypeReference((Class)objType);
+			type = spoon.getFactory().Code().createCtTypeReference((Class<?>)objType);
 		}
 		field.setType(type);
 		
 		return field;
 	}
+	
+	private CtAnnotation<?> createAnnotation() {
+		return null;
+	}
+	
+	private CtAnnotation<?> createEntityAnnotation(){
+		CtAnnotationType<?> tableAnnotationType = (CtAnnotationType<?>) spoon.getFactory().Type().get(option.entityClassTableAnnotationType);
+		
+		CtAnnotation<Annotation> columnAnnotation = spoon.getFactory().Core().createAnnotation();
+		
+		return null;
+	}
+	
+	private CtAnnotation<?> createFieldAnnotation(){
+		return null;
+	}
+	
 	private void output(CtClass clazz) {
 		javaOutputProcessor.createJavaFile(clazz);
 	}
