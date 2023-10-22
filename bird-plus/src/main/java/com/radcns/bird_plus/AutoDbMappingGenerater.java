@@ -346,20 +346,21 @@ public class AutoDbMappingGenerater  {
 		return field;
 	}
 	
-	private CtAnnotation<?> createAnnotation() {
-		return null;
+	private CtAnnotation<?> createAnnotation(Class<?> targetClass) {
+		return createAnnotation(targetClass, null);
 	}
 	
-	private CtAnnotation<?> createEntityAnnotation(){
-		CtAnnotationType<?> tableAnnotationType = (CtAnnotationType<?>) spoon.getFactory().Type().get(option.entityClassTableAnnotationType);
+	private CtAnnotation<?> createAnnotation(Class<?> targetClass, Map<String, Object> targetValues) {
+		CtAnnotationType<?> annotationType = (CtAnnotationType<?>) spoon.getFactory().Type().get(targetClass);
+		CtAnnotation<Annotation> annotation = spoon.getFactory().Core().createAnnotation();
 		
-		CtAnnotation<Annotation> columnAnnotation = spoon.getFactory().Core().createAnnotation();
+		annotation.setAnnotationType(annotationType.getReference());
 		
-		return null;
-	}
-	
-	private CtAnnotation<?> createFieldAnnotation(){
-		return null;
+		if(targetValues != null) {
+			annotation.setElementValues(targetValues);
+		}
+		
+		return annotation;
 	}
 	
 	private void output(CtClass clazz) {
