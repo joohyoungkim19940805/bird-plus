@@ -11,7 +11,6 @@ import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -23,17 +22,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import com.radcns.bird_plus.AutoDbMappingGenerater.UnderType.UnderTypeRecord;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import spoon.Launcher;
-import spoon.SpoonAPI;
 import spoon.compiler.Environment;
 import spoon.reflect.CtModel;
 import spoon.reflect.declaration.CtClass;
-import spoon.reflect.declaration.CtElement;
 import spoon.reflect.declaration.CtField;
 import spoon.reflect.declaration.CtInterface;
 import spoon.reflect.declaration.ModifierKind;
@@ -248,12 +245,6 @@ public class AutoDbMappingGenerater  {
         			String tableName = result.getString(3);
             		String columnName = result.getString(4);
 					String dataTypeName = result.getString(6);
-					
-					System.out.println(dataTypeName);
-            		/*
-					5.DATA_TYPE int => SQL type from java.sql.Types 
-					6.TYPE_NAME String => Data source dependent type name,for a UDT the type name is fully qualified 
-					*/
 	        		Mono<TableRecord> mono = Mono.fromCallable(() -> {
 	            		TableRecord tableRecord = tableMemory.get(tableName);
 	            		ColumnRecord columnRecord = null;
@@ -291,7 +282,7 @@ public class AutoDbMappingGenerater  {
 					).flatMap(e->e).collect(Collectors.joining("."))
 					+ ".";
 		
-		
+		/*
 		var clazz = spoon.getFactory().Class().create(packageNames + tableRecord.camelName + option.entityClassLastName);
 		
 		CtField<?> testField = spoon.getFactory().Core().createField();
@@ -309,15 +300,38 @@ public class AutoDbMappingGenerater  {
 		clazz.addField(testField);
 		
 		javaOutputProcessor.createJavaFile(clazz);
-		
+		*/
 		
 		return spoon.getFactory().Class().create(packageNames + tableRecord.camelName + option.entityClassLastName);
 	}
-	private CtField<?> createField(TableRecord tableRecord){
+	private CtField<?> createField(ColumnRecord columnRecord){
 		CtField<?> field = spoon.getFactory().Core().createField();
-		CtTypeReference<Object> type = spoon.getFactory().Code().createCtTypeReference(Object.class);
+		Object objType = option.columnColumnEntry.get(columnRecord.name);
+		CtTypeReference<?> type;
+		if(objType == null) {
+			type = spoon.getFactory().Code().createCtTypeReference(Object.class);
+		}else if(objType.getClass().equals(UnderType.class)) {
+			UnderType<?> underType = UnderType.class.cast(objType);
+			type = spoon.getFactory().Code().createCtTypeReference(underType.getTopClass());
+			var list = underType.getClassPath();
+			CtTypeReference<?> prevType = type;
+			for(int i = 1, len = list.size() ; i < len ; i += 1) {
+				UnderTypeRecord underTypeRecord = list.get(i);
+				CtTypeReference<?> genericType = spoon.getFactory().Code().createCtTypeReference(underTypeRecord .clazz());
+				genericType.setActualTypeArguments(
+					underTypeRecord.childList().stream()
+					.map(e-> spoon.getFactory().Code().createCtTypeReference(e.clazz()))
+					.toList()
+				);
+				prevType.setActualTypeArguments(List.of(genericType));
+				prevType = genericType;
+			}
+		}else{
+			type = spoon.getFactory().Code().createCtTypeReference((Class)objType);
+		}
+		field.setType(type);
 		
-		return null;
+		return field;
 	}
 	private void output(CtClass clazz) {
 		javaOutputProcessor.createJavaFile(clazz);
@@ -355,7 +369,7 @@ public class AutoDbMappingGenerater  {
 		private final Class<?> entityClassFieldColumnAnnotationType;
 		private final Map<Class<? extends Annotation>, Map<String, Object>> entityClassDefaultAnnotation;
 		private final Class<?> entityClassTableAnnotationType;
-		private final Map<String, ?> columnTypeMapper;
+		private final Map<String, ?> columnColumnEntry;
 		protected AutoDbMappingGeneraterOption(AutoDbMappingGeneraterOptionBuilder builder){
 			schema = builder.schema;
 			url = builder.url;
@@ -373,7 +387,7 @@ public class AutoDbMappingGenerater  {
 			entityClassFieldColumnAnnotationType = builder.entityClassFieldColumnAnnotationType;
 			entityClassDefaultAnnotation = builder.entityClassDefaultAnnotation;
 			entityClassTableAnnotationType = builder.entityClassTableAnnotationType;
-			columnTypeMapper = builder.columnTypeMapper;
+			columnColumnEntry = builder.columnColumnEntry;
 		}
 		
 		public static AutoDbMappingGeneraterOptionBuilder builder(){
@@ -397,7 +411,7 @@ public class AutoDbMappingGenerater  {
 			private Class<?> entityClassFieldColumnAnnotationType;
 			private Map<Class<? extends Annotation>, Map<String, Object>> entityClassDefaultAnnotation = Collections.emptyMap();
 			private Class<?> entityClassTableAnnotationType;
-			private Map<String, ?> columnTypeMapper;
+			private Map<String, ?> columnColumnEntry;
 		
 			public AutoDbMappingGeneraterOptionBuilder schema(String schema) {
 				this.schema = schema;
@@ -465,14 +479,14 @@ public class AutoDbMappingGenerater  {
 				this.entityClassTableAnnotationType = entityClassTableAnnotationType;
 				return this;
 			}
-			public AutoDbMappingGeneraterOptionBuilder columnTypeMapper(Map<String, ?> columnTypeMapper) {
-				System.out.println(columnTypeMapper.getClass());
+			public AutoDbMappingGeneraterOptionBuilder columnColumnEntry(Map<String, ?> columnColumnEntry) {
+				System.out.println(columnColumnEntry.getClass());
 
-				if( ! columnTypeMapper.entrySet().stream().allMatch(e-> e.getClass().equals(TypeMapper.class))) {
-					throw new IllegalArgumentException("argument type mismatch. type is not :" + TypeMapper.class.getName());
+				if( ! columnColumnEntry.entrySet().stream().allMatch(e-> e.getClass().equals(ColumnEntry.class))) {
+					throw new IllegalArgumentException("argument type mismatch. type is not :" + ColumnEntry.class.getName());
 				}
 				
-				this.columnTypeMapper = columnTypeMapper;
+				this.columnColumnEntry = columnColumnEntry;
 				return this;
 			}
 			public AutoDbMappingGeneraterOption build() {
@@ -555,7 +569,7 @@ public class AutoDbMappingGenerater  {
 		public UnderTypeRecord getTopRecord() {
 			return this.topRecord;
 		}
-		private record UnderTypeRecord(
+		public record UnderTypeRecord(
 				Class<?> clazz,
 				List<UnderTypeRecord> childList) {
 			
@@ -568,11 +582,11 @@ public class AutoDbMappingGenerater  {
 		}
 	}
 
-	public static class TypeMapper<K,V> implements Map.Entry<K, V>{
+	public static class ColumnEntry<K,V> implements Map.Entry<K, V>{
 		private K k;
 		private V v;
 		
-		private TypeMapper(K k, V v) {
+		private ColumnEntry(K k, V v) {
 			this.k = k;
 			this.v = v;
 		}
@@ -596,11 +610,11 @@ public class AutoDbMappingGenerater  {
 			return this.v;
 		}
 		
-		public static <K, T> TypeMapper<K, Class<?>> ofType(K k, Class<?> v) {
-			return new TypeMapper<K, Class<?>>(k,v);
+		public static <K, T> ColumnEntry<K, Class<?>> pair(K k, Class<?> v) {
+			return new ColumnEntry<K, Class<?>>(k,v);
 		}
-		public static <K, T> TypeMapper<K, UnderType<?>> ofType(K k, UnderType<?> v) {
-			return new TypeMapper<K, UnderType<?>>(k,v);
+		public static <K, T> ColumnEntry<K, UnderType<?>> pair(K k, UnderType<?> v) {
+			return new ColumnEntry<K, UnderType<?>>(k,v);
 		}
 		
 	}

@@ -2,6 +2,8 @@ package com.radcns.bird_plus;
 
 import java.io.File;
 import java.time.LocalDateTime;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -53,7 +55,7 @@ import spoon.reflect.visitor.filter.AbstractFilter;
 import spoon.support.JavaOutputProcessor;
 
 import static java.util.Map.entry;
-import static com.radcns.bird_plus.AutoDbMappingGenerater.TypeMapper;
+import static com.radcns.bird_plus.AutoDbMappingGenerater.ColumnEntry;
 public class Test {
 	public static void main1(String a[]) {
 		SpoonAPI spoon = new Launcher();
@@ -111,7 +113,8 @@ public class Test {
 		//new AccountEntity().testMils;
 	}
 	public static void main2(String a[]) throws ClassNotFoundException {
-	   	new AutoDbMappingGenerater(AutoDbMappingGeneraterOption.builder()
+		
+		new AutoDbMappingGenerater(AutoDbMappingGeneraterOption.builder()
 		   		.url("jdbc:postgresql://kor-zombi-rds-3.cylfrmmsl7kc.ap-northeast-2.rds.amazonaws.com:5432/kor_zombi_database")
 		   		.username("kor_zombi_rds")
 		   		.password("rlawngud1")
@@ -143,22 +146,23 @@ public class Test {
 		   		.repositoryClassLastName("Repository")
 		   		.repositoryPkClass(Long.class)
 	   			.repositoryExtendsClass(ReactiveCrudRepository.class)
-	   			.columnTypeMapper(Map.ofEntries(
-	   				TypeMapper.ofType("int2", Long.class),
-	   				TypeMapper.ofType("int4", Long.class),
-	   				TypeMapper.ofType("int6", Long.class),
-	   				TypeMapper.ofType("int8", Long.class),
-	   				TypeMapper.ofType("_int2", new UnderType<List<Long>>() {}),
-	   				TypeMapper.ofType("_int4", new UnderType<List<Long>>() {}),
-	   				TypeMapper.ofType("_int6", new UnderType<List<Long>>() {}),
-	   				TypeMapper.ofType("_int8", new UnderType<List<Long>>() {}),
-	   				TypeMapper.ofType("serial", new UnderType<List<Long>>() {}),
-	   				TypeMapper.ofType("bigserial", new UnderType<List<Long>>() {}),
-	   				TypeMapper.ofType("timestamp", LocalDateTime.class),
-	   				TypeMapper.ofType("varchar", String.class),
-	   				TypeMapper.ofType("_varchar", new UnderType<List<String>>() {}.getTopClass()),
-	   				TypeMapper.ofType("bool", Boolean.class),
-	   				TypeMapper.ofType("jsonb", Json.class)	   				
+	   			.columnColumnEntry(Map.ofEntries(
+	   				ColumnEntry.pair("int2", Long.class),
+	   				ColumnEntry.pair("int4", Long.class),
+	   				ColumnEntry.pair("int6", Long.class),
+	   				ColumnEntry.pair("int8", Long.class),
+	   				ColumnEntry.pair("_int2", new UnderType<List<Long>>() {}),
+	   				ColumnEntry.pair("_int4", new UnderType<List<Long>>() {}),
+	   				ColumnEntry.pair("_int6", new UnderType<List<Long>>() {}),
+	   				ColumnEntry.pair("_int8", new UnderType<List<Long>>() {}),
+	   				ColumnEntry.pair("serial", new UnderType<List<Long>>() {}),
+	   				ColumnEntry.pair("bigserial", new UnderType<List<Long>>() {}),
+	   				ColumnEntry.pair("timestamp", LocalDateTime.class),
+	   				ColumnEntry.pair("varchar", String.class),
+	   				ColumnEntry.pair("_varchar", new UnderType<List<String>>() {}),
+	   				ColumnEntry.pair("bool", Boolean.class),
+	   				ColumnEntry.pair("jsonb", Json.class),
+	   				ColumnEntry.pair("json", Json.class)
 	   			))
 		   		.build()
 		   	);
