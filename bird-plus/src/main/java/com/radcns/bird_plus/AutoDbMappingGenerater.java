@@ -117,103 +117,12 @@ public class AutoDbMappingGenerater  {
 		;
 		
 		System.out.println("loading end. starting observe your database!");
-		AtomicInteger i = new AtomicInteger();
+		
 		Flux.interval(Duration.ofMinutes(option.intervalOfMinutes))
 		.onBackpressureDrop()
 		.subscribeOn(Schedulers.single())
 		.doOnNext(counter -> {
-			if(option.isTest) {
-				i.set(0);
-				System.out.println("count ::: " + counter);
-			}
-			entityFilter.doOnNext(entityFilterMap->{
-				repositoryFilter.doOnNext(repositoryFilterMap->{
-					scanningDB().doOnNext(tableRecord->{
-						if(i.get() > 0) {
-							return;
-						}
-
-						Entry<CtClass<?>, Map<String, CtFieldReference<?>>> memoryEntity = entityFilterMap.get(tableRecord.camelName + option.entityClassLastName);
-						CtClass<?> entity = createClass(tableRecord, memoryEntity);
-						
-						if( ! entity.hasAnnotation(option.entityClassTableAnnotationType)) {
-							CtAnnotation<?> entityTableAnnotationType = createAnnotation(option.entityClassTableAnnotationType, Map.of("value", tableRecord.name));
-							entity.addAnnotation(entityTableAnnotationType);
-						}
-						option.entityClassDefaultAnnotation.entrySet().forEach(e->{
-							if(entity.hasAnnotation(e.getKey())) {
-								return;
-							}
-							CtAnnotation<?> annotation = createAnnotation(e.getKey(), e.getValue());
-							entity.addAnnotation(annotation);
-						});
-						
-						tableRecord.columnMapper.entrySet().stream().forEach(entry -> {
-							if(entity.getField(entry.getValue().camelName) != null) {
-								return;
-							}
-							CtField<?> field = createField(entry.getValue(), (memoryEntity == null ? null : memoryEntity.getValue()));
-							if( ! field.hasAnnotation(option.entityClassFieldColumnAnnotationType)) {
-								field.addAnnotation(
-									createAnnotation(option.entityClassFieldColumnAnnotationType, Map.of("value", entry.getValue().name))
-								);
-							}
-							option.entityClassFieldDefaultAnnotationType.entrySet().stream().forEach( e-> {
-								if(field.hasAnnotation(e.getKey())) {
-									return;
-								}
-								CtAnnotation<?> annotation = createAnnotation(e.getKey(), e.getValue());
-								field.addAnnotation(annotation);
-							});
-							
-							Map<Class<? extends Annotation>, Map<String, Object>> specificField = option.entityClassSpecificFieldAnnotation.get(entry.getValue().name);
-							if(specificField != null) {
-								specificField.entrySet().forEach(e->{
-									if(field.hasAnnotation(e.getKey())) {
-										return;
-									}
-									CtAnnotation<?> annotation = createAnnotation(e.getKey(), e.getValue());
-									field.addAnnotation(annotation);
-								});
-							}
-
-							entity.addField(field);
-						});
-						option.entityCeateAfterCallBack.accept(entity, spoon.getFactory());
-						javaOutputProcessor.createJavaFile(entity);
-						
-						Entry<CtInterface<?>, Map<String, CtFieldReference<?>>> memoryRepositry = repositoryFilterMap.get(tableRecord.camelName + option.repositoryClassLastName);
-						CtInterface<?> interfaze = createInterface(tableRecord, memoryRepositry);
-						CtTypeReference<?> parentType = spoon.getFactory().Code().createCtTypeReference(ReactiveCrudRepository.class);
-						//CtTypeReference<?> parentGernericOfEntity = spoon.getFactory().Code().createCtTypeReference(option.repositoryExtendsClass);
-						CtTypeReference<?> parentGernericOfPk = spoon.getFactory().Code().createCtTypeReference(option.repositoryPkClass);
-						parentType.setActualTypeArguments(List.of(entity.getReference(), parentGernericOfPk));
-						interfaze.addSuperInterface(parentType);
-						
-						javaOutputProcessor.createJavaFile(interfaze);
-						if(option.isTest) {
-							i.getAndIncrement();
-							System.out.println("is test mode...");
-							System.out.println(
-									"create success entity file ::: " + 
-									Stream.of(
-										option.defaultPackageRootPath.stream(), 
-										Stream.of(packageHistory.get(tableRecord.name)[0].getParent().getFileName().toString(), packageHistory.get(tableRecord.name)[0].getFileName().toString())
-									).flatMap(e->e).collect(Collectors.joining("."))
-									+ "." + tableRecord.camelName + option.entityClassLastName
-							);
-							System.out.println(
-									"create success repository file ::: " + 
-									Stream.of(
-										option.defaultPackageRootPath.stream(), 
-										Stream.of(packageHistory.get(tableRecord.name)[1].getParent().getFileName().toString(), packageHistory.get(tableRecord.name)[0].getFileName().toString())
-									).flatMap(e->e).collect(Collectors.joining("."))
-									+ "." + tableRecord.camelName + option.repositoryClassLastName
-							);
-						}
-					}).subscribe();
-				}).subscribe();
-			}).subscribe();
+			
 		})
 		.subscribe()
 		;
@@ -236,6 +145,101 @@ public class AutoDbMappingGenerater  {
 		//run();
 	}
 
+	private void run() {
+		AtomicInteger i = new AtomicInteger();
+		if(option.isTest) {
+			i.set(0);
+			//System.out.println("count ::: " + counter);
+		}
+		entityFilter.doOnNext(entityFilterMap->{
+			repositoryFilter.doOnNext(repositoryFilterMap->{
+				scanningDB().doOnNext(tableRecord->{
+					if(i.get() > 0) {
+						return;
+					}
+
+					Entry<CtClass<?>, Map<String, CtFieldReference<?>>> memoryEntity = entityFilterMap.get(tableRecord.camelName + option.entityClassLastName);
+					CtClass<?> entity = createClass(tableRecord, memoryEntity);
+					
+					if( ! entity.hasAnnotation(option.entityClassTableAnnotationType)) {
+						CtAnnotation<?> entityTableAnnotationType = createAnnotation(option.entityClassTableAnnotationType, Map.of("value", tableRecord.name));
+						entity.addAnnotation(entityTableAnnotationType);
+					}
+					option.entityClassDefaultAnnotation.entrySet().forEach(e->{
+						if(entity.hasAnnotation(e.getKey())) {
+							return;
+						}
+						CtAnnotation<?> annotation = createAnnotation(e.getKey(), e.getValue());
+						entity.addAnnotation(annotation);
+					});
+					
+					tableRecord.columnMapper.entrySet().stream().forEach(entry -> {
+						if(entity.getField(entry.getValue().camelName) != null) {
+							return;
+						}
+						CtField<?> field = createField(entry.getValue(), (memoryEntity == null ? null : memoryEntity.getValue()));
+						if( ! field.hasAnnotation(option.entityClassFieldColumnAnnotationType)) {
+							field.addAnnotation(
+								createAnnotation(option.entityClassFieldColumnAnnotationType, Map.of("value", entry.getValue().name))
+							);
+						}
+						option.entityClassFieldDefaultAnnotationType.entrySet().stream().forEach( e-> {
+							if(field.hasAnnotation(e.getKey())) {
+								return;
+							}
+							CtAnnotation<?> annotation = createAnnotation(e.getKey(), e.getValue());
+							field.addAnnotation(annotation);
+						});
+						
+						Map<Class<? extends Annotation>, Map<String, Object>> specificField = option.entityClassSpecificFieldAnnotation.get(entry.getValue().name);
+						if(specificField != null) {
+							specificField.entrySet().forEach(e->{
+								if(field.hasAnnotation(e.getKey())) {
+									return;
+								}
+								CtAnnotation<?> annotation = createAnnotation(e.getKey(), e.getValue());
+								field.addAnnotation(annotation);
+							});
+						}
+
+						entity.addField(field);
+					});
+					option.entityCeateAfterCallBack.accept(entity, spoon.getFactory());
+					javaOutputProcessor.createJavaFile(entity);
+					
+					Entry<CtInterface<?>, Map<String, CtFieldReference<?>>> memoryRepositry = repositoryFilterMap.get(tableRecord.camelName + option.repositoryClassLastName);
+					CtInterface<?> interfaze = createInterface(tableRecord, memoryRepositry);
+					CtTypeReference<?> parentType = spoon.getFactory().Code().createCtTypeReference(option.repositoryExtendsClass);
+					CtTypeReference<?> parentGernericOfPk = spoon.getFactory().Code().createCtTypeReference(option.repositoryPkClass);
+					parentType.setActualTypeArguments(List.of(entity.getReference(), parentGernericOfPk));
+					interfaze.addSuperInterface(parentType);
+					
+					javaOutputProcessor.createJavaFile(interfaze);
+					if(option.isTest) {
+						i.getAndIncrement();
+						System.out.println("is test mode...");
+						System.out.println(
+								"create success entity file ::: " + 
+								Stream.of(
+									option.defaultPackageRootPath.stream(), 
+									Stream.of(packageHistory.get(tableRecord.name)[0].getParent().getFileName().toString(), packageHistory.get(tableRecord.name)[0].getFileName().toString())
+								).flatMap(e->e).collect(Collectors.joining("."))
+								+ "." + tableRecord.camelName + option.entityClassLastName
+						);
+						System.out.println(
+								"create success repository file ::: " + 
+								Stream.of(
+									option.defaultPackageRootPath.stream(), 
+									Stream.of(packageHistory.get(tableRecord.name)[1].getParent().getFileName().toString(), packageHistory.get(tableRecord.name)[0].getFileName().toString())
+								).flatMap(e->e).collect(Collectors.joining("."))
+								+ "." + tableRecord.camelName + option.repositoryClassLastName
+						);
+					}
+				}).subscribe();
+			}).subscribe();
+		}).subscribe();
+	}
+	
 	private void createDefaultDirectories() {
 		Path path = Paths.get(this.defaultRootDirectories + this.option.defaultRootPath.stream().collect(Collectors.joining("\\\\")));
 		Path entityPath = Paths.get(
@@ -444,13 +448,6 @@ public class AutoDbMappingGenerater  {
 		return annotation;
 	}
 
-	private void output(CtClass clazz) {
-		javaOutputProcessor.createJavaFile(clazz);
-	}
-	
-    private void run() {
-    	
-    }
 
     private record TableRecord(
     		   String name,
