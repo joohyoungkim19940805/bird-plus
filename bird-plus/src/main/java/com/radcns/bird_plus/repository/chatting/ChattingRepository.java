@@ -1,10 +1,12 @@
 package com.radcns.bird_plus.repository.chatting;
 
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 
-import com.radcns.bird_plus.entity.account.AccountEntity;
+import com.google.common.annotations.Beta;
+
 import com.radcns.bird_plus.entity.chatting.ChattingEntity;
 import com.radcns.bird_plus.entity.chatting.ChattingEntity.ChattingDomain;
 

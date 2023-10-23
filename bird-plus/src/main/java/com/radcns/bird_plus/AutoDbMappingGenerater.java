@@ -11,19 +11,21 @@ import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.springframework.data.relational.core.mapping.Column;
-import org.springframework.data.relational.core.mapping.Table;
+import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 
 import com.radcns.bird_plus.AutoDbMappingGenerater.UnderType.UnderTypeRecord;
 
@@ -36,9 +38,11 @@ import spoon.reflect.CtModel;
 import spoon.reflect.declaration.CtAnnotation;
 import spoon.reflect.declaration.CtAnnotationType;
 import spoon.reflect.declaration.CtClass;
+import spoon.reflect.declaration.CtElement;
 import spoon.reflect.declaration.CtField;
 import spoon.reflect.declaration.CtInterface;
 import spoon.reflect.declaration.ModifierKind;
+import spoon.reflect.factory.Factory;
 import spoon.reflect.reference.CtFieldReference;
 import spoon.reflect.reference.CtTypeReference;
 import spoon.reflect.visitor.filter.AbstractFilter;
@@ -50,15 +54,15 @@ public class AutoDbMappingGenerater  {
 	protected static volatile ConcurrentMap<String, Path[]> packageHistory = new ConcurrentHashMap<>();
 	protected final Launcher spoon = new Launcher();
 	protected final JavaOutputProcessor javaOutputProcessor = new JavaOutputProcessor();
-	protected final Mono<Map<String, Map<String, CtFieldReference<?>>>> entityFilter; 
-	protected final Mono<Map<String, Map<String, CtFieldReference<?>>>> repositoryFilter; 
+	protected final Mono<Map<String, Entry<CtClass<?>, Map<String, CtFieldReference<?>>>>> entityFilter; 
+	protected final Mono<Map<String, Entry<CtInterface<?>, Map<String, CtFieldReference<?>>>>> repositoryFilter; 
 	protected final AutoDbMappingGeneraterOption option;
     
 	protected final String defaultRootDirectories = System.getProperty("user.dir") + "\\\\";
 	
 	public AutoDbMappingGenerater(AutoDbMappingGeneraterOption option) {
+		System.out.println("loading ...");
 		this.option = option;
-		System.out.println(option.defaultRootPath.stream().collect(Collectors.joining("\\\\")));
 		spoon.addInputResource(option.defaultRootPath.stream().collect(Collectors.joining("\\\\")));
 		Environment env = spoon.getEnvironment();
 		env.setAutoImports(true);
@@ -68,13 +72,6 @@ public class AutoDbMappingGenerater  {
 		CtModel model = spoon.buildModel();
 		javaOutputProcessor.setFactory(spoon.getFactory());
 
-		System.out.println(
-				Stream.of(
-						spoon.getEnvironment().getSourceOutputDirectory().getPath().split("\\\\"), option.defaultRootPath.toArray(String[]::new)
-					)
-					.flatMap(e->Stream.of(e))
-					.filter(e-> ! e.equals("spooned")).collect(Collectors.joining("\\\\"))
-				);
 		spoon.getEnvironment().setSourceOutputDirectory(
 			new File(
 				Stream.of(
@@ -99,7 +96,7 @@ public class AutoDbMappingGenerater  {
 		.flatMapMany(Flux::fromIterable)
 		.collectMap(
 			k -> k.getSimpleName(), 
-			v -> v.getAllFields().stream().collect(Collectors.toMap(fieldsK -> fieldsK.getSimpleName(), fieldsV -> fieldsV))
+			v -> Map.entry(v, v.getAllFields().stream().collect(Collectors.toMap(fieldsK -> fieldsK.getSimpleName(), fieldsV -> fieldsV)))
 		)
 		;
 
@@ -115,31 +112,118 @@ public class AutoDbMappingGenerater  {
 		.flatMapMany(Flux::fromIterable)
 		.collectMap(
 				k -> k.getSimpleName(), 
-				v -> v.getAllFields().stream().collect(Collectors.toMap(fieldsK -> fieldsK.getSimpleName(), fieldsV -> fieldsV))
+				v -> Map.entry(v, v.getAllFields().stream().collect(Collectors.toMap(fieldsK -> fieldsK.getSimpleName(), fieldsV -> fieldsV)))
 		)
 		;
+		
+		System.out.println("loading end. starting observe your database!");
 		AtomicInteger i = new AtomicInteger();
-		entityFilter.doOnNext(entityMap->{
-			System.out.println(entityMap);
-			repositoryFilter.doOnNext(repository->{
-				System.out.println(repository);
-				scanningDB().doOnNext(tableRecord->{
-					if(i.get() == 0) {
-						CtClass<?> entity = createEntity(tableRecord);
+		Flux.interval(Duration.ofMinutes(option.intervalOfMinutes))
+		.onBackpressureDrop()
+		.subscribeOn(Schedulers.single())
+		.doOnNext(counter -> {
+			if(option.isTest) {
+				i.set(0);
+				System.out.println("count ::: " + counter);
+			}
+			entityFilter.doOnNext(entityFilterMap->{
+				repositoryFilter.doOnNext(repositoryFilterMap->{
+					scanningDB().doOnNext(tableRecord->{
+						if(i.get() > 0) {
+							return;
+						}
+
+						Entry<CtClass<?>, Map<String, CtFieldReference<?>>> memoryEntity = entityFilterMap.get(tableRecord.camelName + option.entityClassLastName);
+						CtClass<?> entity = createClass(tableRecord, memoryEntity);
 						
-						tableRecord.columnMapper.entrySet().stream().map(e -> {
-							CtField<?> field = createField(e.getValue());
-							
-							return null;
+						if( ! entity.hasAnnotation(option.entityClassTableAnnotationType)) {
+							CtAnnotation<?> entityTableAnnotationType = createAnnotation(option.entityClassTableAnnotationType, Map.of("value", tableRecord.name));
+							entity.addAnnotation(entityTableAnnotationType);
+						}
+						option.entityClassDefaultAnnotation.entrySet().forEach(e->{
+							if(entity.hasAnnotation(e.getKey())) {
+								return;
+							}
+							CtAnnotation<?> annotation = createAnnotation(e.getKey(), e.getValue());
+							entity.addAnnotation(annotation);
 						});
-					}
-					i.getAndIncrement();
+						
+						tableRecord.columnMapper.entrySet().stream().forEach(entry -> {
+							if(entity.getField(entry.getValue().camelName) != null) {
+								return;
+							}
+							CtField<?> field = createField(entry.getValue(), (memoryEntity == null ? null : memoryEntity.getValue()));
+							if( ! field.hasAnnotation(option.entityClassFieldColumnAnnotationType)) {
+								field.addAnnotation(
+									createAnnotation(option.entityClassFieldColumnAnnotationType, Map.of("value", entry.getValue().name))
+								);
+							}
+							option.entityClassFieldDefaultAnnotationType.entrySet().stream().forEach( e-> {
+								if(field.hasAnnotation(e.getKey())) {
+									return;
+								}
+								CtAnnotation<?> annotation = createAnnotation(e.getKey(), e.getValue());
+								field.addAnnotation(annotation);
+							});
+							
+							Map<Class<? extends Annotation>, Map<String, Object>> specificField = option.entityClassSpecificFieldAnnotation.get(entry.getValue().name);
+							if(specificField != null) {
+								specificField.entrySet().forEach(e->{
+									if(field.hasAnnotation(e.getKey())) {
+										return;
+									}
+									CtAnnotation<?> annotation = createAnnotation(e.getKey(), e.getValue());
+									field.addAnnotation(annotation);
+								});
+							}
+
+							entity.addField(field);
+						});
+						option.entityCeateAfterCallBack.accept(entity, spoon.getFactory());
+						javaOutputProcessor.createJavaFile(entity);
+						
+						Entry<CtInterface<?>, Map<String, CtFieldReference<?>>> memoryRepositry = repositoryFilterMap.get(tableRecord.camelName + option.repositoryClassLastName);
+						CtInterface<?> interfaze = createInterface(tableRecord, memoryRepositry);
+						CtTypeReference<?> parentType = spoon.getFactory().Code().createCtTypeReference(ReactiveCrudRepository.class);
+						//CtTypeReference<?> parentGernericOfEntity = spoon.getFactory().Code().createCtTypeReference(option.repositoryExtendsClass);
+						CtTypeReference<?> parentGernericOfPk = spoon.getFactory().Code().createCtTypeReference(option.repositoryPkClass);
+						parentType.setActualTypeArguments(List.of(entity.getReference(), parentGernericOfPk));
+						interfaze.addSuperInterface(parentType);
+						
+						javaOutputProcessor.createJavaFile(interfaze);
+						if(option.isTest) {
+							i.getAndIncrement();
+							System.out.println("is test mode...");
+							System.out.println(
+									"create success entity file ::: " + 
+									Stream.of(
+										option.defaultPackageRootPath.stream(), 
+										Stream.of(packageHistory.get(tableRecord.name)[0].getParent().getFileName().toString(), packageHistory.get(tableRecord.name)[0].getFileName().toString())
+									).flatMap(e->e).collect(Collectors.joining("."))
+									+ "." + tableRecord.camelName + option.entityClassLastName
+							);
+							System.out.println(
+									"create success repository file ::: " + 
+									Stream.of(
+										option.defaultPackageRootPath.stream(), 
+										Stream.of(packageHistory.get(tableRecord.name)[1].getParent().getFileName().toString(), packageHistory.get(tableRecord.name)[0].getFileName().toString())
+									).flatMap(e->e).collect(Collectors.joining("."))
+									+ "." + tableRecord.camelName + option.repositoryClassLastName
+							);
+						}
+					}).subscribe();
 				}).subscribe();
 			}).subscribe();
-		}).subscribe();
+		})
+		.subscribe()
+		;
 		
-		
-		
+	   	try {
+			Thread.sleep(Long.MAX_VALUE);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		/*
 		this.dataSource = DataSourceBuilder.create()
 				.driverClassName(option.driverClassName.value)
@@ -151,21 +235,7 @@ public class AutoDbMappingGenerater  {
 		*///
 		//run();
 	}
-	public static void main(String a[]) {
-		
-	   	new AutoDbMappingGenerater(AutoDbMappingGeneraterOption.builder()
-		   		.url("jdbc:postgresql://kor-zombi-rds-3.cylfrmmsl7kc.ap-northeast-2.rds.amazonaws.com:5432/kor_zombi_database")
-		   		.username("kor_zombi_rds")
-		   		.password("rlawngud1")
-		   		.schema("bird_plus")
-		   		.tableNameToEntityStartCharAt(0)
-		   		.defaultRootPath( List.of("src", "main", "java", "com", "radcns", "bird_plus") )
-		   		.entityClassLastName("Entity")
-		   		.repositoryClassLastName("Repository")
-	   			.build()
-		   	);
 
-	}
 	private void createDefaultDirectories() {
 		Path path = Paths.get(this.defaultRootDirectories + this.option.defaultRootPath.stream().collect(Collectors.joining("\\\\")));
 		Path entityPath = Paths.get(
@@ -251,30 +321,29 @@ public class AutoDbMappingGenerater  {
 			try (Connection connection = DriverManager.getConnection(option.url, option.username, option.password)){
 	        	var databaseMetaData = connection.getMetaData();
 	        	var result = databaseMetaData.getColumns(connection.getCatalog(), option.schema, null, null);
-	        	List<Mono<TableRecord>> list = new ArrayList<>();
+	        	List<TableRecord> list = new ArrayList<>();
 	        	while (result.next()) {
         			String tableName = result.getString(3);
             		String columnName = result.getString(4);
 					String dataTypeName = result.getString(6);
-	        		Mono<TableRecord> mono = Mono.fromCallable(() -> {
-	            		TableRecord tableRecord = tableMemory.get(tableName);
-	            		ColumnRecord columnRecord = null;
-	            		if(tableRecord == null) {
-	            			String camelTableName = convertUnderbarToCamelName(tableName);
-	            			String camelColumnName = convertUnderbarToCamelName(columnName, tableName);
-	            			Map<String, ColumnRecord> cloumnMapper = new HashMap<>();
-	            			columnRecord = new ColumnRecord(columnName, camelColumnName, dataTypeName);
-	            			cloumnMapper.put(columnName, columnRecord);
-	            			tableRecord = new TableRecord(tableName, camelTableName, createGroupPackage(tableName), cloumnMapper);
-	            			tableMemory.put(tableName, tableRecord);
-	            		}else if(! tableRecord.columnMapper.containsKey(columnName)) {
-	            			String camelColumnName = convertUnderbarToCamelName(columnName, tableName);
-	            			columnRecord = new ColumnRecord(columnName, camelColumnName, dataTypeName);
-	            			tableRecord.columnMapper.put(columnName, columnRecord);
-	            		}
-	            		return tableRecord;
-	        		});
-	        		list.add(mono);
+	        		
+            		TableRecord tableRecord = tableMemory.get(tableName);
+            		ColumnRecord columnRecord = null;
+            		if(tableRecord == null) {
+            			String camelTableName = convertUnderbarToCamelName(tableName);
+            			String camelColumnName = convertUnderbarToCamelName(columnName, tableName);
+            			Map<String, ColumnRecord> cloumnMapper = new HashMap<>();
+            			columnRecord = new ColumnRecord(columnName, camelColumnName, dataTypeName);
+            			cloumnMapper.put(columnName, columnRecord);
+            			tableRecord = new TableRecord(tableName, camelTableName, createGroupPackage(tableName), cloumnMapper);
+            			tableMemory.put(tableName, tableRecord);
+            		}else if(! tableRecord.columnMapper.containsKey(columnName)) {
+            			String camelColumnName = convertUnderbarToCamelName(columnName, tableName);
+            			columnRecord = new ColumnRecord(columnName, camelColumnName, dataTypeName);
+            			tableRecord.columnMapper.put(columnName, columnRecord);
+            		}
+
+	        		list.add(tableRecord);
 		    	}
 	        	return list;
 	        } catch (SQLException e) {
@@ -282,10 +351,32 @@ public class AutoDbMappingGenerater  {
 	        	e.printStackTrace();
 	        	return null;
 			}
-		}).flatMapMany(Flux::fromIterable).flatMap(e->e);
+		}).flatMapMany(Flux::fromIterable);
 	}
 	
-	private CtClass<?> createEntity(TableRecord tableRecord) {
+	private CtInterface<?> createInterface(TableRecord tableRecord, Entry<CtInterface<?>, Map<String, CtFieldReference<?>>> memoryEntity){
+		Path packagePath = packageHistory.get(tableRecord.name)[1];
+		String packageNames = 
+				Stream.of(
+						option.defaultPackageRootPath.stream(), 
+						Stream.of(packagePath.getParent().getFileName().toString(), packagePath.getFileName().toString())
+					).flatMap(e->e).collect(Collectors.joining("."))
+					+ ".";
+		CtInterface<?> interfaze = spoon.getFactory().Interface().create(packageNames + tableRecord.camelName + option.repositoryClassLastName);
+		
+		
+		//CtInterface<?> parent = spoon.getFactory().createInterface();
+		//parent.addSuperInterface(parentType);
+		interfaze.addModifier(ModifierKind.PUBLIC);
+
+
+		return interfaze;
+	}
+	
+	private CtClass<?> createClass(TableRecord tableRecord, Entry<CtClass<?>, Map<String, CtFieldReference<?>>> memoryEntity) {
+		if(memoryEntity != null) {
+			return memoryEntity.getKey();
+		}
 		Path packagePath = packageHistory.get(tableRecord.name)[0];
 		String packageNames = 
 				Stream.of(
@@ -293,43 +384,36 @@ public class AutoDbMappingGenerater  {
 						Stream.of(packagePath.getParent().getFileName().toString(), packagePath.getFileName().toString())
 					).flatMap(e->e).collect(Collectors.joining("."))
 					+ ".";
+		CtClass<?> clazz = spoon.getFactory().Class().create(packageNames + tableRecord.camelName + option.entityClassLastName);
 		
-		/*
-		var clazz = spoon.getFactory().Class().create(packageNames + tableRecord.camelName + option.entityClassLastName);
+		clazz.addModifier(ModifierKind.PUBLIC);
 		
-		CtField<?> testField = spoon.getFactory().Core().createField();
-		
-		CtTypeReference listType = spoon.getFactory().Code().createCtTypeReference(List.class);
-		CtTypeReference mapType = spoon.getFactory().Code().createCtTypeReference(Map.class);
-		CtTypeReference stringType = spoon.getFactory().Code().createCtTypeReference(String.class);
-		
-		mapType.setActualTypeArguments((List<? extends CtTypeReference<?>>) List.of(stringType, stringType.clone()));
-		listType.setActualTypeArguments((List<? extends CtTypeReference<?>>) List.of(mapType));
-		
-		testField.setType(listType);
-		testField.setSimpleName("test");
-		testField.addModifier(ModifierKind.PRIVATE);
-		clazz.addField(testField);
-		
-		javaOutputProcessor.createJavaFile(clazz);
-		*/
-		
-		return spoon.getFactory().Class().create(packageNames + tableRecord.camelName + option.entityClassLastName);
+		return clazz;
 	}
-	private CtField<?> createField(ColumnRecord columnRecord){
-		CtField<?> field = spoon.getFactory().Core().createField();
-		Object objType = option.columnColumnEntry.get(columnRecord.name);
+	private CtField<?> createField(ColumnRecord columnRecord, Map<String, CtFieldReference<?>> fieldEntry){
+
+		CtField<?> field;
+		if(fieldEntry != null && fieldEntry.containsKey(columnRecord.camelName)) {
+			field = fieldEntry.get(columnRecord.camelName).getFieldDeclaration();
+			return field;
+		}else {
+			field = spoon.getFactory().Core().createField();
+		}
+		field.addModifier(ModifierKind.PRIVATE);
+		field.setSimpleName(columnRecord.camelName);
+		Object objType = option.columnSpecificTypeMapper.get(columnRecord.name);
+		objType = objType != null ? objType : option.columnTypeMapper.get(columnRecord.dataTypeName);
 		CtTypeReference<?> type;
 		if(objType == null) {
 			type = spoon.getFactory().Code().createCtTypeReference(Object.class);
-		}else if(objType.getClass().equals(UnderType.class)) {
+		}else if(objType.getClass().getSuperclass().equals(UnderType.class)) {
 			UnderType<?> underType = UnderType.class.cast(objType);
 			type = spoon.getFactory().Code().createCtTypeReference(underType.getTopClass());
 			var list = underType.getClassPath();
 			CtTypeReference<?> prevType = type;
 			for(int i = 1, len = list.size() ; i < len ; i += 1) {
 				UnderTypeRecord underTypeRecord = list.get(i);
-				CtTypeReference<?> genericType = spoon.getFactory().Code().createCtTypeReference(underTypeRecord .clazz());
+				CtTypeReference<?> genericType = spoon.getFactory().Code().createCtTypeReference(underTypeRecord.clazz());
 				genericType.setActualTypeArguments(
 					underTypeRecord.childList().stream()
 					.map(e-> spoon.getFactory().Code().createCtTypeReference(e.clazz()))
@@ -341,13 +425,10 @@ public class AutoDbMappingGenerater  {
 		}else{
 			type = spoon.getFactory().Code().createCtTypeReference((Class<?>)objType);
 		}
+
 		field.setType(type);
-		
+
 		return field;
-	}
-	
-	private CtAnnotation<?> createAnnotation(Class<?> targetClass) {
-		return createAnnotation(targetClass, null);
 	}
 	
 	private CtAnnotation<?> createAnnotation(Class<?> targetClass, Map<String, Object> targetValues) {
@@ -356,13 +437,13 @@ public class AutoDbMappingGenerater  {
 		
 		annotation.setAnnotationType(annotationType.getReference());
 		
-		if(targetValues != null) {
-			annotation.setElementValues(targetValues);
-		}
+		//if(targetValues.equals(Collections.emptyMap())) {
+		annotation.setElementValues(targetValues);
+		//}
 		
 		return annotation;
 	}
-	
+
 	private void output(CtClass clazz) {
 		javaOutputProcessor.createJavaFile(clazz);
 	}
@@ -396,10 +477,17 @@ public class AutoDbMappingGenerater  {
 		private final Class<?> repositoryExtendsClass;
 		private final Class<?> repositoryPkClass;
 		private final Map<String, Map<Class<? extends Annotation>, Map<String, Object>>> entityClassSpecificFieldAnnotation;
-		private final Class<?> entityClassFieldColumnAnnotationType;
+		private final Class<? extends Annotation> entityClassFieldColumnAnnotationType;
+		private final Map<Class<? extends Annotation>, Map<String, Object>> entityClassFieldDefaultAnnotationType;
 		private final Map<Class<? extends Annotation>, Map<String, Object>> entityClassDefaultAnnotation;
-		private final Class<?> entityClassTableAnnotationType;
-		private final Map<String, ?> columnColumnEntry;
+		private final Class<? extends Annotation> entityClassTableAnnotationType;
+		private final Map<String, ?> columnTypeMapper;
+		private final Map<String, ?> columnSpecificTypeMapper;
+		private final BiConsumer<CtClass<?>, Factory> entityCeateAfterCallBack;
+		private final BiConsumer<CtInterface<?>, Factory> repositoryCeateAfterCallBack;
+		private final Boolean isTest;
+		private final Integer intervalOfMinutes;
+
 		protected AutoDbMappingGeneraterOption(AutoDbMappingGeneraterOptionBuilder builder){
 			schema = builder.schema;
 			url = builder.url;
@@ -415,9 +503,15 @@ public class AutoDbMappingGenerater  {
 			repositoryPkClass = builder.repositoryPkClass;
 			entityClassSpecificFieldAnnotation = builder.entityClassSpecificFieldAnnotation;
 			entityClassFieldColumnAnnotationType = builder.entityClassFieldColumnAnnotationType;
+			entityClassFieldDefaultAnnotationType = builder.entityClassFieldDefaultAnnotationType;
 			entityClassDefaultAnnotation = builder.entityClassDefaultAnnotation;
 			entityClassTableAnnotationType = builder.entityClassTableAnnotationType;
-			columnColumnEntry = builder.columnColumnEntry;
+			columnTypeMapper = builder.columnTypeMapper;
+			columnSpecificTypeMapper = builder.columnSpecificTypeMapper;
+			entityCeateAfterCallBack = builder.entityCeateAfterCallBack;
+			repositoryCeateAfterCallBack = builder.repositoryCeateAfterCallBack;
+			isTest = builder.isTest;
+			intervalOfMinutes= builder.intervalOfMinutes;
 		}
 		
 		public static AutoDbMappingGeneraterOptionBuilder builder(){
@@ -430,19 +524,24 @@ public class AutoDbMappingGenerater  {
 			private String username;
 			private String password;
 			private Integer tableNameToEntityStartCharAt = 0;
-			private List<String> defaultRootPath;
-			private List<String> defaultPackageRootPath;
+			private List<String> defaultRootPath = Collections.emptyList();
+			private List<String> defaultPackageRootPath = Collections.emptyList();
 			private String entityClassLastName = "Entity";
 			private String repositoryClassLastName = "Repository";
 			private Class<?> entityExtendsClass;
 			private Class<?> repositoryExtendsClass;
 			private Class<?> repositoryPkClass = Long.class;
 			private Map<String, Map<Class<? extends Annotation>, Map<String, Object>>> entityClassSpecificFieldAnnotation = Collections.emptyMap();
-			private Class<?> entityClassFieldColumnAnnotationType;
+			private Class<? extends Annotation> entityClassFieldColumnAnnotationType;
+			private Map<Class<? extends Annotation>, Map<String, Object>> entityClassFieldDefaultAnnotationType = Collections.emptyMap();
 			private Map<Class<? extends Annotation>, Map<String, Object>> entityClassDefaultAnnotation = Collections.emptyMap();
-			private Class<?> entityClassTableAnnotationType;
-			private Map<String, ?> columnColumnEntry;
-		
+			private Class<? extends Annotation> entityClassTableAnnotationType;
+			private Map<String, ?> columnTypeMapper = Collections.emptyMap();
+			private Map<String, ?> columnSpecificTypeMapper = Collections.emptyMap();
+			private BiConsumer<CtClass<?>, Factory> entityCeateAfterCallBack = ((ctElement, factory)->{});
+			private BiConsumer<CtInterface<?>, Factory> repositoryCeateAfterCallBack = ((ctElement, factory)->{});
+			private Boolean isTest = false;
+			private Integer intervalOfMinutes;
 			public AutoDbMappingGeneraterOptionBuilder schema(String schema) {
 				this.schema = schema;
 				return this;
@@ -501,22 +600,40 @@ public class AutoDbMappingGenerater  {
 				this.repositoryPkClass = repositoryPkClass;
 				return this;
 			}
-			public AutoDbMappingGeneraterOptionBuilder entityClassFieldColumnAnnotationType(Class<?> entityClassFieldColumnAnnotationType) {
+			public AutoDbMappingGeneraterOptionBuilder entityClassFieldColumnAnnotationType(Class<? extends Annotation> entityClassFieldColumnAnnotationType) {
 				this.entityClassFieldColumnAnnotationType = entityClassFieldColumnAnnotationType;
 				return this;
 			}
-			public AutoDbMappingGeneraterOptionBuilder entityClassTableAnnotationType(Class<?> entityClassTableAnnotationType) {
+			public AutoDbMappingGeneraterOptionBuilder entityClassFieldDefaultAnnotationType(Map<Class<? extends Annotation>, Map<String, Object>> entityClassFieldDefaultAnnotationType) {
+				this.entityClassFieldDefaultAnnotationType = entityClassFieldDefaultAnnotationType;
+				return this;
+			}
+			public AutoDbMappingGeneraterOptionBuilder entityClassTableAnnotationType(Class<? extends Annotation> entityClassTableAnnotationType) {
 				this.entityClassTableAnnotationType = entityClassTableAnnotationType;
 				return this;
 			}
-			public AutoDbMappingGeneraterOptionBuilder columnColumnEntry(Map<String, ?> columnColumnEntry) {
-				System.out.println(columnColumnEntry.getClass());
-
-				if( ! columnColumnEntry.entrySet().stream().allMatch(e-> e.getClass().equals(ColumnEntry.class))) {
-					throw new IllegalArgumentException("argument type mismatch. type is not :" + ColumnEntry.class.getName());
-				}
-				
-				this.columnColumnEntry = columnColumnEntry;
+			public AutoDbMappingGeneraterOptionBuilder columnTypeMapper(Map<String, ?> columnTypeMapper) {
+				this.columnTypeMapper = columnTypeMapper;
+				return this;
+			}
+			public AutoDbMappingGeneraterOptionBuilder columnSpecificTypeMapper(Map<String, ?> columnSpecificTypeMapper) {
+				this.columnSpecificTypeMapper = columnSpecificTypeMapper;
+				return this;
+			}
+			public AutoDbMappingGeneraterOptionBuilder entityCeateAfterCallBack(BiConsumer<CtClass<?>, Factory> entityCeateAfterCallBack) {
+				this.entityCeateAfterCallBack = entityCeateAfterCallBack;
+				return this;
+			}
+			public AutoDbMappingGeneraterOptionBuilder repositoryCeateAfterCallBack(BiConsumer<CtInterface<?>, Factory> repositoryCeateAfterCallBack) {
+				this.repositoryCeateAfterCallBack = repositoryCeateAfterCallBack;
+				return this;
+			}
+			public AutoDbMappingGeneraterOptionBuilder isTest(Boolean isTest) {
+				this.isTest = isTest;
+				return this;
+			}
+			public AutoDbMappingGeneraterOptionBuilder intervalOfMinutes(Integer intervalOfMinutes) {
+				this.intervalOfMinutes= intervalOfMinutes;
 				return this;
 			}
 			public AutoDbMappingGeneraterOption build() {
@@ -648,4 +765,5 @@ public class AutoDbMappingGenerater  {
 		}
 		
 	}
+
 }

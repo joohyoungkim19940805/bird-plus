@@ -1,14 +1,18 @@
 package com.radcns.bird_plus;
 
 import java.io.File;
+import java.lang.annotation.Annotation;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -16,6 +20,7 @@ import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
@@ -25,6 +30,9 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.radcns.bird_plus.AutoDbMappingGenerater.AutoDbMappingGeneraterOption;
 import com.radcns.bird_plus.AutoDbMappingGenerater.UnderType;
+import com.radcns.bird_plus.config.security.Role;
+import com.radcns.bird_plus.entity.chatting.ChattingEntity;
+import com.radcns.bird_plus.entity.room.constant.RoomType;
 import com.radcns.bird_plus.processor.DefaultEntityProcessor;
 
 import io.r2dbc.postgresql.codec.Json;
@@ -46,10 +54,14 @@ import spoon.experimental.SpoonifierVisitor;
 import spoon.processing.AbstractProcessor;
 import spoon.reflect.CtModel;
 import spoon.reflect.code.CtConstructorCall;
+import spoon.reflect.declaration.CtAnnotation;
+import spoon.reflect.declaration.CtAnnotationType;
 import spoon.reflect.declaration.CtClass;
 import spoon.reflect.declaration.CtElement;
 import spoon.reflect.declaration.CtField;
+import spoon.reflect.declaration.CtMethod;
 import spoon.reflect.declaration.ModifierKind;
+import spoon.reflect.reference.CtFieldReference;
 import spoon.reflect.reference.CtTypeReference;
 import spoon.reflect.visitor.filter.AbstractFilter;
 import spoon.support.JavaOutputProcessor;
@@ -112,7 +124,7 @@ public class Test {
 		//model.processWith(new DefaultEntityProcessor());
 		//new AccountEntity().testMils;
 	}
-	public static void main2(String a[]) throws ClassNotFoundException {
+	public static void main(String a[]) throws ClassNotFoundException {
 		
 		new AutoDbMappingGenerater(AutoDbMappingGeneraterOption.builder()
 		   		.url("jdbc:postgresql://kor-zombi-rds-3.cylfrmmsl7kc.ap-northeast-2.rds.amazonaws.com:5432/kor_zombi_database")
@@ -124,6 +136,9 @@ public class Test {
 		   		.defaultPackageRootPath( List.of("com", "radcns", "bird_plus") )
 		   		.entityClassLastName("Entity")
 		   		.entityClassFieldColumnAnnotationType(Column.class)
+		   		/*.entityClassFieldDefaultAnnotationType(Map.of(
+		   			Getter.class, Collections.emptyMap()
+		   		))*/
 		   		.entityClassSpecificFieldAnnotation(Map.of(
 					"create_at", Map.of(CreatedDate.class, Collections.emptyMap()),
 					"create_by", Map.of(CreatedBy.class, Collections.emptyMap()),
@@ -146,7 +161,7 @@ public class Test {
 		   		.repositoryClassLastName("Repository")
 		   		.repositoryPkClass(Long.class)
 	   			.repositoryExtendsClass(ReactiveCrudRepository.class)
-	   			.columnColumnEntry(Map.ofEntries(
+	   			.columnTypeMapper(Map.ofEntries(
 	   				ColumnEntry.pair("int2", Long.class),
 	   				ColumnEntry.pair("int4", Long.class),
 	   				ColumnEntry.pair("int6", Long.class),
@@ -164,14 +179,76 @@ public class Test {
 	   				ColumnEntry.pair("jsonb", Json.class),
 	   				ColumnEntry.pair("json", Json.class)
 	   			))
-		   		.build()
+	   			.columnSpecificTypeMapper(Map.ofEntries(
+	   				ColumnEntry.pair("roles", new UnderType<List<Role>>() {}),
+	   				ColumnEntry.pair("room_type", RoomType.class)
+	   			))
+	   			.entityCeateAfterCallBack((ctClass, factory) -> {
+	   				// create another default entity of field and method...
+	   				
+	   				Function<String, CtField<Long>> milsFun = ((name) -> {
+	   					CtTypeReference<Long> createMilsRef = factory.Code().createCtTypeReference(Long.class);
+		   				CtField<Long> milsField = factory.Core().<Long>createField();
+		   				CtAnnotationType<Transient> transientType = (CtAnnotationType<Transient>) factory.Type().<Transient>get(Transient.class); 
+		   				CtAnnotation<Annotation> transientAnnotation = factory.Core().createAnnotation();
+		   				transientAnnotation.setAnnotationType(transientType.getReference());
+		   				milsField.addAnnotation(transientAnnotation);
+		   				milsField.setSimpleName(name);
+		   				milsField.addModifier(ModifierKind.PRIVATE);
+		   				milsField.setType(createMilsRef);
+		   				
+		   				return milsField;
+	   				});
+	   				if(ctClass.getField("createMils") == null) {
+	   					ctClass.addField(milsFun.apply("createMils"));
+	   				}
+	   				if(ctClass.getField("updateMils") == null) {
+	   					ctClass.addField(milsFun.apply("updateMils"));
+	   				}	
+	   				
+	   				Set<CtMethod<?>> methods = Launcher.parseClass("""
+	   						import java.time.ZoneId;
+	   						import java.time.LocalDateTime;
+	   			    		class %s{
+	   			    		public void setCreateAt(LocalDateTime createAt) {
+								this.createAt = createAt;
+								this.createMils = createAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+							}
+							public void setUpdateAt(LocalDateTime updateAt) {
+								this.updateAt = updateAt;
+								this.updateMils = updateAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+							}
+							public Long getCreateMils() {
+								if(this.createAt == null) {
+									return null;
+								}else if(this.createMils == null) {
+									this.createMils = createAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+									
+								}
+								return this.createMils; 
+							}
+							public Long getUpdateMils() {
+								if(this.updateAt == null) {
+									return null;
+								}else if(this.updateMils == null) {
+									this.updateMils = updateAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+								}
+								return this.updateMils; 
+							}
+	   			    		""".formatted(ctClass.getSimpleName())).getMethods();
+
+	   				methods.forEach(e->{
+	   					if(ctClass.getMethodsByName(e.getSimpleName()).size() != 0) return;
+	   					CtMethod<?> m = e.clone();
+	   					ctClass.addMethod(m);
+	   				});
+	   				
+	   			})
+	   			.isTest(true)
+	   			.intervalOfMinutes(5)
+	   			.build()
 		   	);
-	   	try {
-			Thread.sleep(10000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+
 	}
 	public static void main3(String a[]) {
 		int len = 5;
@@ -196,21 +273,11 @@ public class Test {
 		;
 		System.out.println(test);
 	}
-	public static void main(String a[]) throws ClassNotFoundException {
-		var under = new AutoDbMappingGenerater.UnderType<List<Map<String, String>>>() {
-		};
-		String test = "java.util.List<java.util.Map<java.lang.String, java.lang.String>>";
-		test = test.replaceAll(">", "");
-		System.out.println(
-		Stream.of(test.split("<")).flatMap(e->Stream.of(e.split(","))).toList()
-		);
-		System.out.println(
-		Stream.of(test.split("<")).toList().size()
-		);
-		
-		System.out.println(
-				Stream.of(test.split("<")).flatMap(e->Stream.of(e.split(","))).toList()
-				);
-
+	public static void main4(String a[]) throws ClassNotFoundException {
+	    SpoonifierVisitor v = new SpoonifierVisitor(true);
+	    Launcher.parseClass("public interface ChattingRepository extends ReactiveCrudRepository<ChattingEntity, Long> {}")
+	            .accept(v);
+	    System.out.println(v.getResult());
 	}
+
 }

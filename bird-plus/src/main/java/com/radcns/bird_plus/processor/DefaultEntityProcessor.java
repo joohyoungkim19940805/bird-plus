@@ -26,6 +26,7 @@ public class DefaultEntityProcessor extends AbstractProcessor<CtClass<?>>{
 
 	@Override
 	public void process(CtClass<?> element) {
+		
 		// TODO Auto-generated method stub
 		if( ! element.getSimpleName().endsWith("Entity")){
 			return;
@@ -34,7 +35,7 @@ public class DefaultEntityProcessor extends AbstractProcessor<CtClass<?>>{
 		if( ! element.getSimpleName().equals("AccountEntity")) {
 			return;
 		}
-		System.out.println("processor start!!!!");
+
 		final CtTypeReference<Long> testMilsRef = getFactory().Code().createCtTypeReference(Long.class);
 		final CtField<Long> testMilsField = getFactory().Core().<Long>createField();
 		final CtAnnotationType<Column> columnAnnotationType = (CtAnnotationType<Column>) getFactory().Type().<Column>get(Column.class);
