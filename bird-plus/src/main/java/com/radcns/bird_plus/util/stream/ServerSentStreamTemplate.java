@@ -1,8 +1,8 @@
 package com.radcns.bird_plus.util.stream;
 
 import com.radcns.bird_plus.entity.chatting.ChattingEntity.ChattingDomain.ChattingResponse;
-import com.radcns.bird_plus.entity.notice_board.NoticeBoardEntity;
-import com.radcns.bird_plus.entity.notice_board.NoticeBoardInheritsTable;
+import com.radcns.bird_plus.entity.notice.NoticeBoardEntity;
+import com.radcns.bird_plus.entity.notice.NoticeBoardInheritsTable;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity.RoomInAccountDomain.RoomJoinedAccountResponse;
 

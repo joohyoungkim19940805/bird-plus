@@ -1,10 +1,8 @@
-package com.radcns.bird_plus.entity.room;
+package com.radcns.bird_plus.entity.notice;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.radcns.bird_plus.entity.room.constant.RoomType;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -25,27 +23,39 @@ import org.springframework.data.relational.core.mapping.Table;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
 @With
-@Table("ro_room_in_account")
+@Table("no_notice_board")
+@ToString
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class RoomInAccountEntity {
+public class NoticeBoardEntity implements NoticeBoardInheritsTable {
     @Id
     @Column("id")
     private Long id;
 
+    @Column("account_id")
+    private Long accountId;
+
     @Column("room_id")
     private Long roomId;
 
-    @Column("account_id")
-    private Long accountId;
+    @Column("workspace_id")
+    private Long workspaceId;
+
+    @Column("parent_group_id")
+    private Long parentGroupId;
 
     @Column("order_sort")
     private Long orderSort;
 
-    @Column("workspace_id")
-    private Long workspaceId;
+    @Column("full_name")
+    private String fullName;
+
+    @Column("title")
+    private String title;
+
+    @Column("is_delete")
+    private Boolean isDelete;
 
     @Column("create_at")
     @CreatedDate
@@ -63,25 +73,28 @@ public class RoomInAccountEntity {
     @LastModifiedBy
     private Long updateBy;
 
+    @Column("group_id")
+    private Long groupId;
+
     @Transient
     Long createMils;
 
     @Transient
     Long updateMils;
 
-    @Transient
-    RoomInAccountDomain.RoomJoinedAccountResponse roomJoinedAccountResponse;
-
+    @Override
     public void setCreateAt(LocalDateTime createAt) {
         this.createAt = createAt;
         this.createMils = createAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
     }
 
+    @Override
     public void setUpdateAt(LocalDateTime updateAt) {
         this.updateAt = updateAt;
         this.updateMils = updateAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
     }
 
+    @Override
     public Long getCreateMils() {
         if (this.createAt == null) {
             return null;
@@ -91,6 +104,7 @@ public class RoomInAccountEntity {
         return this.createMils;
     }
 
+    @Override
     public Long getUpdateMils() {
         if (this.updateAt == null) {
             return null;
@@ -100,65 +114,5 @@ public class RoomInAccountEntity {
         return this.updateMils;
     }
 
-    public static class RoomInAccountDomain {
-        @Getter
-        @Setter
-        @Builder
-        public static class MyJoinedRoomListResponse {
-            private Long id;
-
-            private Long roomId;
-
-            private List<String> roomCode;
-
-            private String roomName;
-
-            private Boolean isEnabled;
-
-            private Long workspaceId;
-
-            private Long joinedCount;
-
-            private Long orderSort;
-
-            private RoomType roomType;
-        }
-
-        @Getter
-        @Setter
-        public static class CreateRoomInAccountRequest {
-            private Long workspaceId;
-
-            private Long roomId;
-
-            private RoomType roomType;
-
-            private String accountName;
-
-            private String fullName;
-        }
-
-        @Getter
-        @Setter
-        @Builder
-        public static class RoomJoinedAccountResponse {
-            private Long roomId;
-
-            private String roomName;
-
-            private String accountName;
-
-            private String fullName;
-
-            private String job_grade;
-
-            private String department;
-
-            private RoomType roomType;
-
-            private Long createMils;
-
-            private Long updateMils;
-        }
-    }
+    public static class NoticeBoardDomain {}
 }

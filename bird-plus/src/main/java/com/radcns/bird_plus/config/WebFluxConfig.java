@@ -130,11 +130,12 @@ public class WebFluxConfig implements ApplicationContextAware, WebFluxConfigurer
 		return new CommonUtil();
 	}
 	*/
-	
+	/*
 	@Bean
 	public CreateRandomCodeUtil createRandomCodeUtil() {
 		return new CreateRandomCodeUtil();//
 	}
+	*/
 	
 	@Bean
 	public KeyPair keyPair() throws NoSuchAlgorithmException {

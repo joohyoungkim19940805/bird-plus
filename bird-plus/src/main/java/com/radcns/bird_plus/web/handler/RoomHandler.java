@@ -20,7 +20,7 @@ import com.radcns.bird_plus.entity.room.RoomInAccountEntity;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity.RoomInAccountDomain;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity.RoomInAccountDomain.RoomJoinedAccountResponse;
 import com.radcns.bird_plus.entity.room.constant.RoomType;
-import com.radcns.bird_plus.repository.customer.AccountRepository;
+import com.radcns.bird_plus.repository.account.AccountRepository;
 import com.radcns.bird_plus.repository.room.RoomFavoritesRepository;
 import com.radcns.bird_plus.repository.room.RoomInAccountRepository;
 import com.radcns.bird_plus.repository.room.RoomRepository;
@@ -116,7 +116,7 @@ public class RoomHandler {
 		)//
 		.flatMap(room -> ok()
 			.contentType(MediaType.APPLICATION_JSON)
-			.body(Mono.just(response(Result._0, room)), Response.class)
+			.body(response(Result._0, room), Response.class)
 		)
 		;
 	}
@@ -173,7 +173,7 @@ public class RoomHandler {
 					}
 				});
 			})
-			.map(e->response(Result._0, e))
+			.flatMap(e->response(Result._0, e))
 		, Response.class);
 	}
 	
@@ -257,7 +257,7 @@ public class RoomHandler {
 				//})
 				.subscribe();
 				//return sinks.asFlux();
-				return Mono.just(response(Result._0, null));
+				return response(Result._0, null);
 			})
 		,  Response.class);
 		//, RoomInAccountDomain.RoomJoinedAccountResponse.class);
@@ -290,13 +290,13 @@ public class RoomHandler {
 			).subscribe();
 			return ok()
 				.contentType(MediaType.APPLICATION_JSON)
-				.body(Mono.just(response(Result._0, null)), Response.class);
+				.body(response(Result._0, null), Response.class);
 		})
 		;
 		/*.collectList()
 		.flatMap(roomInAccountList -> ok()
 			.contentType(MediaType.APPLICATION_JSON)
-			.body(Mono.just(response(Result._0, roomInAccountList)), Response.class)
+			.body(response(Result._0, roomInAccountList), Response.class)
 		)
 		;
 		*/
@@ -327,7 +327,7 @@ public class RoomHandler {
 		)
 		.flatMap(roomFavorites -> ok()
 			.contentType(MediaType.APPLICATION_JSON)
-			.body(Mono.just(response(Result._0, roomFavorites)), Response.class)
+			.body(response(Result._0, roomFavorites), Response.class)
 		)
 		;
 	}
@@ -358,13 +358,13 @@ public class RoomHandler {
 			).subscribe();
 			return ok()
 				.contentType(MediaType.APPLICATION_JSON)
-				.body(Mono.just(response(Result._0, null)), Response.class);
+				.body(response(Result._0, null), Response.class);
 		})
 		;
 		/*.collectList()
 		.flatMap(roomInAccountList -> ok()
 			.contentType(MediaType.APPLICATION_JSON)
-			.body(Mono.just(response(Result._0, roomInAccountList)), Response.class)
+			.body(response(Result._0, roomInAccountList), Response.class)
 		)
 		;
 		*/
@@ -412,7 +412,7 @@ public class RoomHandler {
 				;
 			})
 			//.switchIfEmpty(Mono.error(new WorkspaceException(Result._200)))
-			.map(list -> response(Result._0, list))
+			.flatMap(list -> response(Result._0, list))
 		, Response.class);
 	}
 
@@ -447,7 +447,7 @@ public class RoomHandler {
 				;
 			})
 			//.switchIfEmpty(Mono.error(new WorkspaceException(Result._200)))
-			.map(list -> response(Result._0, list))
+			.flatMap(list -> response(Result._0, list))
 		, Response.class);
 	}
 	public Mono<ServerResponse> searchRoomMyJoinedNameAndRoomType(ServerRequest request){
@@ -486,7 +486,7 @@ public class RoomHandler {
 				;
 			})
 			//.switchIfEmpty(Mono.error(new WorkspaceException(Result._200)))
-			.map(list -> response(Result._0, list))
+			.flatMap(list -> response(Result._0, list))
 		, Response.class); 
 	}
 	
@@ -516,7 +516,7 @@ public class RoomHandler {
 				;
 			})
 			//.switchIfEmpty(Mono.error(new WorkspaceException(Result._200)))
-			.map(list -> response(Result._0, list))
+			.flatMap(list -> response(Result._0, list))
 		, Response.class);
 	}
 	
@@ -546,7 +546,7 @@ public class RoomHandler {
 				)
 				;
 			})
-			.map(list -> response(Result._0, list))
+			.flatMap(list -> response(Result._0, list))
 		, Response.class)
 		;
 	}
@@ -557,7 +557,7 @@ public class RoomHandler {
 		.contentType(MediaType.APPLICATION_JSON)
 		.body(
 			roomRepository.findById(roomId)
-			.map(e-> response(Result._0, e.withCreateBy(null)))
+			.flatMap(e-> response(Result._0, e.withCreateBy(null)))
 		, Response.class)
 		;
 	}
@@ -622,7 +622,7 @@ public class RoomHandler {
 			.flatMap(account -> 
 				roomFavoritesRepository.existsByAccountIdAndRoomId(account.getId(), roomId)
 			)
-			.map(e-> response(Result._0, e))
+			.flatMap(e-> response(Result._0, e))
 		, Response.class);
 	}
 }

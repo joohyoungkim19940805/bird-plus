@@ -41,12 +41,16 @@ public class EventStreamHandler {
 								return eventStreamService.chattingEmissionStream(serverSentTemplate, account);	
 							}else if(serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.ROOM_ACCEPT)) {
 								return eventStreamService.roomEmissionStream(serverSentTemplate, account);
-							}else if(serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.ROOM_IN_ACCOUNT_ACCEPT)){
-								return Mono.just(serverSentTemplate);
-							}else if(serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.NOTICE_BOARD_ACCEPT) ) {
+							//}else if(serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.ROOM_IN_ACCOUNT_ACCEPT)){
+								//return Mono.just(serverSentTemplate);
+							}else if(serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.NOTICE_BOARD_ACCEPT) || 
+									serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.NOTICE_BOARD_DELETE_ACCEPT) 
+							) {
 								return eventStreamService.noticeBoardEmissionStream(serverSentTemplate, account);	
+							}else {
+								return Mono.just(serverSentTemplate);
 							}
-							return Mono.empty();
+							//return Mono.empty();
 						});
 				})
 			, new ParameterizedTypeReference<ServerSentStreamTemplate<?>>() {}

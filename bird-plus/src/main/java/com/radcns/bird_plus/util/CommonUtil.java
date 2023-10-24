@@ -10,6 +10,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.RecordComponent;
+import java.nio.CharBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
@@ -458,6 +459,24 @@ public class CommonUtil {//extends AwsCliCommand{
 			return null;
 		}
 		return path;
+	}
+	
+	public Integer parserOnlyNumber(CharSequence value) {
+		if(value == null || value.length() == 0) {
+			return null;
+		}
+		char[] result = new char[value.length()];
+		int cursor = 0;
+		CharBuffer buffer = CharBuffer.wrap(value);
+		
+		while(buffer.hasRemaining()) {
+			char c = buffer.get();
+			if(c > 47 && c < 58) {
+				result[cursor += 1] = c;
+			}
+		}
+		
+		return Integer.valueOf(new String(result, 0, cursor));
 	}
 	
 }

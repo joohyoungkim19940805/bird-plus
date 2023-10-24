@@ -1,9 +1,7 @@
-package com.radcns.bird_plus.entity.room;
+package com.radcns.bird_plus.entity.notice;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.radcns.bird_plus.config.security.Role;
-import com.radcns.bird_plus.config.security.TokenTemplate;
-import com.radcns.bird_plus.entity.room.constant.RoomType;
+import io.r2dbc.postgresql.codec.Json;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -16,63 +14,22 @@ import lombok.ToString;
 import lombok.With;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
-@Builder(toBuilder = true)
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@With
-@Table("ro_room")
+@Table("no_notice_board_detail")
 @ToString
+@Builder(toBuilder = true)
+@Setter
+@AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Getter
+@With
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class RoomEntity implements TokenTemplate {
-    @Id
-    @Column("id")
-    private Long id;
-
-    @Column("room_code")
-    private List<String> roomCode;
-
-    @Column("room_name")
-    private String roomName;
-
-    @Column("is_enabled")
-    private Boolean isEnabled;
-
-    @Column("workspace_id")
-    private Long workspaceId;
-
-    @Column("create_at")
-    @CreatedDate
-    @Builder.Default
-    private LocalDateTime createAt = LocalDateTime.now();
-
-    @Column("create_by")
-    @CreatedBy
-    private Long createBy;
-
-    @Column("update_at")
-    @LastModifiedDate
-    @Builder.Default
-    private LocalDateTime updateAt = LocalDateTime.now();
-
-    @Column("update_by")
-    @LastModifiedBy
-    private Long updateBy;
-
-    @Transient
-    Long createMils;
-
-    @Transient
-    Long updateMils;
-
+@NoArgsConstructor
+public class NoticeBoardDetailEntity {
     public void setCreateAt(LocalDateTime createAt) {
         this.createAt = createAt;
         this.createMils = createAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
@@ -101,34 +58,37 @@ public class RoomEntity implements TokenTemplate {
         return this.updateMils;
     }
 
+    @Column("notice_board_id")
+    private Long noticeBoardId;
+
+    @Column("id")
+    private List<Long> id;
+
+    @Column("updating_account_id")
+    private Long updatingAccountId;
+
+    @Column("content")
+    private Json content;
+
     @Transient
-    @Setter
-    String roomCodeIssuerName = null;
+    private Long createMils;
 
-    @Override
-    public String getIssuer() {
-        // TODO Auto-generated method stub
-        return String.valueOf(this.id);
-    }
+    @Transient
+    private Long updateMils;
 
-    @Override
-    public String getSubject() {
-        // TODO Auto-generated method stub
-        return this.roomName;
-    }
+    @Column("create_by")
+    @CreatedBy
+    private Long createBy;
 
-    @Override
-    public String getName() {
-        // TODO Auto-generated method stub
-        return this.roomCodeIssuerName;
-    }
+    @Column("update_at")
+    @LastModifiedDate
+    private LocalDateTime updateAt;
 
-    @Override
-    public List<Role> getRoles() {
-        // TODO Auto-generated method stub
-        return List.of(Role.ROLE_BOT);
-    }
+    @Column("create_at")
+    @CreatedDate
+    private LocalDateTime createAt;
 
-    @Column("room_type")
-    private RoomType roomType;
+    @Column("update_by")
+    @LastModifiedBy
+    private Long updateBy;
 }

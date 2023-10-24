@@ -1,4 +1,4 @@
-package com.radcns.bird_plus.entity.notice_board;
+package com.radcns.bird_plus.entity.notice;
 
 import java.time.LocalDateTime;
 

@@ -17,7 +17,7 @@ import com.radcns.bird_plus.entity.account.AccountEntity;
 import com.radcns.bird_plus.entity.workspace.WorkspaceEntity;
 import com.radcns.bird_plus.entity.workspace.WorkspaceInAccountEntity;
 import com.radcns.bird_plus.entity.workspace.WorkspaceInAccountEntity.WorkspaceMembersDomain;
-import com.radcns.bird_plus.repository.customer.AccountRepository;
+import com.radcns.bird_plus.repository.account.AccountRepository;
 import com.radcns.bird_plus.repository.workspace.WorkspaceInAccountRepository;
 import com.radcns.bird_plus.repository.workspace.WorkspaceRepository;
 import com.radcns.bird_plus.service.AccountService;
@@ -63,7 +63,7 @@ public class WorkspaceHandler {
 		)
 		.flatMap(workspace -> ok()
 			.contentType(MediaType.APPLICATION_JSON)
-			.body(Mono.just(response(Result._0, workspace)), Response.class)
+			.body(response(Result._0, workspace), Response.class)
 		)
 		;
 	}
@@ -85,7 +85,7 @@ public class WorkspaceHandler {
 					.map(tuples -> 
 						new PageImpl<>(tuples.getT1(), pageRequest, tuples.getT2())
 					)
-					.map(list -> response(Result._0, list))
+					.flatMap(list -> response(Result._0, list))
 			, Response.class);
 	}
 	
@@ -95,7 +95,7 @@ public class WorkspaceHandler {
 		.body(
 			accountService.convertRequestToAccount(request)
 			.flatMap(account -> workspaceInAccountRepository.existsByAccountId(account.getId()))
-			.map(isExists -> response(Result._0, isExists))
+			.flatMap(isExists -> response(Result._0, isExists))
 		, Response.class)
 		;
 	}
@@ -122,7 +122,7 @@ public class WorkspaceHandler {
                 )
 	            ;
 			})
-			.map(list -> response(Result._0, list))
+			.flatMap(list -> response(Result._0, list))
 		, Response.class);
 	}
 	
@@ -160,7 +160,7 @@ public class WorkspaceHandler {
 					new PageImpl<>(tuples.getT1(), pageRequest, tuples.getT2())
 				);
 			})
-			.map(list -> response(Result._0, list))
+			.flatMap(list -> response(Result._0, list))
 		, Response.class)
 		;
 		/*
@@ -179,7 +179,7 @@ public class WorkspaceHandler {
 		.contentType(MediaType.APPLICATION_JSON)
 		.body(
 			workspaceRepository.findById(workspaceId)
-			.map(e-> response(Result._0, e.withOwnerAccountId(null).withCreateBy(null)))
+			.flatMap(e-> response(Result._0, e.withOwnerAccountId(null).withCreateBy(null)))
 		, Response.class)
 		;
 	}

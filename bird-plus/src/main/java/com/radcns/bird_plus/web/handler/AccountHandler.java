@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
-import com.radcns.bird_plus.repository.customer.AccountRepository;
+import com.radcns.bird_plus.repository.account.AccountRepository;
 import com.radcns.bird_plus.service.AccountService;
 import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
 import com.radcns.bird_plus.util.Response;
@@ -29,14 +29,14 @@ public class AccountHandler {
 	public Mono<ServerResponse> isLogin(ServerRequest request){
 		return ok()
 				.contentType(MediaType.APPLICATION_JSON)
-				.body(Mono.just(response(Result._0)), Response.class);
+				.body(response(Result._0), Response.class);
 	}
 
 	public Mono<ServerResponse> getAccountInfo(ServerRequest request){
 		return ok()
 		.contentType(MediaType.APPLICATION_JSON)
 		.body(
-			accountService.convertRequestToAccount(request).doOnNext(e->e.withId(null)), Response.class
+			accountService.convertRequestToAccount(request).doOnNext(e->e.withId(null)).flatMap(e-> response(Result._0, e)), Response.class
 		);
 	}
 	

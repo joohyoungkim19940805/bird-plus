@@ -12,7 +12,7 @@ import com.radcns.bird_plus.config.security.JwtVerifyHandler;
 import com.radcns.bird_plus.entity.account.AccountEntity;
 import com.radcns.bird_plus.entity.account.AccountEntity.AccountDomain;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity;
-import com.radcns.bird_plus.repository.customer.AccountRepository;
+import com.radcns.bird_plus.repository.account.AccountRepository;
 import com.radcns.bird_plus.service.AccountService;
 import com.radcns.bird_plus.service.MailService;
 import com.radcns.bird_plus.util.Response;
@@ -142,7 +142,7 @@ public class MainHandler {
 		}).flatMap(account -> 
 			ok()
 			.contentType(MediaType.APPLICATION_JSON)
-			.body(Mono.just(response(Result._0)), Response.class)
+			.body(response(Result._0), Response.class)
 		);
 
 	}
@@ -195,7 +195,7 @@ public class MainHandler {
 				.flatMap(e->
 					ok()
 					.contentType(MediaType.APPLICATION_JSON)
-					.body(Mono.just(response(Result._0)), Response.class)
+					.body(response(Result._0), Response.class)
 				)
 				;
 		/*
@@ -240,7 +240,7 @@ public class MainHandler {
 								.path("/")
 		        				.build())
 						.contentType(MediaType.APPLICATION_JSON)
-						.body(Mono.just(response(Result._0, token)), Response.class));
+						.body(response(Result._0, token), Response.class));
 		/*
 		 ok()
 			.contentType(MediaType.APPLICATION_JSON)
@@ -288,7 +288,7 @@ public class MainHandler {
 				.flatMap(account -> 
 					ok()
 					.contentType(MediaType.APPLICATION_JSON)
-					.body(Mono.just(response(Result._0, account)), Response.class)
+					.body(response(Result._0, account), Response.class)
 				)
 				;
 	}
@@ -342,7 +342,7 @@ public class MainHandler {
 			.flatMap(e->
 				ok()
 				.contentType(MediaType.APPLICATION_JSON)
-				.body(Mono.just(response(Result._0)), Response.class)
+				.body(response(Result._0), Response.class)
 			)
 			;
 	}

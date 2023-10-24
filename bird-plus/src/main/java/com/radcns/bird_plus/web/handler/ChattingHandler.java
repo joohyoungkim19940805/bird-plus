@@ -11,8 +11,8 @@ import com.radcns.bird_plus.config.security.JwtVerifyHandler;
 import com.radcns.bird_plus.entity.chatting.ChattingEntity;
 import com.radcns.bird_plus.entity.chatting.ChattingEntity.ChattingDomain;
 import com.radcns.bird_plus.entity.chatting.ChattingEntity.ChattingDomain.ChattingResponse;
+import com.radcns.bird_plus.repository.account.AccountRepository;
 import com.radcns.bird_plus.repository.chatting.ChattingRepository;
-import com.radcns.bird_plus.repository.customer.AccountRepository;
 import com.radcns.bird_plus.repository.room.RoomInAccountRepository;
 import com.radcns.bird_plus.service.AccountService;
 import com.radcns.bird_plus.util.Response;
@@ -139,7 +139,7 @@ public class ChattingHandler {
 				})
 				;
 			})
-			.map(e-> response(Result._0, e))
+			.flatMap(e-> response(Result._0, e))
 		, Response.class);
 	}
 
@@ -169,6 +169,6 @@ public class ChattingHandler {
 
 		return ok()
 			.contentType(MediaType.APPLICATION_JSON)
-			.body(result.map(e-> response(Result._0, e)), Response.class);
+			.body(result.flatMap(e-> response(Result._0, e)), Response.class);
 	}
 }

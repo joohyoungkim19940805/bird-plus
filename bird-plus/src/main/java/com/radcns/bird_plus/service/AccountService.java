@@ -26,8 +26,8 @@ import com.radcns.bird_plus.config.security.TokenTemplate;
 import com.radcns.bird_plus.config.security.UserPrincipal;
 import com.radcns.bird_plus.entity.account.AccountEntity;
 import com.radcns.bird_plus.entity.account.AccountLogEntity;
-import com.radcns.bird_plus.repository.customer.AccountLogRepository;
-import com.radcns.bird_plus.repository.customer.AccountRepository;
+import com.radcns.bird_plus.repository.account.AccountLogRepository;
+import com.radcns.bird_plus.repository.account.AccountRepository;
 import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
 import com.radcns.bird_plus.util.exception.AccountException;
 

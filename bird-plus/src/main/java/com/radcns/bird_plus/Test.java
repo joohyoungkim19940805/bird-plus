@@ -131,7 +131,7 @@ public class Test {
 		   		.username("kor_zombi_rds")
 		   		.password("rlawngud1")
 		   		.schema("bird_plus")
-		   		.tableNameToEntityStartCharAt(0)
+		   		.tableNameToEntityStartCharAt(2)
 		   		.defaultRootPath( List.of("src", "main", "java") )
 		   		.defaultPackageRootPath( List.of("com", "radcns", "bird_plus") )
 		   		.entityClassLastName("Entity")
@@ -244,8 +244,8 @@ public class Test {
 	   				});
 	   				
 	   			})
-	   			.isTest(true)
-	   			.intervalOfMinutes(5)
+	   			.isTest(false)
+	   			//.intervalOfMinutes(5)
 	   			.build()
 		   	);
 

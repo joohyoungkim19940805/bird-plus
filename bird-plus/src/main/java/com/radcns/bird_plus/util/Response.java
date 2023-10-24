@@ -1,61 +1,73 @@
 package com.radcns.bird_plus.util;
 
-import com.radcns.bird_plus.entity.room.RoomEntity;
-import com.radcns.bird_plus.entity.room.RoomInAccountEntity;
+import com.radcns.bird_plus.entity.account.AccountEntity;
 import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
 
 import lombok.Getter;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Getter
-public class Response{
+public class Response<T>{
 	private Integer code;// = 00;
 	private String message;// = "처리에 성공하였습니다.";
 	private String summary;// = "SUCCESS";
-	private Object data;
+	private T data;
 	
 	private Response() {
 
 	}
-	private Response(Object data) {
+	private Response(T data) {
 		this.data = data;
 	}
 	
-	private Response setResult(Result result) {
+	private Mono<Response<T>> setResult(Result result) {
 		this.code = result.code();
 		this.message = result.message();
 		this.summary = result.summary();
-		return this;
+		return Mono.just(this);
 	}
-	private Response setResult(Result result, Object data) {
+	private Mono<Response<T>> setResult(Result result, T data) {
 		this.code = result.code();
 		this.message = result.message();
 		this.summary = result.summary();
 		this.data = data;
-		if(data != null) {
-			Flux.just(data.getClass().getDeclaredFields())
-			.filter(e->e.getName().equals("accountId") || e.getName().equals("updateBy") || e.getName().equals("createBy"))
-			.doOnNext(e->{
-				e.setAccessible(true);
-				try {
-					e.set(data, null);
-				} catch (IllegalArgumentException | IllegalAccessException e1) {
-					e1.printStackTrace();
-				}
-				e.setAccessible(false);
-			}).subscribe();
+		if(data.getClass().equals(Response.class) || data == null) {
+			return deleteData();
 		}
-		
-		return this;
+		return Flux.fromArray(data.getClass().getDeclaredFields())
+		.filter(e->
+			e.getName().equals("accountId") ||
+			e.getName().equals("updateBy") ||
+			e.getName().equals("createBy") || 
+			(data.getClass().equals(AccountEntity.class) && e.getName().equals("id"))
+		)
+		.flatMap(e-> Mono.fromCallable(()->{
+			e.setAccessible(true);
+			try {
+				e.set(data, null);
+			} catch (IllegalArgumentException | IllegalAccessException e1) {
+				e1.printStackTrace();
+			}
+			e.setAccessible(false);
+			return e;
+		}))
+		.collectList()
+		.map(e->this);
 	}
-	public static Response response(Result result) {
-		return new Response().setResult(result);
+	private Mono<Response<T>> deleteData() {
+		this.data = null;
+		return Mono.just(this);
 	}
-	public static Response response(Result result, Object data) {
-		return new Response().setResult(result, data);
+	public static <T> Mono<Response<T>> response(Result result) {
+		return new Response<T>().setResult(result);
 	}
-	public Response data(Object data) {
+	public static <T> Mono<Response<T>> response(Result result, T data) {
+		return new Response<T>().setResult(result, data);
+	}
+	public Response<T> data(T data) {
 		this.data = data;
 		return this;
 	}
+	
 }
