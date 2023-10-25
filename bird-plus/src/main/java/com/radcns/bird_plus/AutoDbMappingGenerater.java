@@ -377,8 +377,8 @@ public class AutoDbMappingGenerater  {
 	        	var databaseMetaData = connection.getMetaData();
 	        	var result = databaseMetaData.getColumns(connection.getCatalog(), option.schema, null, null);
 	        	while (result.next()) {
-        			String tableName = result.getString(3);
-            		String columnName = result.getString(4);
+        			String tableName = result.getString(3).toLowerCase();
+            		String columnName = result.getString(4).toLowerCase();
 					String dataTypeName = result.getString(6);
 	        		
             		TableRecord tableRecord = tableMemory.get(tableName);

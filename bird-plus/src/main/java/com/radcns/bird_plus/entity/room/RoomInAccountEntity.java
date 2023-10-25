@@ -142,6 +142,8 @@ public class RoomInAccountEntity {
         @Setter
         @Builder
         public static class RoomJoinedAccountResponse {
+            private Long workspaceId;
+
             private Long roomId;
 
             private String roomName;

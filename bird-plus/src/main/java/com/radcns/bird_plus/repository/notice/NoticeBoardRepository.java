@@ -5,6 +5,8 @@ import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 public interface NoticeBoardRepository extends ReactiveCrudRepository<NoticeBoardEntity, Long> {
+    Mono<NoticeBoardEntity> findByGroupId(Long groupId);
+
     Flux<NoticeBoardEntity> findAllByWorkspaceIdAndRoomIdAndParentGroupId(Long workspaceId, Long roomId, Long parentGroupId);
 
     Mono<Long> countByWorkspaceIdAndRoomIdAndParentGroupId(Long workspaceId, Long roomId, Long parentGroupId);

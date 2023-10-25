@@ -32,7 +32,7 @@ public class Response<T>{
 		this.message = result.message();
 		this.summary = result.summary();
 		this.data = data;
-		if(data.getClass().equals(Response.class) || data == null) {
+		if(data == null || data.getClass().equals(Response.class)) {
 			return deleteData();
 		}
 		return Flux.fromArray(data.getClass().getDeclaredFields())

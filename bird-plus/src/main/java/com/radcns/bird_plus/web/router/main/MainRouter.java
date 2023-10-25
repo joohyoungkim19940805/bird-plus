@@ -149,6 +149,10 @@ public class MainRouter implements IndexRouterSwagger{
 						.POST("/", accept(MediaType.APPLICATION_JSON), noticeBoardHandler::deleteNoticeBoard)
 						.POST("/group", accept(MediaType.APPLICATION_JSON), noticeBoardHandler::deleteNoticeBoardGroup)
 						.build())
+				.nest(path("/update"), createPathBuilder -> createPathBuilder
+						.POST("/order", accept(MediaType.APPLICATION_JSON), noticeBoardHandler::updateNoticeBoardOrder)
+						//.POST("/group", accept(MediaType.APPLICATION_JSON), noticeBoardHandler::updateNoticeBoardGroup)
+						.build())
 				.nest(path("/search"), searchPathBuilder -> searchPathBuilder
 							.GET("/notice-board-list", accept(MediaType.TEXT_EVENT_STREAM), noticeBoardHandler::searchNoticeBoardAndGroup)
 						.build())

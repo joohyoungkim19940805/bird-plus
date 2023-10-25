@@ -4,7 +4,9 @@ import static com.radcns.bird_plus.util.Response.response;
 import static org.springframework.web.reactive.function.server.ServerResponse.ok;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageImpl;
@@ -28,6 +30,7 @@ import com.radcns.bird_plus.repository.workspace.WorkspaceInAccountRepository;
 import com.radcns.bird_plus.service.AccountService;
 import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
 import com.radcns.bird_plus.util.Response;
+import com.radcns.bird_plus.util.exception.AccountException;
 import com.radcns.bird_plus.util.exception.NoticeBoardException;
 import com.radcns.bird_plus.util.exception.RoomException;
 import com.radcns.bird_plus.util.exception.WorkspaceException;
@@ -72,7 +75,7 @@ public class NoticeBoardHandler {
 					if(noticeBoardGroup.getGroupId() == null) {
 						noticeBoardGroup.setAccountId(account.getId());
 						noticeBoardGroup.setFullName(account.getFullName());
-						save = maxOrderSortMono.flatMap(maxOrderSort -> noticeBoardGroupRepository.save(noticeBoardGroup.withOrderSort(maxOrderSort + 1)));
+						save = noticeBoardGroupRepository.save(noticeBoardGroup);
 					}else {
 						save = maxOrderSortMono.flatMap(maxOrderSort -> 
 							noticeBoardGroupRepository.findById(noticeBoardGroup.getGroupId()).flatMap((e) -> {
@@ -99,7 +102,7 @@ public class NoticeBoardHandler {
 		, Response.class)
 		;
 	}
-	
+	//
 	public Mono<ServerResponse> createNoticeBoard(ServerRequest request){
 		return ok()
 		.contentType(MediaType.APPLICATION_JSON)
@@ -117,7 +120,7 @@ public class NoticeBoardHandler {
 					if(noticeBoard.getId() == null) {
 						noticeBoard.setAccountId(account.getId());
 						noticeBoard.setFullName(account.getFullName());
-						save = maxOrderSortMono.flatMap(maxOrderSort -> noticeBoardRepository.save(noticeBoard.withOrderSort(maxOrderSort + 1)));
+						save = noticeBoardRepository.save(noticeBoard);
 					}else {
 						save = maxOrderSortMono.flatMap(maxOrderSort -> 
 							noticeBoardRepository.findById(noticeBoard.getId()).flatMap((e) -> {
@@ -244,4 +247,90 @@ public class NoticeBoardHandler {
 		;
 	}
 
+	public Mono<ServerResponse> updateNoticeBoardOrder(ServerRequest request){
+		return accountService.convertRequestToAccount(request)
+		//.flatMapMany(account -> 
+		.flatMap(account -> {
+			noticeBoardRepository.saveAll(
+				request.bodyToFlux(NoticeBoardEntity.class)
+				.filterWhen(noticeBoardEntity->
+					Mono.just(noticeBoardEntity.getId() != null)
+					.flatMap(bol->{
+						if( ! bol) {
+							return Mono.error(new RoomException(Result._300));
+						}
+						return roomInAccountRepository.existsByAccountIdAndRoomId(account.getId(), noticeBoardEntity.getRoomId());
+					})
+				)
+				.switchIfEmpty(Mono.error(new RoomException(Result._301)))
+				.flatMap(noticeBoardEntity -> {
+
+					System.out.println("kjh test222<<< ");
+					System.out.println(noticeBoardEntity);
+					return noticeBoardRepository.findById(noticeBoardEntity.getId()).map(e-> e
+							.withOrderSort(noticeBoardEntity.getOrderSort())
+							.withParentGroupId(noticeBoardEntity.getParentGroupId())
+							.withUpdateAt(LocalDateTime.now())
+					);
+				})
+			).doOnNext(e->{
+				System.out.println("kjh test333 <<< ");
+				System.out.println(e);
+				workspaceBorker.send(
+					new ServerSentStreamTemplate<NoticeBoardInheritsTable>(
+						e.getWorkspaceId(),
+						e.getRoomId(),
+						e.withAccountId(null),
+						ServerSentStreamType.NOTICE_BOARD_ACCEPT
+					) {}
+				);
+			})
+			.subscribe();
+			
+			return ok()
+				.contentType(MediaType.APPLICATION_JSON)
+				.body(response(Result._0, null), Response.class);
+		})
+		;
+	}
+	/*
+	public Mono<ServerResponse> updateNoticeBoardGroup(ServerRequest request){
+		return accountService.convertRequestToAccount(request)
+		//.flatMapMany(account -> 
+		.flatMap(account -> {
+			noticeBoardGroupRepository.saveAll(
+				request.bodyToFlux(NoticeBoardGroupEntity.class)
+				.filterWhen(noticeBoardGroupEntity->
+					Mono.just(noticeBoardGroupEntity.getGroupId() != null)
+					.flatMap(bol->{
+						if( ! bol) {
+							return Mono.error(new RoomException(Result._300));
+						}
+						return roomInAccountRepository.existsByAccountIdAndRoomId(account.getId(), noticeBoardGroupEntity.getRoomId());
+					})
+				)
+				.switchIfEmpty(Mono.error(new RoomException(Result._301)))
+				.flatMap(noticeBoardGroupEntity -> noticeBoardGroupRepository.findById(noticeBoardGroupEntity.getGroupId())
+					.map(noticeBoardGroup -> noticeBoardGroup
+							.withOrderSort(noticeBoardGroup.getOrderSort())
+							//.withUpdateAt(LocalDateTime.now())
+					)
+				)
+			).subscribe(e->{
+				workspaceBorker.send(
+					new ServerSentStreamTemplate<NoticeBoardInheritsTable>(
+						e.getWorkspaceId(),
+						e.getRoomId(),
+						e.withAccountId(null),
+						ServerSentStreamType.NOTICE_BOARD_ACCEPT
+					) {}
+				);
+			});
+			return ok()
+				.contentType(MediaType.APPLICATION_JSON)
+				.body(response(Result._0, null), Response.class);
+		})
+		;
+	}
+	*/
 }

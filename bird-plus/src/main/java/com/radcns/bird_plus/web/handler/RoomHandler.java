@@ -585,6 +585,7 @@ public class RoomHandler {
 					//.cache(Duration.ofDays(1))
 					.map(targetAccount -> 
 						RoomJoinedAccountResponse.builder()
+						.workspaceId(roomInAccount.getWorkspaceId())
 						.roomId(roomInAccount.getRoomId())
 						.accountName(targetAccount.getAccountName())
 						.fullName(targetAccount.getFullName())
@@ -595,7 +596,6 @@ public class RoomHandler {
 						.build()
 					)
 				)
-				
 				.doOnNext(e->{
 					sinks.tryEmitNext(e);
 				})

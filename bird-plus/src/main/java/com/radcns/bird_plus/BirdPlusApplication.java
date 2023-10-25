@@ -96,7 +96,7 @@ public class BirdPlusApplication implements ApplicationRunner {
 	@Override
 	public void run(ApplicationArguments args) throws Exception {
 		String profiles = System.getenv("MY_SERVER_PROFILES");
-		if( (profiles != null &&! profiles.equals("local")) || autoDbMappingGenerater != null) {
+		if( (profiles != null &&! profiles.equals("local")) || autoDbMappingGenerater != null || true) {
 			return;
 		}
 		autoDbMappingGenerater =
