@@ -210,7 +210,7 @@ public class AutoDbMappingGenerater  {
 		return entityFilter.doOnNext(entityFilterMap->{
 			repositoryFilter.doOnNext(repositoryFilterMap->{
 				scanningDB().flatMap(tableRecord->{
-					return Mono.delay(Duration.ofMillis(500)).flatMap(next->{
+					return Mono.delay(Duration.ofMillis(100)).flatMap(next->{
 						if(i.get() > 0) {
 							return Mono.empty();
 						}
@@ -232,10 +232,10 @@ public class AutoDbMappingGenerater  {
 						}));
 						
 						var fieldMono = Flux.fromIterable(tableRecord.columnMapper.entrySet()).flatMap(entry -> {
-							if(entity.getField(entry.getValue().camelName) != null) {
-								return Flux.empty();
-							}
-							CtField<?> field = createField(entry.getValue(), (memoryEntity == null ? null : memoryEntity.getValue()));
+							//if(entity.getField(entry.getValue().camelName) != null) {
+							//	return Flux.empty();
+							//}
+							CtField<?> field = createField(entry.getValue(), (memoryEntity == null ? null : memoryEntity.getValue()), tableRecord);
 							if( ! field.hasAnnotation(option.entityClassFieldColumnAnnotationType)) {
 								field.addAnnotation(
 									createAnnotation(option.entityClassFieldColumnAnnotationType, Map.of("value", entry.getValue().name))
@@ -266,11 +266,18 @@ public class AutoDbMappingGenerater  {
 							Entry<CtInterface<?>, Map<String, CtFieldReference<?>>> memoryRepositry = repositoryFilterMap.get(Character.toUpperCase(tableRecord.camelName.charAt(0)) + tableRecord.camelName.substring(1) + option.repositoryClassLastName);
 							CtInterface<?> interfaze = createInterface(tableRecord, memoryRepositry);
 							CtTypeReference<?> parentType = spoon.getFactory().Code().createCtTypeReference(option.repositoryExtendsClass);
-							CtTypeReference<?> parentGernericOfPk = spoon.getFactory().Code().createCtTypeReference(option.repositoryPkClass);
+							CtTypeReference<?> parentGernericOfPk;
+							if(option.repositorySpecificPkClass.containsKey(tableRecord.name)) {
+								parentGernericOfPk = spoon.getFactory().Code().createCtTypeReference(option.repositorySpecificPkClass.get(tableRecord.name));
+							}else {
+								parentGernericOfPk = spoon.getFactory().Code().createCtTypeReference(option.repositoryPkClass);
+							}
 							parentType.setActualTypeArguments(List.of(entity.getReference(), parentGernericOfPk));
 							interfaze.addSuperInterface(parentType);
 							
 							option.entityCeateAfterCallBack.accept(entity, spoon.getFactory());
+							option.repositoryCeateAfterCallBack.accept(interfaze, spoon.getFactory());
+							
 							javaOutputProcessor.createJavaFile(entity);
 							
 							javaOutputProcessor.createJavaFile(interfaze);
@@ -441,21 +448,22 @@ public class AutoDbMappingGenerater  {
 		
 		return clazz;
 	}
-	private CtField<?> createField(ColumnRecord columnRecord, Map<String, CtFieldReference<?>> fieldEntry){
+	private CtField<?> createField(ColumnRecord columnRecord, Map<String, CtFieldReference<?>> fieldEntry, TableRecord tableRecord){
 
 		CtField<?> field;
 		if(fieldEntry != null && fieldEntry.containsKey(columnRecord.camelName)) {
 			field = fieldEntry.get(columnRecord.camelName).getFieldDeclaration();
-			return field;
 		}else {
 			field = spoon.getFactory().Core().createField();
 		}
 		field.addModifier(ModifierKind.PRIVATE);
 		field.setSimpleName(columnRecord.camelName);
+		
 		Object objType = option.columnSpecificTypeMapper.get(columnRecord.name);
 		objType = objType != null ? objType : option.columnTypeMapper.get(columnRecord.dataTypeName);
 		CtTypeReference<?> type;
 		if(objType == null) {
+			System.out.println("                     warning - %s(your table name) : %s(your column name) is undefined java type. so i convert Object class.".formatted(tableRecord.name, columnRecord.name));
 			type = spoon.getFactory().Code().createCtTypeReference(Object.class);
 		}else if(objType.getClass().getSuperclass().equals(UnderType.class)) {
 			UnderType<?> underType = UnderType.class.cast(objType);
@@ -478,7 +486,6 @@ public class AutoDbMappingGenerater  {
 		}
 
 		field.setType(type);
-
 		return field;
 	}
 	
@@ -538,6 +545,7 @@ public class AutoDbMappingGenerater  {
 		private final Class<?> entityExtendsClass;
 		private final Class<?> repositoryExtendsClass;
 		private final Class<?> repositoryPkClass;
+		private final Map<String, Class<?>> repositorySpecificPkClass;
 		private final Map<String, Map<Class<? extends Annotation>, Map<String, Object>>> entityClassSpecificFieldAnnotation;
 		private final Class<? extends Annotation> entityClassFieldColumnAnnotationType;
 		private final Map<Class<? extends Annotation>, Map<String, Object>> entityClassFieldDefaultAnnotationType;
@@ -546,7 +554,6 @@ public class AutoDbMappingGenerater  {
 		private final Map<String, ?> columnTypeMapper;
 		private final Map<String, ?> columnSpecificTypeMapper;
 		private final BiConsumer<CtClass<?>, Factory> entityCeateAfterCallBack;
-		@SuppressWarnings("unused")
 		private final BiConsumer<CtInterface<?>, Factory> repositoryCeateAfterCallBack;
 		private final Boolean isTest;
 		private final Integer intervalOfMinutes;
@@ -564,6 +571,7 @@ public class AutoDbMappingGenerater  {
 			entityExtendsClass = builder.entityExtendsClass;
 			repositoryExtendsClass = builder.repositoryExtendsClass;
 			repositoryPkClass = builder.repositoryPkClass;
+			repositorySpecificPkClass = builder.repositorySpecificPkClass;
 			entityClassSpecificFieldAnnotation = builder.entityClassSpecificFieldAnnotation;
 			entityClassFieldColumnAnnotationType = builder.entityClassFieldColumnAnnotationType;
 			entityClassFieldDefaultAnnotationType = builder.entityClassFieldDefaultAnnotationType;
@@ -593,7 +601,8 @@ public class AutoDbMappingGenerater  {
 			private String repositoryClassLastName = "Repository";
 			private Class<?> entityExtendsClass;
 			private Class<?> repositoryExtendsClass;
-			private Class<?> repositoryPkClass = Long.class;
+			private Class<?> repositoryPkClass;
+			private Map<String, Class<?>> repositorySpecificPkClass = Collections.emptyMap();
 			private Map<String, Map<Class<? extends Annotation>, Map<String, Object>>> entityClassSpecificFieldAnnotation = Collections.emptyMap();
 			private Class<? extends Annotation> entityClassFieldColumnAnnotationType;
 			private Map<Class<? extends Annotation>, Map<String, Object>> entityClassFieldDefaultAnnotationType = Collections.emptyMap();
@@ -651,16 +660,20 @@ public class AutoDbMappingGenerater  {
 				this.entityClassDefaultAnnotation = entityClassDefaultAnnotation;
 				return this;
 			}
-			public AutoDbMappingGeneraterOptionBuilder entityExtendsClass(Class<?> entityExtendsClass) {
+			/*public AutoDbMappingGeneraterOptionBuilder entityExtendsClass(Class<?> entityExtendsClass) {
 				this.entityExtendsClass = entityExtendsClass;
 				return this;
-			}
+			}*/
 			public AutoDbMappingGeneraterOptionBuilder repositoryExtendsClass(Class<?> repositoryExtendsClass) {
 				this.repositoryExtendsClass = repositoryExtendsClass;
 				return this;
 			}
 			public AutoDbMappingGeneraterOptionBuilder repositoryPkClass(Class<?> repositoryPkClass) {
 				this.repositoryPkClass = repositoryPkClass;
+				return this;
+			}
+			public AutoDbMappingGeneraterOptionBuilder repositorySpecificPkClass(Map<String, Class<?>> repositorySpecificPkClass) {
+				this.repositorySpecificPkClass = repositorySpecificPkClass;
 				return this;
 			}
 			public AutoDbMappingGeneraterOptionBuilder entityClassFieldColumnAnnotationType(Class<? extends Annotation> entityClassFieldColumnAnnotationType) {

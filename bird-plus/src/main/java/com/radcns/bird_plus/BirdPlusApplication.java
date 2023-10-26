@@ -74,26 +74,27 @@ import spoon.reflect.reference.CtTypeReference;
 								"com.radcns.bird_plus.*"
 							  })
 @SpringBootApplication
-public class BirdPlusApplication implements ApplicationRunner {
+public class BirdPlusApplication //implements ApplicationRunner 
+{
     public static void main(String[] args) {
 
 		SpringApplication.run(BirdPlusApplication.class, args);
 
 	}
     
-    @Value("${spring.datasource.url}")
+    //@Value("${spring.datasource.url}")
     String url;
     
-    @Value("${spring.r2dbc.username}")
+    //@Value("${spring.r2dbc.username}")
     String username;
     
-    @Value("${spring.r2dbc.password}")
+    //Value("${spring.r2dbc.password}")
     String password;
     
-    @Value("${spring.r2dbc.properties.schema}")
+    //@Value("${spring.r2dbc.properties.schema}")
     String schema;
     private static AutoDbMappingGenerater autoDbMappingGenerater = null;
-	@Override
+	//@Override
 	public void run(ApplicationArguments args) throws Exception {
 		String profiles = System.getenv("MY_SERVER_PROFILES");
 		if( (profiles != null &&! profiles.equals("local")) || autoDbMappingGenerater != null || true) {
@@ -128,9 +129,9 @@ public class BirdPlusApplication implements ApplicationRunner {
 					NoArgsConstructor.class, Collections.emptyMap(),
 					AllArgsConstructor.class, Collections.emptyMap(),
 					With.class, Collections.emptyMap(),
-					ToString.class, Collections.emptyMap(),
-					JsonIgnoreProperties.class, Map.of("ignoreUnknown", true),
-					JsonInclude.class, Map.of("value", JsonInclude.Include.NON_NULL)
+					ToString.class, Collections.emptyMap()
+					//JsonIgnoreProperties.class, Map.of("ignoreUnknown", true),
+					//JsonInclude.class, Map.of("value", JsonInclude.Include.NON_NULL)
 				))
 		   		.repositoryClassLastName("Repository")
 		   		.repositoryPkClass(Long.class)
@@ -158,7 +159,7 @@ public class BirdPlusApplication implements ApplicationRunner {
 	   				ColumnEntry.pair("room_type", RoomType.class)
 	   			))
 	   			.entityCeateAfterCallBack((ctClass, factory) -> {
-	   				// create another default entity of field and method...
+	   				// create another default entity of field or method...
 	   				
 	   				Function<String, CtField<Long>> milsFun = ((name) -> {
 	   					CtTypeReference<Long> createMilsRef = factory.Code().createCtTypeReference(Long.class);

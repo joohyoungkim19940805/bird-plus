@@ -1,9 +1,8 @@
-package com.radcns.bird_plus.entity.icon;
+package com.radcns.bird_plus.entity.file;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,17 +17,17 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
-@Table("sy_icon_file")
-@AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
+@Table("sy_file_icon")
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@ToString
+@NoArgsConstructor
 @Getter
 @With
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@NoArgsConstructor
-@ToString
-@Builder(toBuilder = true)
 @Setter
-public class IconFileEntity {
+@AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Builder(toBuilder = true)
+public class FileIconEntity {
     public void setCreateAt(LocalDateTime createAt) {
         this.createAt = createAt;
         this.createMils = createAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
@@ -66,7 +65,7 @@ public class IconFileEntity {
     private LocalDateTime updateAt;
 
     @Column("id")
-    private List<Long> id;
+    private Long id;
 
     @Column("create_at")
     @CreatedDate

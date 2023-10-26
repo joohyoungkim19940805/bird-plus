@@ -1,6 +1,5 @@
 package com.radcns.bird_plus.entity.notice;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import lombok.AllArgsConstructor;
@@ -26,8 +25,6 @@ import org.springframework.data.relational.core.mapping.Table;
 @Table("no_notice_board_group")
 @ToString
 @Builder(toBuilder = true)
-@JsonIgnoreProperties(ignoreUnknown = true)
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class NoticeBoardGroupEntity implements NoticeBoardInheritsTable {
     @Id
     @Column("group_id")

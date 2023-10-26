@@ -154,24 +154,32 @@ public class Test {
 					NoArgsConstructor.class, Collections.emptyMap(),
 					AllArgsConstructor.class, Collections.emptyMap(),
 					With.class, Collections.emptyMap(),
-					ToString.class, Collections.emptyMap(),
-					JsonIgnoreProperties.class, Map.of("ignoreUnknown", true),
-					JsonInclude.class, Map.of("value", JsonInclude.Include.NON_NULL)
+					ToString.class, Collections.emptyMap()
+					//JsonIgnoreProperties.class, Map.of("ignoreUnknown", true),
+					//JsonInclude.class, Map.of("value", JsonInclude.Include.NON_NULL)
 				))
 		   		.repositoryClassLastName("Repository")
 		   		.repositoryPkClass(Long.class)
 	   			.repositoryExtendsClass(ReactiveCrudRepository.class)
 	   			.columnTypeMapper(Map.ofEntries(
+	   				ColumnEntry.pair("int", Long.class),
 	   				ColumnEntry.pair("int2", Long.class),
 	   				ColumnEntry.pair("int4", Long.class),
 	   				ColumnEntry.pair("int6", Long.class),
 	   				ColumnEntry.pair("int8", Long.class),
+	   				ColumnEntry.pair("bigint", Long.class),
+	   				ColumnEntry.pair("serial", Long.class),
+	   				ColumnEntry.pair("serial2", Long.class),
+	   				ColumnEntry.pair("serial4", Long.class),
+	   				ColumnEntry.pair("serial6", Long.class),
+	   				ColumnEntry.pair("serial8", Long.class),
+	   				ColumnEntry.pair("bigserial", Long.class),
+	   				ColumnEntry.pair("_int", new UnderType<List<Long>>() {}),
 	   				ColumnEntry.pair("_int2", new UnderType<List<Long>>() {}),
 	   				ColumnEntry.pair("_int4", new UnderType<List<Long>>() {}),
 	   				ColumnEntry.pair("_int6", new UnderType<List<Long>>() {}),
 	   				ColumnEntry.pair("_int8", new UnderType<List<Long>>() {}),
-	   				ColumnEntry.pair("serial", new UnderType<List<Long>>() {}),
-	   				ColumnEntry.pair("bigserial", new UnderType<List<Long>>() {}),
+	   				ColumnEntry.pair("_bigint", new UnderType<List<Long>>() {}),
 	   				ColumnEntry.pair("timestamp", LocalDateTime.class),
 	   				ColumnEntry.pair("varchar", String.class),
 	   				ColumnEntry.pair("_varchar", new UnderType<List<String>>() {}),

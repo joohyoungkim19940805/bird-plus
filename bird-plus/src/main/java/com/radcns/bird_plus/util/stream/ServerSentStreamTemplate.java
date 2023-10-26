@@ -7,7 +7,9 @@ import com.radcns.bird_plus.entity.room.RoomInAccountEntity;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity.RoomInAccountDomain.RoomJoinedAccountResponse;
 
 import lombok.Getter;
+import lombok.ToString;
 
+@ToString
 public class ServerSentStreamTemplate<T> {
 	
 	@Getter 

@@ -85,7 +85,7 @@ public class ChattingReplyEntity {
     private LocalDateTime updateAt;
 
     @Column("id")
-    private List<Long> id;
+    private Long id;
 
     @Column("create_at")
     @CreatedDate

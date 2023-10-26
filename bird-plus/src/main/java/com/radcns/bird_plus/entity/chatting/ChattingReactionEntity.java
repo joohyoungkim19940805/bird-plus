@@ -3,7 +3,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -72,7 +71,7 @@ public class ChattingReactionEntity {
     private LocalDateTime updateAt;
 
     @Column("id")
-    private List<Long> id;
+    private Long id;
 
     @Column("create_at")
     @CreatedDate

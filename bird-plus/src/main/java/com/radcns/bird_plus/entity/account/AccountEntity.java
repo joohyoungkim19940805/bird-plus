@@ -159,9 +159,6 @@ public class AccountEntity implements TokenTemplate {
         return this.fullName;
     }
 
-    @Column("test_c")
-    private Long testC;
-
     @Column("is_delete")
     private Boolean isDelete;
 }

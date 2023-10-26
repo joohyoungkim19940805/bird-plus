@@ -15,7 +15,7 @@ import com.radcns.bird_plus.entity.room.RoomInAccountEntity;
 import com.radcns.bird_plus.repository.account.AccountRepository;
 import com.radcns.bird_plus.service.AccountService;
 import com.radcns.bird_plus.service.MailService;
-import com.radcns.bird_plus.util.Response;
+import com.radcns.bird_plus.util.ResponseWrapper;
 import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
 import com.radcns.bird_plus.util.exception.ApiException;
 import com.radcns.bird_plus.util.exception.AccountException;
@@ -29,7 +29,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
-import static com.radcns.bird_plus.util.Response.response;
+import static com.radcns.bird_plus.util.ResponseWrapper.response;
 import static org.springframework.web.reactive.function.server.ServerResponse.ok;
 
 import java.util.Date;
@@ -142,7 +142,7 @@ public class MainHandler {
 		}).flatMap(account -> 
 			ok()
 			.contentType(MediaType.APPLICATION_JSON)
-			.body(response(Result._0), Response.class)
+			.body(response(Result._0), ResponseWrapper.class)
 		);
 
 	}
@@ -195,7 +195,7 @@ public class MainHandler {
 				.flatMap(e->
 					ok()
 					.contentType(MediaType.APPLICATION_JSON)
-					.body(response(Result._0), Response.class)
+					.body(response(Result._0), ResponseWrapper.class)
 				)
 				;
 		/*
@@ -240,7 +240,7 @@ public class MainHandler {
 								.path("/")
 		        				.build())
 						.contentType(MediaType.APPLICATION_JSON)
-						.body(response(Result._0, token), Response.class));
+						.body(response(Result._0, token), ResponseWrapper.class));
 		/*
 		 ok()
 			.contentType(MediaType.APPLICATION_JSON)
@@ -288,7 +288,7 @@ public class MainHandler {
 				.flatMap(account -> 
 					ok()
 					.contentType(MediaType.APPLICATION_JSON)
-					.body(response(Result._0, account), Response.class)
+					.body(response(Result._0, account), ResponseWrapper.class)
 				)
 				;
 	}
@@ -342,7 +342,7 @@ public class MainHandler {
 			.flatMap(e->
 				ok()
 				.contentType(MediaType.APPLICATION_JSON)
-				.body(response(Result._0), Response.class)
+				.body(response(Result._0), ResponseWrapper.class)
 			)
 			;
 	}

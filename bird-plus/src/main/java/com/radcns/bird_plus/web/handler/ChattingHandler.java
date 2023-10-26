@@ -15,7 +15,7 @@ import com.radcns.bird_plus.repository.account.AccountRepository;
 import com.radcns.bird_plus.repository.chatting.ChattingRepository;
 import com.radcns.bird_plus.repository.room.RoomInAccountRepository;
 import com.radcns.bird_plus.service.AccountService;
-import com.radcns.bird_plus.util.Response;
+import com.radcns.bird_plus.util.ResponseWrapper;
 import com.radcns.bird_plus.util.stream.ServerSentStreamTemplate;
 import com.radcns.bird_plus.util.stream.WorkspaceBroker;
 import com.radcns.bird_plus.util.stream.ServerSentStreamTemplate.ServerSentStreamType;
@@ -27,7 +27,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.core.publisher.Sinks.EmitResult;
 
-import static com.radcns.bird_plus.util.Response.response;
+import static com.radcns.bird_plus.util.ResponseWrapper.response;
 import static org.springframework.web.reactive.function.server.ServerResponse.ok;
 
 import java.time.LocalDateTime;
@@ -140,7 +140,7 @@ public class ChattingHandler {
 				;
 			})
 			.flatMap(e-> response(Result._0, e))
-		, Response.class);
+		, ResponseWrapper.class);
 	}
 
 	public Mono<ServerResponse> searchChattingList(ServerRequest request){
@@ -169,6 +169,6 @@ public class ChattingHandler {
 
 		return ok()
 			.contentType(MediaType.APPLICATION_JSON)
-			.body(result.flatMap(e-> response(Result._0, e)), Response.class);
+			.body(result.flatMap(e-> response(Result._0, e)), ResponseWrapper.class);
 	}
 }

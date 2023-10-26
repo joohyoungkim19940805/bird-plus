@@ -1,9 +1,10 @@
 package com.radcns.bird_plus.web.handler;
 
-import static com.radcns.bird_plus.util.Response.response;
+import static com.radcns.bird_plus.util.ResponseWrapper.response;
 import static org.springframework.web.reactive.function.server.ServerResponse.ok;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +27,7 @@ import com.radcns.bird_plus.repository.room.RoomInAccountRepository;
 import com.radcns.bird_plus.repository.room.RoomRepository;
 import com.radcns.bird_plus.repository.workspace.WorkspaceInAccountRepository;
 import com.radcns.bird_plus.service.AccountService;
-import com.radcns.bird_plus.util.Response;
+import com.radcns.bird_plus.util.ResponseWrapper;
 import com.radcns.bird_plus.util.exception.RoomException;
 import com.radcns.bird_plus.util.exception.WorkspaceException;
 import com.radcns.bird_plus.util.stream.ServerSentStreamTemplate;
@@ -116,7 +117,7 @@ public class RoomHandler {
 		)//
 		.flatMap(room -> ok()
 			.contentType(MediaType.APPLICATION_JSON)
-			.body(response(Result._0, room), Response.class)
+			.body(response(Result._0, room), ResponseWrapper.class)
 		)
 		;
 	}
@@ -174,7 +175,7 @@ public class RoomHandler {
 				});
 			})
 			.flatMap(e->response(Result._0, e))
-		, Response.class);
+		, ResponseWrapper.class);
 	}
 	
 	public Mono<ServerResponse> createRoomInAccount(ServerRequest request){
@@ -259,7 +260,7 @@ public class RoomHandler {
 				//return sinks.asFlux();
 				return response(Result._0, null);
 			})
-		,  Response.class);
+		,  ResponseWrapper.class);
 		//, RoomInAccountDomain.RoomJoinedAccountResponse.class);
 		
 	}
@@ -281,16 +282,15 @@ public class RoomHandler {
 				)
 				.switchIfEmpty(Mono.error(new RoomException(Result._301)))
 				.flatMap(roomInAccount -> roomInAccountRepository.findById(roomInAccount.getId())
-					.map(newRoomInAccount->
-						newRoomInAccount
-							.withOrderSort(roomInAccount.getOrderSort())
-							//.withUpdateAt(LocalDateTime.now())
+					.map(newRoomInAccount-> newRoomInAccount
+						.withOrderSort(roomInAccount.getOrderSort())
+						.withUpdateAt(LocalDateTime.now())
 					)
 				)
 			).subscribe();
 			return ok()
 				.contentType(MediaType.APPLICATION_JSON)
-				.body(response(Result._0, null), Response.class);
+				.body(response(Result._0, null), ResponseWrapper.class);
 		})
 		;
 		/*.collectList()
@@ -327,7 +327,7 @@ public class RoomHandler {
 		)
 		.flatMap(roomFavorites -> ok()
 			.contentType(MediaType.APPLICATION_JSON)
-			.body(response(Result._0, roomFavorites), Response.class)
+			.body(response(Result._0, roomFavorites), ResponseWrapper.class)
 		)
 		;
 	}
@@ -349,16 +349,15 @@ public class RoomHandler {
 				)
 				.switchIfEmpty(Mono.error(new RoomException(Result._301)))
 				.flatMap(roomInAccount -> roomFavoritesRepository.findById(roomInAccount.getId())
-					.map(newRoomInAccount->
-						newRoomInAccount
+					.map(newRoomInAccount-> newRoomInAccount
 							.withOrderSort(roomInAccount.getOrderSort())
-							//.withUpdateAt(LocalDateTime.now())
+							.withUpdateAt(LocalDateTime.now())
 					)
 				)
 			).subscribe();
 			return ok()
 				.contentType(MediaType.APPLICATION_JSON)
-				.body(response(Result._0, null), Response.class);
+				.body(response(Result._0, null), ResponseWrapper.class);
 		})
 		;
 		/*.collectList()
@@ -413,7 +412,7 @@ public class RoomHandler {
 			})
 			//.switchIfEmpty(Mono.error(new WorkspaceException(Result._200)))
 			.flatMap(list -> response(Result._0, list))
-		, Response.class);
+		, ResponseWrapper.class);
 	}
 
 	public Mono<ServerResponse> searchRoomMyJoinedAndRoomType(ServerRequest request){
@@ -448,7 +447,7 @@ public class RoomHandler {
 			})
 			//.switchIfEmpty(Mono.error(new WorkspaceException(Result._200)))
 			.flatMap(list -> response(Result._0, list))
-		, Response.class);
+		, ResponseWrapper.class);
 	}
 	public Mono<ServerResponse> searchRoomMyJoinedNameAndRoomType(ServerRequest request){
 		return ok()
@@ -487,7 +486,7 @@ public class RoomHandler {
 			})
 			//.switchIfEmpty(Mono.error(new WorkspaceException(Result._200)))
 			.flatMap(list -> response(Result._0, list))
-		, Response.class); 
+		, ResponseWrapper.class); 
 	}
 	
 	public Mono<ServerResponse> searchRoomFavoritesMyJoined(ServerRequest request){
@@ -517,7 +516,7 @@ public class RoomHandler {
 			})
 			//.switchIfEmpty(Mono.error(new WorkspaceException(Result._200)))
 			.flatMap(list -> response(Result._0, list))
-		, Response.class);
+		, ResponseWrapper.class);
 	}
 	
 	public Mono<ServerResponse> searchRoomFavoritesMyJoinedNema(ServerRequest request){
@@ -547,7 +546,7 @@ public class RoomHandler {
 				;
 			})
 			.flatMap(list -> response(Result._0, list))
-		, Response.class)
+		, ResponseWrapper.class)
 		;
 	}
 	
@@ -558,7 +557,7 @@ public class RoomHandler {
 		.body(
 			roomRepository.findById(roomId)
 			.flatMap(e-> response(Result._0, e.withCreateBy(null)))
-		, Response.class)
+		, ResponseWrapper.class)
 		;
 	}
 	
@@ -599,7 +598,7 @@ public class RoomHandler {
 				.doOnNext(e->{
 					sinks.tryEmitNext(e);
 				})
-				.delayElements(Duration.ofMillis(20))
+				//.delayElements(Duration.ofMillis(20))
 				.doFinally(e->{
 					sinks.tryEmitComplete();
 				})
@@ -623,6 +622,6 @@ public class RoomHandler {
 				roomFavoritesRepository.existsByAccountIdAndRoomId(account.getId(), roomId)
 			)
 			.flatMap(e-> response(Result._0, e))
-		, Response.class);
+		, ResponseWrapper.class);
 	}
 }

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import io.r2dbc.postgresql.codec.Json;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -62,7 +61,7 @@ public class NoticeBoardDetailEntity {
     private Long noticeBoardId;
 
     @Column("id")
-    private List<Long> id;
+    private Long id;
 
     @Column("updating_account_id")
     private Long updatingAccountId;

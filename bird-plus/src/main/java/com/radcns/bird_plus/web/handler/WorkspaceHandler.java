@@ -1,6 +1,6 @@
 package com.radcns.bird_plus.web.handler;
 
-import static com.radcns.bird_plus.util.Response.response;
+import static com.radcns.bird_plus.util.ResponseWrapper.response;
 import static org.springframework.web.reactive.function.server.ServerResponse.ok;
 
 import java.util.List;
@@ -21,7 +21,7 @@ import com.radcns.bird_plus.repository.account.AccountRepository;
 import com.radcns.bird_plus.repository.workspace.WorkspaceInAccountRepository;
 import com.radcns.bird_plus.repository.workspace.WorkspaceRepository;
 import com.radcns.bird_plus.service.AccountService;
-import com.radcns.bird_plus.util.Response;
+import com.radcns.bird_plus.util.ResponseWrapper;
 import com.radcns.bird_plus.util.exception.WorkspaceException;
 import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
 
@@ -63,7 +63,7 @@ public class WorkspaceHandler {
 		)
 		.flatMap(workspace -> ok()
 			.contentType(MediaType.APPLICATION_JSON)
-			.body(response(Result._0, workspace), Response.class)
+			.body(response(Result._0, workspace), ResponseWrapper.class)
 		)
 		;
 	}
@@ -86,7 +86,7 @@ public class WorkspaceHandler {
 						new PageImpl<>(tuples.getT1(), pageRequest, tuples.getT2())
 					)
 					.flatMap(list -> response(Result._0, list))
-			, Response.class);
+			, ResponseWrapper.class);
 	}
 	
 	public Mono<ServerResponse> isWorkspaceJoined(ServerRequest request){
@@ -96,7 +96,7 @@ public class WorkspaceHandler {
 			accountService.convertRequestToAccount(request)
 			.flatMap(account -> workspaceInAccountRepository.existsByAccountId(account.getId()))
 			.flatMap(isExists -> response(Result._0, isExists))
-		, Response.class)
+		, ResponseWrapper.class)
 		;
 	}
 	
@@ -123,7 +123,7 @@ public class WorkspaceHandler {
 	            ;
 			})
 			.flatMap(list -> response(Result._0, list))
-		, Response.class);
+		, ResponseWrapper.class);
 	}
 	
 	public Mono<ServerResponse> searchWorkspaceInAccount(ServerRequest request){
@@ -161,7 +161,7 @@ public class WorkspaceHandler {
 				);
 			})
 			.flatMap(list -> response(Result._0, list))
-		, Response.class)
+		, ResponseWrapper.class)
 		;
 		/*
 		accountService.convertJwtToAccount(request)
@@ -180,7 +180,7 @@ public class WorkspaceHandler {
 		.body(
 			workspaceRepository.findById(workspaceId)
 			.flatMap(e-> response(Result._0, e.withOwnerAccountId(null).withCreateBy(null)))
-		, Response.class)
+		, ResponseWrapper.class)
 		;
 	}
 }

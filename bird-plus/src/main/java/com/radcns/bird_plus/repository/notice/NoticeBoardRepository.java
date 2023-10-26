@@ -25,5 +25,20 @@ public interface NoticeBoardRepository extends ReactiveCrudRepository<NoticeBoar
     """)
     Mono<Long> findMaxByWorkspaceIdAndRoomIdAndParentGroupId(Long workspaceId, Long roomId, Long parentGroupId);
 
+    @Query("""
+    SELECT
+    	MAX(nnb.order_sort)
+    FROM
+    	no_notice_board nnb
+    WHERE
+    	nnb.workspace_id = :#{[0]}
+    AND
+    	nnb.room_id = :#{[1]}
+    AND
+    	nnb.parent_group_id IS NULL
+    """)
+    Mono<Long> findMaxByWorkspaceIdAndRoomIdAndParentGroupId(Long workspaceId, Long roomId);
+
+    
     Flux<NoticeBoardEntity> findAllByWorkspaceIdAndRoomIdAndTitle(Long workspaceId, Long roomId, String title);
 }

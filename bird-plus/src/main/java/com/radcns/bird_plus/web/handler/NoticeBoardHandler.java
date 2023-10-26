@@ -1,6 +1,6 @@
 package com.radcns.bird_plus.web.handler;
 
-import static com.radcns.bird_plus.util.Response.response;
+import static com.radcns.bird_plus.util.ResponseWrapper.response;
 import static org.springframework.web.reactive.function.server.ServerResponse.ok;
 
 import java.time.Duration;
@@ -18,6 +18,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.radcns.bird_plus.entity.notice.NoticeBoardEntity;
 import com.radcns.bird_plus.entity.notice.NoticeBoardGroupEntity;
 import com.radcns.bird_plus.entity.notice.NoticeBoardInheritsTable;
@@ -29,7 +31,7 @@ import com.radcns.bird_plus.repository.room.RoomInAccountRepository;
 import com.radcns.bird_plus.repository.workspace.WorkspaceInAccountRepository;
 import com.radcns.bird_plus.service.AccountService;
 import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
-import com.radcns.bird_plus.util.Response;
+import com.radcns.bird_plus.util.ResponseWrapper;
 import com.radcns.bird_plus.util.exception.AccountException;
 import com.radcns.bird_plus.util.exception.NoticeBoardException;
 import com.radcns.bird_plus.util.exception.RoomException;
@@ -69,18 +71,27 @@ public class NoticeBoardHandler {
 				.switchIfEmpty(Mono.error(new RoomException(Result._301)))
 				.flatMap(noticeBoardGroup -> {
 					Mono<NoticeBoardGroupEntity> save;
-					Mono<Long> maxOrderSortMono = noticeBoardRepository.findMaxByWorkspaceIdAndRoomIdAndParentGroupId(
-						noticeBoardGroup.getWorkspaceId(), noticeBoardGroup.getRoomId(), noticeBoardGroup.getParentGroupId()
-					).defaultIfEmpty((long)0);
+					Mono<Long> maxOrderSortMono;
+					if(noticeBoardGroup.getParentGroupId() == null) {
+						maxOrderSortMono = noticeBoardRepository.findMaxByWorkspaceIdAndRoomIdAndParentGroupId(
+							noticeBoardGroup.getWorkspaceId(), noticeBoardGroup.getRoomId()
+						).defaultIfEmpty((long)0);
+					}else {
+						maxOrderSortMono = noticeBoardRepository.findMaxByWorkspaceIdAndRoomIdAndParentGroupId(
+							noticeBoardGroup.getWorkspaceId(), noticeBoardGroup.getRoomId(), noticeBoardGroup.getParentGroupId()
+						).defaultIfEmpty((long)0);
+					}
+					
 					if(noticeBoardGroup.getGroupId() == null) {
 						noticeBoardGroup.setAccountId(account.getId());
 						noticeBoardGroup.setFullName(account.getFullName());
-						save = noticeBoardGroupRepository.save(noticeBoardGroup);
+						save = maxOrderSortMono
+								.flatMap(maxOrderSort -> noticeBoardGroupRepository.save(noticeBoardGroup.withOrderSort(maxOrderSort + 1)));
 					}else {
 						save = maxOrderSortMono.flatMap(maxOrderSort -> 
 							noticeBoardGroupRepository.findById(noticeBoardGroup.getGroupId()).flatMap((e) -> {
 								e.setTitle(noticeBoardGroup.getTitle());
-								e.setOrderSort(maxOrderSort + 1);
+								//e.setOrderSort(maxOrderSort + 1);
 								return noticeBoardGroupRepository.save(e);
 							})
 						);
@@ -99,7 +110,7 @@ public class NoticeBoardHandler {
 				})
 			)
 			.flatMap(e-> response(Result._0, e))
-		, Response.class)
+		, ResponseWrapper.class)
 		;
 	}
 	//
@@ -114,18 +125,25 @@ public class NoticeBoardHandler {
 				.switchIfEmpty(Mono.error(new RoomException(Result._301)))
 				.flatMap(noticeBoard -> {
 					Mono<NoticeBoardEntity> save;
-					Mono<Long> maxOrderSortMono = noticeBoardRepository.findMaxByWorkspaceIdAndRoomIdAndParentGroupId(
-							noticeBoard.getWorkspaceId(), noticeBoard.getRoomId(), noticeBoard.getParentGroupId()
+					Mono<Long> maxOrderSortMono;
+					if(noticeBoard.getParentGroupId() == null) {
+						maxOrderSortMono = noticeBoardRepository.findMaxByWorkspaceIdAndRoomIdAndParentGroupId(
+								noticeBoard.getWorkspaceId(), noticeBoard.getRoomId()
 						).defaultIfEmpty((long)0);
+					}else {
+						maxOrderSortMono = noticeBoardRepository.findMaxByWorkspaceIdAndRoomIdAndParentGroupId(
+								noticeBoard.getWorkspaceId(), noticeBoard.getRoomId(), noticeBoard.getParentGroupId()
+						).defaultIfEmpty((long)0);
+					}
 					if(noticeBoard.getId() == null) {
 						noticeBoard.setAccountId(account.getId());
 						noticeBoard.setFullName(account.getFullName());
-						save = noticeBoardRepository.save(noticeBoard);
+						save = maxOrderSortMono.flatMap(maxOrderSort -> noticeBoardRepository.save(noticeBoard.withOrderSort(maxOrderSort + 1)));
 					}else {
 						save = maxOrderSortMono.flatMap(maxOrderSort -> 
 							noticeBoardRepository.findById(noticeBoard.getId()).flatMap((e) -> {
 								e.setTitle(noticeBoard.getTitle());
-								e.setOrderSort(maxOrderSort + 1);
+								//e.setOrderSort(maxOrderSort + 1);
 								return noticeBoardRepository.save(e);
 							})
 						);
@@ -145,7 +163,7 @@ public class NoticeBoardHandler {
 				})
 			)
 			.flatMap(e-> response(Result._0, e))
-		, Response.class)
+		, ResponseWrapper.class)
 		;
 	}
 	
@@ -174,7 +192,7 @@ public class NoticeBoardHandler {
 					return response(Result._0);
 				})
 			)
-		, Response.class)
+		, ResponseWrapper.class)
 		;
 	}
 	
@@ -203,7 +221,7 @@ public class NoticeBoardHandler {
 					return response(Result._0);
 				})
 			)
-		, Response.class)
+		, ResponseWrapper.class)
 		;
 	}
 	
@@ -235,7 +253,7 @@ public class NoticeBoardHandler {
 				.doOnNext(e-> {
 					sinks.tryEmitNext(e);
 				})
-				.delayElements(Duration.ofMillis(50))
+				//.delayElements(Duration.ofMillis(50))
 				.doFinally(e->{
 					sinks.tryEmitComplete();
 				})
@@ -264,18 +282,14 @@ public class NoticeBoardHandler {
 				)
 				.switchIfEmpty(Mono.error(new RoomException(Result._301)))
 				.flatMap(noticeBoardEntity -> {
-
-					System.out.println("kjh test222<<< ");
-					System.out.println(noticeBoardEntity);
 					return noticeBoardRepository.findById(noticeBoardEntity.getId()).map(e-> e
 							.withOrderSort(noticeBoardEntity.getOrderSort())
 							.withParentGroupId(noticeBoardEntity.getParentGroupId())
 							.withUpdateAt(LocalDateTime.now())
 					);
 				})
-			).doOnNext(e->{
-				System.out.println("kjh test333 <<< ");
-				System.out.println(e);
+			)
+			.doOnNext(e->{
 				workspaceBorker.send(
 					new ServerSentStreamTemplate<NoticeBoardInheritsTable>(
 						e.getWorkspaceId(),
@@ -289,7 +303,7 @@ public class NoticeBoardHandler {
 			
 			return ok()
 				.contentType(MediaType.APPLICATION_JSON)
-				.body(response(Result._0, null), Response.class);
+				.body(response(Result._0), ResponseWrapper.class);
 		})
 		;
 	}
