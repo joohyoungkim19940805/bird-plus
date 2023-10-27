@@ -1,6 +1,7 @@
 package com.radcns.bird_plus.util.stream;
 
 import com.radcns.bird_plus.entity.chatting.ChattingEntity.ChattingDomain.ChattingResponse;
+import com.radcns.bird_plus.entity.notice.NoticeBoardDetailEntity;
 import com.radcns.bird_plus.entity.notice.NoticeBoardEntity;
 import com.radcns.bird_plus.entity.notice.NoticeBoardInheritsTable;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity;
@@ -39,12 +40,18 @@ public class ServerSentStreamTemplate<T> {
 	}
 	
 	public enum ServerSentStreamType{
-		CHTTING_ACCEPT, ROOM_ACCEPT, ROOM_IN_ACCOUNT_ACCEPT, NOTICE_BOARD_ACCEPT, NOTICE_BOARD_DELETE_ACCEPT;
+		CHTTING_ACCEPT, 
+		ROOM_ACCEPT, 
+		ROOM_IN_ACCOUNT_ACCEPT, 
+		NOTICE_BOARD_ACCEPT, 
+		NOTICE_BOARD_DELETE_ACCEPT,
+		NOTICE_BOARD_DETAIL_ACCEPT
+		;
 		public final static Class<ChattingResponse> CHTTING_ACCEPT_CAST_CLASS = ChattingResponse.class;
 		public final static Class<RoomInAccountEntity> ROOM_ACCEPT_CAST_CLASS = RoomInAccountEntity.class;
 		public final static Class<RoomJoinedAccountResponse> ROOM_IN_ACCOUNT_ACCEPT_CAST_CLASS = RoomJoinedAccountResponse.class;
 		public final static Class<NoticeBoardInheritsTable> NOTICE_BOARD_ACCEPT_CAST_CLASS = NoticeBoardInheritsTable.class;
 		public final static Class<NoticeBoardInheritsTable> NOTICE_BOARD_DELETE_ACCEPT_CAST_CLASS = NoticeBoardInheritsTable.class;
-		
+		public final static Class<NoticeBoardDetailEntity> NOTICE_BOARD_DETAIL_ACCEPT_CAST_CLASS = NoticeBoardDetailEntity.class;
 	}
 }

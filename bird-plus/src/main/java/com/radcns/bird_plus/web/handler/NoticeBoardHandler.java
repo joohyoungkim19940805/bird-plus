@@ -20,11 +20,13 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.radcns.bird_plus.entity.notice.NoticeBoardDetailEntity;
 import com.radcns.bird_plus.entity.notice.NoticeBoardEntity;
 import com.radcns.bird_plus.entity.notice.NoticeBoardGroupEntity;
 import com.radcns.bird_plus.entity.notice.NoticeBoardInheritsTable;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity.RoomInAccountDomain;
+import com.radcns.bird_plus.repository.notice.NoticeBoardDetailRepository;
 import com.radcns.bird_plus.repository.notice.NoticeBoardGroupRepository;
 import com.radcns.bird_plus.repository.notice.NoticeBoardRepository;
 import com.radcns.bird_plus.repository.room.RoomInAccountRepository;
@@ -38,6 +40,7 @@ import com.radcns.bird_plus.util.exception.RoomException;
 import com.radcns.bird_plus.util.exception.WorkspaceException;
 import com.radcns.bird_plus.util.stream.ServerSentStreamTemplate;
 import com.radcns.bird_plus.util.stream.WorkspaceBroker;
+import com.sun.mail.iap.Response;
 import com.radcns.bird_plus.util.stream.ServerSentStreamTemplate.ServerSentStreamType;
 
 import reactor.core.publisher.Flux;
@@ -57,7 +60,7 @@ public class NoticeBoardHandler {
 	@Autowired
 	private WorkspaceBroker workspaceBorker;
 	@Autowired
-	private WorkspaceInAccountRepository workspaceInAccountRepository;
+	private NoticeBoardDetailRepository noticeBoardDetailRepository;
 
 	//roomInAccountRepository.existsByAccountIdAndWorkspaceIdAndRoomId(e.getId(), workspaceId, roomId)
 	public Mono<ServerResponse> createNoticeBoardGroup(ServerRequest request){
@@ -225,15 +228,9 @@ public class NoticeBoardHandler {
 		;
 	}
 	
-	public Mono<ServerResponse> searchNoticeBoardAndGroup(ServerRequest request){
-		var param = request.queryParams();
-		Long workspaceId = Long.valueOf(param.getFirst("workspaceId"));
-		Long roomId = Long.valueOf(param.getFirst("roomId"));
-		if(workspaceId == null) {
-			throw new WorkspaceException(Result._200);
-		}else if(roomId == null) {
-			throw new RoomException(Result._300);
-		}
+	public Mono<ServerResponse> searchNoticeBoardList(ServerRequest request){
+		Long workspaceId = Long.valueOf(request.pathVariable("workspaceId"));
+		Long roomId = Long.valueOf(request.pathVariable("roomId"));
 
 		return ok()
 		.contentType(MediaType.TEXT_EVENT_STREAM)
@@ -242,6 +239,7 @@ public class NoticeBoardHandler {
 			.filterWhen(e->  roomInAccountRepository.existsByAccountIdAndWorkspaceIdAndRoomId(e.getId(), workspaceId, roomId))
 			.switchIfEmpty(Mono.error(new WorkspaceException(Result._301)))
 			.flatMapMany(account -> {
+				var param = request.queryParams();
 				String parentGroupIdObject = param.getFirst("parentGroupId");
 				Long parentGroupId = null;
 				if(parentGroupIdObject != null) {
@@ -307,44 +305,117 @@ public class NoticeBoardHandler {
 		})
 		;
 	}
-	/*
-	public Mono<ServerResponse> updateNoticeBoardGroup(ServerRequest request){
-		return accountService.convertRequestToAccount(request)
-		//.flatMapMany(account -> 
-		.flatMap(account -> {
-			noticeBoardGroupRepository.saveAll(
-				request.bodyToFlux(NoticeBoardGroupEntity.class)
-				.filterWhen(noticeBoardGroupEntity->
-					Mono.just(noticeBoardGroupEntity.getGroupId() != null)
-					.flatMap(bol->{
-						if( ! bol) {
-							return Mono.error(new RoomException(Result._300));
-						}
-						return roomInAccountRepository.existsByAccountIdAndRoomId(account.getId(), noticeBoardGroupEntity.getRoomId());
+	public Mono<ServerResponse> createNoticeBoardDetail(ServerRequest request){
+		
+		var response = accountService.convertRequestToAccount(request).flatMap(account -> request.bodyToMono(NoticeBoardDetailEntity.class)
+			.filterWhen(noticeBoardDetail -> roomInAccountRepository.existsByAccountIdAndRoomId(account.getId(), noticeBoardDetail.getRoomId()))
+			.switchIfEmpty(Mono.error(new RoomException(Result._301)))
+			.flatMap(noticeBoardDetail -> {
+				Mono<Long> maxOrderSortMono = noticeBoardDetailRepository.findMaxByWorkspaceIdAndRoomIdAndNoticeBoardId(noticeBoardDetail.getWorkspaceId(), noticeBoardDetail.getRoomId(), noticeBoardDetail.getNoticeBoardId());
+				Mono<NoticeBoardDetailEntity> save;
+				if(noticeBoardDetail.getId() == null) {
+					save = maxOrderSortMono.flatMap(maxOrderSort -> 
+						noticeBoardDetailRepository.save(
+							noticeBoardDetail.withCreateBy(account.getId()).withUpdateBy(account.getId())
+						)
+					);
+				}else {
+					save = maxOrderSortMono.flatMap(maxOrderSort -> noticeBoardDetailRepository.findById(noticeBoardDetail.getId()))
+					.flatMap(entity -> 
+						noticeBoardDetailRepository.save(
+							entity.withUpdateBy(account.getId()).withUpdateAt(LocalDateTime.now())
+						)
+					);
+				}
+				return save.doOnSuccess(result -> {
+					workspaceBorker.send(
+						new ServerSentStreamTemplate<NoticeBoardDetailEntity>(
+							result.getWorkspaceId(),
+							result.getRoomId(),
+							result.withCreateBy(null).withUpdateBy(null),
+							ServerSentStreamType.NOTICE_BOARD_DETAIL_ACCEPT
+						) {}
+					);
+				})
+				.flatMap(e->response(Result._0))
+				;
+			})
+		);
+			
+		return ok()
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(response, ResponseWrapper.class);
+	}
+	
+	public Mono<ServerResponse> updateNoticeBoardDetailOrder(ServerRequest request){
+		
+		accountService.convertRequestToAccount(request)
+			.flatMap(account -> {
+				noticeBoardDetailRepository.saveAll(
+					request.bodyToFlux(NoticeBoardDetailEntity.class)
+					.filterWhen(noticeBoardDetailEntity -> 
+						Mono.just(noticeBoardDetailEntity.getId() != null)
+						.flatMap(bol -> {
+							if( ! bol) {
+								return Mono.error(new RoomException(Result._300));
+							}
+							return roomInAccountRepository.existsByAccountIdAndRoomId(account.getId(), noticeBoardDetailEntity.getRoomId());
+						})
+					)
+					.switchIfEmpty(Mono.error(new RoomException(Result._301)))
+					.flatMap(noticeBoardDetail-> {
+						return noticeBoardDetailRepository.findById(noticeBoardDetail.getId()).map(e-> e
+								.withOrderSort(noticeBoardDetail.getOrderSort())
+								.withUpdateAt(LocalDateTime.now())
+						);
 					})
 				)
-				.switchIfEmpty(Mono.error(new RoomException(Result._301)))
-				.flatMap(noticeBoardGroupEntity -> noticeBoardGroupRepository.findById(noticeBoardGroupEntity.getGroupId())
-					.map(noticeBoardGroup -> noticeBoardGroup
-							.withOrderSort(noticeBoardGroup.getOrderSort())
-							//.withUpdateAt(LocalDateTime.now())
-					)
-				)
-			).subscribe(e->{
-				workspaceBorker.send(
-					new ServerSentStreamTemplate<NoticeBoardInheritsTable>(
-						e.getWorkspaceId(),
-						e.getRoomId(),
-						e.withAccountId(null),
-						ServerSentStreamType.NOTICE_BOARD_ACCEPT
-					) {}
-				);
+				.doOnNext(e->{
+					workspaceBorker.send(
+						new ServerSentStreamTemplate<NoticeBoardDetailEntity>(
+							e.getWorkspaceId(),
+							e.getRoomId(),
+							e.withCreateBy(null).withUpdateBy(null),
+							ServerSentStreamType.NOTICE_BOARD_DETAIL_ACCEPT
+						) {}
+					);
+				});
+				
+				return null;
 			});
-			return ok()
-				.contentType(MediaType.APPLICATION_JSON)
-				.body(response(Result._0, null), Response.class);
-		})
-		;
+		
+		return ok()
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(Result._0, ResponseWrapper.class);
 	}
-	*/
+	
+	public Mono<ServerResponse> searchNoticeBoardDetailList(ServerRequest request){
+		Long workspaceId = Long.valueOf(request.pathVariable("workspaceId"));
+		Long roomId = Long.valueOf(request.pathVariable("roomId"));
+		Long noticeBoardId = Long.valueOf(request.pathVariable("noticeBoardId"));
+
+		return ok()
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(
+				accountService.convertRequestToAccount(request)
+				.filterWhen(account -> roomInAccountRepository.existsByAccountIdAndWorkspaceIdAndRoomId(account.getId(), workspaceId, roomId))
+				.switchIfEmpty(Mono.error(new RoomException(Result._301)))
+				.flatMapMany(account -> {
+					Sinks.Many<NoticeBoardDetailEntity> sinks = Sinks.many().unicast().onBackpressureBuffer();
+					noticeBoardDetailRepository.findAllByNoticeBoardId(noticeBoardId)
+					.doOnNext(e-> {
+						sinks.tryEmitNext(e);
+					})
+					//.delayElements(Duration.ofMillis(50))
+					.doFinally(e->{
+						sinks.tryEmitComplete();
+					})
+					.subscribe();
+					
+					return sinks.asFlux();
+				})
+			, NoticeBoardDetailEntity.class)
+			;
+	}
+	
 }

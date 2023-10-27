@@ -75,7 +75,7 @@ public class MainRouter implements IndexRouterSwagger{
 							.POST("/send-chatting", accept(MediaType.APPLICATION_JSON), chattingHandler::sendStream)
 						.build())
 				.nest(path("/search"), searchPathBuilder -> searchPathBuilder
-							.GET("/chatting-list", accept(MediaType.APPLICATION_JSON), chattingHandler::searchChattingList)
+							.GET("/chatting-list/{workspaceId}/{roomId}", accept(MediaType.APPLICATION_JSON), chattingHandler::searchChattingList)
 						.build())
 				).build();
 	}
@@ -96,11 +96,11 @@ public class MainRouter implements IndexRouterSwagger{
 				/*.nest(path("update") , updatePathBuilder -> updatePathBuilder
 					.build())*/
 				.nest(path("search"), searchPathBuilder -> searchPathBuilder
-						.GET("/workspace-name-list", accept(MediaType.APPLICATION_JSON), workspaceHandler::searchWorkspaceName)
-						.GET("/is-workspace-joined", accept(MediaType.APPLICATION_JSON), workspaceHandler::isWorkspaceJoined)
-						.GET("/workspace-my-joined-list", accept(MediaType.APPLICATION_JSON), workspaceHandler::searchWorkspaceMyJoined)
-						.GET("/workspace-in-account-list/{workspaceId}", accept(MediaType.APPLICATION_JSON), workspaceHandler::searchWorkspaceInAccount)
-						.GET("/workspace-detail/{workspaceId}", accept(MediaType.APPLICATION_JSON), workspaceHandler::getWorkspaceDetail)
+						.GET("/name-specific-list", accept(MediaType.APPLICATION_JSON), workspaceHandler::searchWorkspaceName)
+						.GET("/is-joined", accept(MediaType.APPLICATION_JSON), workspaceHandler::isWorkspaceJoined)
+						.GET("/my-joined-list", accept(MediaType.APPLICATION_JSON), workspaceHandler::searchWorkspaceMyJoined)
+						.GET("/joined-account-list/{workspaceId}", accept(MediaType.APPLICATION_JSON), workspaceHandler::searchWorkspaceInAccount)
+						.GET("/detail/{workspaceId}", accept(MediaType.APPLICATION_JSON), workspaceHandler::getWorkspaceDetail)
 					.build())
 				).build();
 		/*
@@ -118,21 +118,19 @@ public class MainRouter implements IndexRouterSwagger{
 						.POST("/", accept(MediaType.APPLICATION_JSON), roomHandler::createRoom)
 						.POST("/my-self-room/{workspaceId}", accept(MediaType.APPLICATION_JSON), roomHandler::createMySelfRoom)
 						//.POST("/room-in-account", accept(MediaType.TEXT_EVENT_STREAM), roomHandler::createRoomInAccount)
-						.POST("/room-in-account", accept(MediaType.APPLICATION_JSON), roomHandler::createRoomInAccount)
-						.POST("/room-favorites", accept(MediaType.APPLICATION_JSON), roomHandler::createRoomFavorites)
+						.POST("/in-account", accept(MediaType.APPLICATION_JSON), roomHandler::createRoomInAccount)
+						.POST("/favorites", accept(MediaType.APPLICATION_JSON), roomHandler::createRoomFavorites)
 					.build())
 				.nest(path("/update"), updatePathBuilder -> updatePathBuilder
-						.POST("/room-in-account-order", accept(MediaType.APPLICATION_JSON), roomHandler::updateRoomInAccountOrder)
-						.POST("/room-favorites-order", accept(MediaType.APPLICATION_JSON), roomHandler::updateRoomFavoritesOrder)
+						.POST("/order", accept(MediaType.APPLICATION_JSON), roomHandler::updateRoomInAccountOrder)
+						.POST("/favorites-order", accept(MediaType.APPLICATION_JSON), roomHandler::updateRoomFavoritesOrder)
 					.build())
 				.nest(path("/search"), searchPathBuilder -> searchPathBuilder
-						.GET("/room-list", accept(MediaType.APPLICATION_JSON), roomHandler::searchRoom)
-						.GET("/room-my-joined-list", accept(MediaType.APPLICATION_JSON), roomHandler::searchRoomMyJoinedAndRoomType)
-						.GET("/room-my-joined-name-list", accept(MediaType.APPLICATION_JSON), roomHandler::searchRoomMyJoinedNameAndRoomType)
-						.GET("/room-my-joined-favorites-list", accept(MediaType.APPLICATION_JSON), roomHandler::searchRoomFavoritesMyJoined)
-						.GET("/room-my-joined-favorites-name-list", accept(MediaType.APPLICATION_JSON), roomHandler::searchRoomFavoritesMyJoinedNema)	
-						.GET("/room-detail/{roomId}", accept(MediaType.APPLICATION_JSON), roomHandler::getRoomDetail)
-						.GET("/room-in-account-all-list/{roomId}", accept(MediaType.TEXT_EVENT_STREAM), roomHandler::searchRoomInAccountAllList)
+						.GET("/list{workspaceId}", accept(MediaType.APPLICATION_JSON), roomHandler::searchRoomList)
+						.GET("/my-joined-list/{workspaceId}", accept(MediaType.APPLICATION_JSON), roomHandler::searchMyJoinedRoomList)
+						.GET("/favorites-list/{workspaceId}", accept(MediaType.APPLICATION_JSON), roomHandler::searchRoomFavoritesList)	
+						.GET("/detail/{roomId}", accept(MediaType.APPLICATION_JSON), roomHandler::getRoomDetail)
+						.GET("/in-account-list/{roomId}", accept(MediaType.TEXT_EVENT_STREAM), roomHandler::searchRoomJoinedAccountList)
 						.GET("/is-room-favorites/{roomId}", accept(MediaType.APPLICATION_JSON), roomHandler::isRoomFavorites)
 					.build())
 			).build();
@@ -144,17 +142,20 @@ public class MainRouter implements IndexRouterSwagger{
 				.nest(path("/create"), createPathBuilder -> createPathBuilder
 						.POST("/", accept(MediaType.APPLICATION_JSON), noticeBoardHandler::createNoticeBoard)
 						.POST("/group", accept(MediaType.APPLICATION_JSON), noticeBoardHandler::createNoticeBoardGroup)
+						.POST("/detail", accept(MediaType.APPLICATION_JSON), noticeBoardHandler::createNoticeBoardDetail)
 						.build())
 				.nest(path("/delete"), createPathBuilder -> createPathBuilder
 						.POST("/", accept(MediaType.APPLICATION_JSON), noticeBoardHandler::deleteNoticeBoard)
 						.POST("/group", accept(MediaType.APPLICATION_JSON), noticeBoardHandler::deleteNoticeBoardGroup)
 						.build())
-				.nest(path("/update"), createPathBuilder -> createPathBuilder
+				.nest(path("/update"), updatePathBuilder -> updatePathBuilder
 						.POST("/order", accept(MediaType.APPLICATION_JSON), noticeBoardHandler::updateNoticeBoardOrder)
+						.POST("/detail-order", accept(MediaType.APPLICATION_JSON), noticeBoardHandler::updateNoticeBoardDetailOrder)
 						//.POST("/group", accept(MediaType.APPLICATION_JSON), noticeBoardHandler::updateNoticeBoardGroup)
 						.build())
 				.nest(path("/search"), searchPathBuilder -> searchPathBuilder
-							.GET("/notice-board-list", accept(MediaType.TEXT_EVENT_STREAM), noticeBoardHandler::searchNoticeBoardAndGroup)
+							.GET("/notice-board-list/{workspaceId}/{roomId}", accept(MediaType.TEXT_EVENT_STREAM), noticeBoardHandler::searchNoticeBoardList)
+							.GET("/notice-board-detail-list/{workspaceId}/{roomId}/{noticeBoardId}", accept(MediaType.TEXT_EVENT_STREAM), noticeBoardHandler::searchNoticeBoardDetailList)
 						.build())
 				).build();
 	}

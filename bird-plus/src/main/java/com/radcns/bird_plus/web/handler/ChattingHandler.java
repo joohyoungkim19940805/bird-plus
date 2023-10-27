@@ -20,6 +20,8 @@ import com.radcns.bird_plus.util.stream.ServerSentStreamTemplate;
 import com.radcns.bird_plus.util.stream.WorkspaceBroker;
 import com.radcns.bird_plus.util.stream.ServerSentStreamTemplate.ServerSentStreamType;
 import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
+import com.radcns.bird_plus.util.exception.RoomException;
+import com.radcns.bird_plus.util.exception.WorkspaceException;
 
 import io.jsonwebtoken.Claims;
 import io.r2dbc.postgresql.codec.Json;
@@ -73,19 +75,7 @@ public class ChattingHandler {
 	empty(): a sink that will play a terminal signal only to its subscribers (error or complete)
 	 */
 	private Sinks.Many<ChattingEntity> chattingSink = Sinks.many().multicast().directAllOrNothing();
-	/*
-		Map(멀티스레드용 맵에 workspaceId-key, sinks-value로 저장)
-		클라이언트에서 workspaceId와 roomId 보내줌
-		서버에서 roomId에 해당하는 참여자가 아닌 경우를 필터링
-		reuqest는 ChattingEntity로 받도록 변경 필요
-		
-		채팅의 경우 mainPageRenderer에 엔터 누를시 현재 캐럿 위치의 다음 next요소들을 긁어서 다음 라인 요소에 집어넣는 로직 개발 필요
-		
-		채팅 저장시 페이징용 max 순번 저장 (room 기준으로)
-		동일 순번이 저장될 수 있으므로 클라이언트에서는 id나 or createAt(createMils)으로 정렬 필요
-	*/
-	//ConcurrentMap<K, V>
-	//ConcurrentHashMap<K, V>
+
 	public Mono<ServerResponse> sendStream(ServerRequest request){
 		return ok()
 		.contentType(MediaType.APPLICATION_JSON)
@@ -144,15 +134,14 @@ public class ChattingHandler {
 	}
 
 	public Mono<ServerResponse> searchChattingList(ServerRequest request){
+		Long workspaceId = Long.valueOf(request.pathVariable("workspaceId"));
+		Long roomId = Long.valueOf(request.pathVariable("roomId"));
 		
 		var result = accountService.convertRequestToAccount(request)
+		.filterWhen(account -> roomInAccountRepository.existsByAccountIdAndWorkspaceIdAndRoomId(account.getId(), workspaceId, roomId))
+		.switchIfEmpty(Mono.error(new RoomException(Result._301)))
 		.flatMap(account -> {
 			var param = request.queryParams();
-			Long workspaceId = Long.valueOf(param.getFirst("workspaceId"));
-			Long roomId = Long.valueOf(param.getFirst("roomId"));
-			if(workspaceId == null || roomId == null) {
-				return Mono.empty();
-			}
 			
 			PageRequest pageRequest = PageRequest.of(
 				Integer.valueOf(param.getOrDefault("page", List.of("0")).get(0)),

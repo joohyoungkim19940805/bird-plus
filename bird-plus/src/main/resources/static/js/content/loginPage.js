@@ -209,7 +209,7 @@ const getStart = new class GetStart{
 		`
 	})
 	callIsWorkspaceJoined = async () => {
-		return fetch('/api/workspace/search/is-workspace-joined', {
+		return fetch('/api/workspace/search/is-joined', {
 			method: 'GET',
 			headers: {
 				'Content-Type' : 'application/json'
@@ -586,7 +586,7 @@ const getStart = new class GetStart{
 		
 		let {search_workspace_name: workspaceName} = form;
 		let page = 0, size = 10;
-		let searchWorkspaceList = (text) => fetch(`/api/workspace/search/workspace-name-list?page=${page}&size=${size}&workspaceName=${text}`, {
+		let searchWorkspaceList = (text) => fetch(`/api/workspace/search/name-specific-list?page=${page}&size=${size}&workspaceName=${text}`, {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json'

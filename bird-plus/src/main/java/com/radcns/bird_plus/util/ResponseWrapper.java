@@ -62,6 +62,12 @@ public class ResponseWrapper<T>{
 	public static <T> Mono<ResponseWrapper<T>> response(Result result) {
 		return new ResponseWrapper<T>().setResult(result);
 	}
+	public static <T> Mono<ResponseWrapper<T>> response(T data){
+		if(data.getClass().equals(Result.class)) {
+			return new ResponseWrapper<T>().setResult((Result)data);
+		}
+		return new ResponseWrapper<T>().setResult(Result._0, data);
+	}
 	public static <T> Mono<ResponseWrapper<T>> response(Result result, T data) {
 		return new ResponseWrapper<T>().setResult(result, data);
 	}

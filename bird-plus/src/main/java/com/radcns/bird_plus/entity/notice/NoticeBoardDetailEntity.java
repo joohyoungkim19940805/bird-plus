@@ -63,9 +63,6 @@ public class NoticeBoardDetailEntity {
     @Column("id")
     private Long id;
 
-    @Column("updating_account_id")
-    private Long updatingAccountId;
-
     @Column("content")
     private Json content;
 
@@ -90,4 +87,13 @@ public class NoticeBoardDetailEntity {
     @Column("update_by")
     @LastModifiedBy
     private Long updateBy;
+
+    @Column("order_sort")
+    private Long orderSort;
+
+    @Column("room_id")
+    private Long roomId;
+
+    @Column("workspace_id")
+    private Long workspaceId;
 }

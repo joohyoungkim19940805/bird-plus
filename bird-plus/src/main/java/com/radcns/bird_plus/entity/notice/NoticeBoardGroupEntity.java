@@ -1,5 +1,4 @@
 package com.radcns.bird_plus.entity.notice;
-
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import lombok.AllArgsConstructor;

@@ -39,6 +39,5 @@ public interface NoticeBoardRepository extends ReactiveCrudRepository<NoticeBoar
     """)
     Mono<Long> findMaxByWorkspaceIdAndRoomIdAndParentGroupId(Long workspaceId, Long roomId);
 
-    
     Flux<NoticeBoardEntity> findAllByWorkspaceIdAndRoomIdAndTitle(Long workspaceId, Long roomId, String title);
 }

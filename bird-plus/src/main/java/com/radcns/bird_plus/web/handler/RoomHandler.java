@@ -369,17 +369,17 @@ public class RoomHandler {
 		*/
 	}
 	
-	public Mono<ServerResponse> searchRoom(ServerRequest request){
+	public Mono<ServerResponse> searchRoomList(ServerRequest request){
+		Long workspaceId = Long.valueOf(request.pathVariable("workspaceId"));
+		
 		return ok()
 		.contentType(MediaType.APPLICATION_JSON)
 		.body(
 			accountService.convertRequestToAccount(request)
+			.filterWhen(account -> workspaceInAccountRepository.existsByAccountId(account.getId()))
+			.switchIfEmpty(Mono.error(new WorkspaceException(Result._201)))
 			.flatMap(account -> {
 				var param = request.queryParams();
-				Long workspaceId = Long.valueOf(param.getFirst("workspaceId"));
-				if(workspaceId == null) {
-					return Mono.error(new WorkspaceException(Result._200));
-				}
 				RoomType roomType;
 				try {
 					roomType = RoomType.valueOf(param.getFirst("roomType"));
@@ -415,51 +415,15 @@ public class RoomHandler {
 		, ResponseWrapper.class);
 	}
 
-	public Mono<ServerResponse> searchRoomMyJoinedAndRoomType(ServerRequest request){
-		return ok()
-		.contentType(MediaType.APPLICATION_JSON)
-		.body(
-			accountService.convertRequestToAccount(request)
+	public Mono<ServerResponse> searchMyJoinedRoomList(ServerRequest request){
+		
+		Long workspaceId = Long.valueOf(request.pathVariable("workspaceId"));
+
+		var response = accountService.convertRequestToAccount(request)
+			.filterWhen(account -> workspaceInAccountRepository.existsByAccountId(account.getId()))
+			.switchIfEmpty(Mono.error(new WorkspaceException(Result._201)))
 			.flatMap(account -> {
 				var param = request.queryParams();
-				Long workspaceId = Long.valueOf(param.getFirst("workspaceId"));
-				if(workspaceId == null) {
-					return Mono.error(new WorkspaceException(Result._200));
-				}
-				List<RoomType> roomType;
-				try {
-					roomType = param.get("roomType").stream().map(RoomType::valueOf).toList();
-				}catch(IllegalArgumentException e) {
-					return Mono.error(new RoomException(Result._300));
-				}
-				PageRequest pageRequest = PageRequest.of(
-					Integer.valueOf(param.getOrDefault("page", List.of("0")).get(0)),
-					Integer.valueOf(param.getOrDefault("size", List.of("10")).get(0))	
-				);
-				
-				return roomInAccountRepository.findAllJoinRoomByAccountIdAndWorkspaceIdAndRoomType(account.getId(), workspaceId, roomType, pageRequest)
-				.collectList()
-				.zipWith(roomInAccountRepository.countJoinRoomByAccountIdAndWorkspaceIdAndRoomType(account.getId(), workspaceId, roomType))
-				.map(entityTuples -> 
-					new PageImpl<>(entityTuples.getT1(), pageRequest, entityTuples.getT2())
-				)
-				;
-			})
-			//.switchIfEmpty(Mono.error(new WorkspaceException(Result._200)))
-			.flatMap(list -> response(Result._0, list))
-		, ResponseWrapper.class);
-	}
-	public Mono<ServerResponse> searchRoomMyJoinedNameAndRoomType(ServerRequest request){
-		return ok()
-		.contentType(MediaType.APPLICATION_JSON)
-		.body(
-			accountService.convertRequestToAccount(request)
-			.flatMap(account -> {
-				var param = request.queryParams();
-				Long workspaceId = Long.valueOf(param.getFirst("workspaceId"));
-				if(workspaceId == null) {
-					return Mono.error(new WorkspaceException(Result._200));
-				}
 				List<RoomType> roomType;
 				try {
 					roomType = param.get("roomType").stream().map(RoomType::valueOf).toList();
@@ -467,69 +431,47 @@ public class RoomHandler {
 					return Mono.error(new RoomException(Result._300));
 				}
 				String roomName = param.getOrDefault("roomName", List.of("")).get(0);
-				//if(roomName == null) {
-				//	return Mono.empty();
-				//}
-				
 				PageRequest pageRequest = PageRequest.of(
-					Integer.valueOf(param.getOrDefault("page", List.of("0")).get(0)),
-					Integer.valueOf(param.getOrDefault("size", List.of("10")).get(0))	
-				);
+						Integer.valueOf(param.getOrDefault("page", List.of("0")).get(0)),
+						Integer.valueOf(param.getOrDefault("size", List.of("10")).get(0))	
+					);
+				
+				if(roomName.isBlank()) {
+					return roomInAccountRepository.findAllJoinRoomByAccountIdAndWorkspaceIdAndRoomType(account.getId(), workspaceId, roomType, pageRequest)
+						.collectList()
+						.zipWith(roomInAccountRepository.countJoinRoomByAccountIdAndWorkspaceIdAndRoomType(account.getId(), workspaceId, roomType))
+						.map(entityTuples -> 
+							new PageImpl<>(entityTuples.getT1(), pageRequest, entityTuples.getT2())
+						)
+						;
+				}
 				
 				return roomInAccountRepository.findAllJoinRoomByAccountIdAndWorkspaceIdAndRoomNameAndRoomType(account.getId(), workspaceId, roomName, roomType, pageRequest)
-				.collectList()
-				.zipWith(roomInAccountRepository.countJoinRoomByAccountIdAndWorkspaceIdAndRoomNameAndRoomType(account.getId(), workspaceId, roomName, roomType))
-				.map(entityTuples -> 
-					new PageImpl<>(entityTuples.getT1(), pageRequest, entityTuples.getT2())
-				)
-				;
+					.collectList()
+					.zipWith(roomInAccountRepository.countJoinRoomByAccountIdAndWorkspaceIdAndRoomNameAndRoomType(account.getId(), workspaceId, roomName, roomType))
+					.map(entityTuples -> 
+						new PageImpl<>(entityTuples.getT1(), pageRequest, entityTuples.getT2())
+					)
+					;
 			})
 			//.switchIfEmpty(Mono.error(new WorkspaceException(Result._200)))
 			.flatMap(list -> response(Result._0, list))
-		, ResponseWrapper.class); 
-	}
-	
-	public Mono<ServerResponse> searchRoomFavoritesMyJoined(ServerRequest request){
+		;
+		
 		return ok()
 		.contentType(MediaType.APPLICATION_JSON)
-		.body(
-			accountService.convertRequestToAccount(request)
-			.flatMap(account -> {
-				var param = request.queryParams();
-				Long workspaceId = Long.valueOf(param.getFirst("workspaceId"));
-				if(workspaceId == null) {
-					return Mono.error(new WorkspaceException(Result._200));
-				}
-
-				PageRequest pageRequest = PageRequest.of(
-					Integer.valueOf(param.getOrDefault("page", List.of("0")).get(0)),
-					Integer.valueOf(param.getOrDefault("size", List.of("10")).get(0))	
-				);
-				
-				return roomFavoritesRepository.findAllJoinRoomByAccountIdAndWorkspaceId(account.getId(), workspaceId, pageRequest)
-				.collectList()
-				.zipWith(roomFavoritesRepository.countJoinRoomByAccountIdAndWorkspaceId(account.getId(), workspaceId))
-				.map(entityTuples -> 
-					new PageImpl<>(entityTuples.getT1(), pageRequest, entityTuples.getT2())
-				)
-				;
-			})
-			//.switchIfEmpty(Mono.error(new WorkspaceException(Result._200)))
-			.flatMap(list -> response(Result._0, list))
-		, ResponseWrapper.class);
+		.body(response, ResponseWrapper.class)
+		; 
 	}
 	
-	public Mono<ServerResponse> searchRoomFavoritesMyJoinedNema(ServerRequest request){
-		return ok()
-		.contentType(MediaType.APPLICATION_JSON)
-		.body(
-			accountService.convertRequestToAccount(request)
+	public Mono<ServerResponse> searchRoomFavoritesList(ServerRequest request){
+		
+		Long workspaceId = Long.valueOf(request.pathVariable("workspaceId"));
+		var response = accountService.convertRequestToAccount(request)
+			.filterWhen(account -> workspaceInAccountRepository.existsByAccountId(account.getId()))
+			.switchIfEmpty(Mono.error(new WorkspaceException(Result._201)))
 			.flatMap(account -> {
 				var param = request.queryParams();
-				Long workspaceId = Long.valueOf(param.getFirst("workspaceId"));
-				if(workspaceId == null) {
-					return Mono.empty();
-				}
 				String roomName = param.getOrDefault("roomName", List.of("")).get(0);
 				
 				PageRequest pageRequest = PageRequest.of(
@@ -537,16 +479,30 @@ public class RoomHandler {
 					Integer.valueOf(param.getOrDefault("size", List.of("10")).get(0))	
 				);
 				
+				if(roomName.isBlank()) {
+					return roomFavoritesRepository.findAllJoinRoomByAccountIdAndWorkspaceId(account.getId(), workspaceId, pageRequest)
+						.collectList()
+						.zipWith(roomFavoritesRepository.countJoinRoomByAccountIdAndWorkspaceId(account.getId(), workspaceId))
+						.map(entityTuples -> 
+							new PageImpl<>(entityTuples.getT1(), pageRequest, entityTuples.getT2())
+						)
+						;
+				}
+				
 				return roomFavoritesRepository.findAllJoinRoomByAccountIdAndWorkspaceIdAndRoomName(account.getId(), workspaceId, roomName, pageRequest)
-				.collectList()
-				.zipWith(roomFavoritesRepository.countJoinRoomByAccountIdAndWorkspaceIdAndRoomName(account.getId(), workspaceId, roomName))
-				.map(entityTuples -> 
-					new PageImpl<>(entityTuples.getT1(), pageRequest, entityTuples.getT2())
-				)
-				;
+					.collectList()
+					.zipWith(roomFavoritesRepository.countJoinRoomByAccountIdAndWorkspaceIdAndRoomName(account.getId(), workspaceId, roomName))
+					.map(entityTuples -> 
+						new PageImpl<>(entityTuples.getT1(), pageRequest, entityTuples.getT2())
+					)
+					;
 			})
 			.flatMap(list -> response(Result._0, list))
-		, ResponseWrapper.class)
+		;
+		
+		return ok()
+		.contentType(MediaType.APPLICATION_JSON)
+		.body(response, ResponseWrapper.class)
 		;
 	}
 	
@@ -561,7 +517,7 @@ public class RoomHandler {
 		;
 	}
 	
-	public Mono<ServerResponse> searchRoomInAccountAllList(ServerRequest request){
+	public Mono<ServerResponse> searchRoomJoinedAccountList(ServerRequest request){
 		/*
 		var params = request.queryParams();
 		Long roomId = Long.valueOf(params.getFirst("roomId"));
