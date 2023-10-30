@@ -16,11 +16,10 @@ import com.radcns.bird_plus.repository.account.AccountRepository;
 import com.radcns.bird_plus.service.AccountService;
 import com.radcns.bird_plus.service.MailService;
 import com.radcns.bird_plus.util.ResponseWrapper;
-import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
 import com.radcns.bird_plus.util.exception.ApiException;
 import com.radcns.bird_plus.util.exception.AccountException;
 import com.radcns.bird_plus.util.exception.ForgotPasswordException;
-
+import com.radcns.bird_plus.util.exception.BirdPlusException.Result;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwsHeader;

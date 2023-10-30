@@ -19,16 +19,15 @@ import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import org.springframework.web.reactive.function.server.ServerResponse.BodyBuilder;
+import com.radcns.bird_plus.util.exception.BirdPlusException.Result;
 
-import com.radcns.bird_plus.util.ExceptionCodeConstant;
 
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
-import java.util.List;
+
 import java.util.Map;
-import java.util.function.Function;
-import java.util.function.Supplier;
+
 
 @Component
 @Order(-2)
@@ -51,7 +50,7 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
         final Map<String, Object> errorPropertiesMap = getErrorAttributes(request, ErrorAttributeOptions.defaults());
         HttpStatus status;
         int code = (Integer) errorPropertiesMap.get("code");
-        if(code == ExceptionCodeConstant.Result._999.code()) {
+        if(code == Result._999.code()) {
         	status = HttpStatus.INTERNAL_SERVER_ERROR;
         }else {
         	status = HttpStatus.OK;
@@ -67,10 +66,10 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
         	bodyBuilder = ServerResponse.status(status);
         }
         
-        if(code == ExceptionCodeConstant.Result._100.code() ||
-        		code == ExceptionCodeConstant.Result._105.code() ||
-				code == ExceptionCodeConstant.Result._106.code() ||
-				code == ExceptionCodeConstant.Result._107.code()
+        if(code == Result._100.code() ||
+        		code == Result._105.code() ||
+				code == Result._106.code() ||
+				code == Result._107.code()
         		) {
         	bodyBuilder.cookie(ResponseCookie.fromClientResponse(HttpHeaders.AUTHORIZATION, "")
         			.httpOnly(true)

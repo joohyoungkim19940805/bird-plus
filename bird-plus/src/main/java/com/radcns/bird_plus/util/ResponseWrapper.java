@@ -1,7 +1,7 @@
 package com.radcns.bird_plus.util;
 
 import com.radcns.bird_plus.entity.account.AccountEntity;
-import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
+import com.radcns.bird_plus.util.exception.BirdPlusException.Result;
 
 import lombok.Getter;
 import reactor.core.publisher.Flux;

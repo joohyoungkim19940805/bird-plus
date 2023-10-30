@@ -13,6 +13,7 @@ import lombok.ToString;
 import lombok.With;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.annotation.Transient;
@@ -60,6 +61,7 @@ public class NoticeBoardDetailEntity {
     @Column("notice_board_id")
     private Long noticeBoardId;
 
+    @Id
     @Column("id")
     private Long id;
 
@@ -96,4 +98,24 @@ public class NoticeBoardDetailEntity {
 
     @Column("workspace_id")
     private Long workspaceId;
+
+    @Column("empty_line_count")
+    private Long emptyLineCount;
+    
+
+    public NoticeBoardDetailEntity withContent(String content) {
+    	this.content = Json.of(content);
+    	return this;
+    }
+    
+    public void setContent(String content) {
+        this.content = Json.of(content);
+    }
+
+    public String getContent() {
+        if (this.content == null) {
+            return "";
+        }
+        return this.content.asString();
+    }
 }

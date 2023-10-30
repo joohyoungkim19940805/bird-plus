@@ -6,16 +6,6 @@ public class WebClientNeedRetryException extends BirdPlusException{
 	
 	private boolean isNeedRetry;
 	
-	public WebClientNeedRetryException(String message, int code, int statusCode) {
-		super(message, code);
-		this.statusCode = statusCode;
-		this.isNeedRetry = true;
-	}
-	public WebClientNeedRetryException(String message, int code, int statusCode, Boolean isNeedRetry) {
-		super(message, code);
-		this.statusCode = statusCode;
-		this.isNeedRetry = isNeedRetry == null ? true : isNeedRetry.booleanValue();
-	}
 	public WebClientNeedRetryException(Result result, int statusCode) {
 		super(result);
 		this.statusCode = statusCode;
@@ -53,9 +43,5 @@ public class WebClientNeedRetryException extends BirdPlusException{
 		// TODO Auto-generated method stub
 		return Result.valueOf("_" + code);
 	}
-	@Override
-	public int getResultCode() {
-		// TODO Auto-generated method stub
-		return super.code;
-	}	
+
 }

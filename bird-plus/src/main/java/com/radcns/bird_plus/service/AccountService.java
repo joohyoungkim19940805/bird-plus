@@ -28,8 +28,8 @@ import com.radcns.bird_plus.entity.account.AccountEntity;
 import com.radcns.bird_plus.entity.account.AccountLogEntity;
 import com.radcns.bird_plus.repository.account.AccountLogRepository;
 import com.radcns.bird_plus.repository.account.AccountRepository;
-import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
 import com.radcns.bird_plus.util.exception.AccountException;
+import com.radcns.bird_plus.util.exception.BirdPlusException.Result;
 
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;

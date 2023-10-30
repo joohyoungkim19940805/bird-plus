@@ -6,11 +6,7 @@ public class ApiException extends BirdPlusException {
 	public ApiException(Result result) {
 		super(result);
 	}
-	
-	@Override
-	public int getResultCode() {
-		return super.code;
-	}
+
 	@Override
 	public Result getResult() {
 		// TODO Auto-generated method stub

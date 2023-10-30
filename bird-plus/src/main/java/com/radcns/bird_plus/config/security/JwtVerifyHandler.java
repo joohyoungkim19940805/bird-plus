@@ -18,8 +18,8 @@ import java.util.Date;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
 import com.radcns.bird_plus.util.exception.AccountException;
+import com.radcns.bird_plus.util.exception.BirdPlusException.Result;
 
 
 public class JwtVerifyHandler {

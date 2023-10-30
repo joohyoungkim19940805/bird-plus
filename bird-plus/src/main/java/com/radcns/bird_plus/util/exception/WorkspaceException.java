@@ -1,24 +1,16 @@
 package com.radcns.bird_plus.util.exception;
 
-import io.jsonwebtoken.JwtException;
 
 @SuppressWarnings("serial")
 public class WorkspaceException extends BirdPlusException {
 	public WorkspaceException(Result result) {
-		super(result.message(), result.code());
-	}
-	public WorkspaceException(Result result, JwtException e) {
-		super(result.withChangeMessage(e.getMessage()).message(), result.code());
+		super(result);
 	}
 	
 	@Override
-	public int getResultCode() {
-		return this.code;
-	}
-	@Override
 	public Result getResult() {
 		// TODO Auto-generated method stub
-		return Result.valueOf("_"+this.code);
+		return super.result;
 	}
 	@Override
 	public Result getResult(int status) {

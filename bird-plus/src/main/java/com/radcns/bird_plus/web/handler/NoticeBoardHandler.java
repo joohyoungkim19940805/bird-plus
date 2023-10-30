@@ -32,12 +32,12 @@ import com.radcns.bird_plus.repository.notice.NoticeBoardRepository;
 import com.radcns.bird_plus.repository.room.RoomInAccountRepository;
 import com.radcns.bird_plus.repository.workspace.WorkspaceInAccountRepository;
 import com.radcns.bird_plus.service.AccountService;
-import com.radcns.bird_plus.util.ExceptionCodeConstant.Result;
 import com.radcns.bird_plus.util.ResponseWrapper;
 import com.radcns.bird_plus.util.exception.AccountException;
 import com.radcns.bird_plus.util.exception.NoticeBoardException;
 import com.radcns.bird_plus.util.exception.RoomException;
 import com.radcns.bird_plus.util.exception.WorkspaceException;
+import com.radcns.bird_plus.util.exception.BirdPlusException.Result;
 import com.radcns.bird_plus.util.stream.ServerSentStreamTemplate;
 import com.radcns.bird_plus.util.stream.WorkspaceBroker;
 import com.sun.mail.iap.Response;
@@ -311,19 +311,29 @@ public class NoticeBoardHandler {
 			.filterWhen(noticeBoardDetail -> roomInAccountRepository.existsByAccountIdAndRoomId(account.getId(), noticeBoardDetail.getRoomId()))
 			.switchIfEmpty(Mono.error(new RoomException(Result._301)))
 			.flatMap(noticeBoardDetail -> {
-				Mono<Long> maxOrderSortMono = noticeBoardDetailRepository.findMaxByWorkspaceIdAndRoomIdAndNoticeBoardId(noticeBoardDetail.getWorkspaceId(), noticeBoardDetail.getRoomId(), noticeBoardDetail.getNoticeBoardId());
+				Mono<Long> maxOrderSortMono = noticeBoardDetailRepository
+					.findMaxByWorkspaceIdAndRoomIdAndNoticeBoardId(
+						noticeBoardDetail.getWorkspaceId(), noticeBoardDetail.getRoomId(), noticeBoardDetail.getNoticeBoardId()
+					).defaultIfEmpty((long)0);
 				Mono<NoticeBoardDetailEntity> save;
 				if(noticeBoardDetail.getId() == null) {
 					save = maxOrderSortMono.flatMap(maxOrderSort -> 
 						noticeBoardDetailRepository.save(
-							noticeBoardDetail.withCreateBy(account.getId()).withUpdateBy(account.getId())
+							noticeBoardDetail
+								.withCreateBy(account.getId())
+								.withUpdateBy(account.getId())
+								.withOrderSort(maxOrderSort + 1)
 						)
 					);
 				}else {
-					save = maxOrderSortMono.flatMap(maxOrderSort -> noticeBoardDetailRepository.findById(noticeBoardDetail.getId()))
+					save = noticeBoardDetailRepository.findById(noticeBoardDetail.getId())
 					.flatMap(entity -> 
 						noticeBoardDetailRepository.save(
-							entity.withUpdateBy(account.getId()).withUpdateAt(LocalDateTime.now())
+							entity
+								.withUpdateBy(account.getId())
+								.withUpdateAt(LocalDateTime.now())
+								.withEmptyLineCount(noticeBoardDetail.getEmptyLineCount())
+								.withContent(noticeBoardDetail.getContent())
 						)
 					);
 				}

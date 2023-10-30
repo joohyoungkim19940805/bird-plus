@@ -18,9 +18,5 @@ public class ForgotPasswordException extends BirdPlusException {
 		// TODO Auto-generated method stub
 		return Result.valueOf("_" + code);
 	}
-	@Override
-	public int getResultCode() {
-		// TODO Auto-generated method stub
-		return super.code;
-	}
+
 }

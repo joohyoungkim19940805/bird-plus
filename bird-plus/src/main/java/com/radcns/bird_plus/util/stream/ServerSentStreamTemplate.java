@@ -47,7 +47,7 @@ public class ServerSentStreamTemplate<T> {
 		NOTICE_BOARD_DELETE_ACCEPT,
 		NOTICE_BOARD_DETAIL_ACCEPT
 		;
-		public final static Class<ChattingResponse> CHTTING_ACCEPT_CAST_CLASS = ChattingResponse.class;
+		public final static Class<ChattingResponse> CHATTING_ACCEPT_CAST_CLASS = ChattingResponse.class;
 		public final static Class<RoomInAccountEntity> ROOM_ACCEPT_CAST_CLASS = RoomInAccountEntity.class;
 		public final static Class<RoomJoinedAccountResponse> ROOM_IN_ACCOUNT_ACCEPT_CAST_CLASS = RoomJoinedAccountResponse.class;
 		public final static Class<NoticeBoardInheritsTable> NOTICE_BOARD_ACCEPT_CAST_CLASS = NoticeBoardInheritsTable.class;
