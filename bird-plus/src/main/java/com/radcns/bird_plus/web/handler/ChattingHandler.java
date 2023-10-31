@@ -120,7 +120,7 @@ public class ChattingHandler {
 								.fullName(account.getFullName())
 								.accountName(account.getAccountName())
 							.build(),
-							ServerSentStreamType.CHTTING_ACCEPT
+							ServerSentStreamType.CHATTING_ACCEPT
 						) {}
 					);
 					if (result.isFailure()) {

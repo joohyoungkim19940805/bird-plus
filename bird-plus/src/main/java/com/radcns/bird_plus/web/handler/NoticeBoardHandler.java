@@ -311,20 +311,18 @@ public class NoticeBoardHandler {
 			.filterWhen(noticeBoardDetail -> roomInAccountRepository.existsByAccountIdAndRoomId(account.getId(), noticeBoardDetail.getRoomId()))
 			.switchIfEmpty(Mono.error(new RoomException(Result._301)))
 			.flatMap(noticeBoardDetail -> {
-				Mono<Long> maxOrderSortMono = noticeBoardDetailRepository
+				/*Mono<Long> maxOrderSortMono = noticeBoardDetailRepository
 					.findMaxByWorkspaceIdAndRoomIdAndNoticeBoardId(
 						noticeBoardDetail.getWorkspaceId(), noticeBoardDetail.getRoomId(), noticeBoardDetail.getNoticeBoardId()
-					).defaultIfEmpty((long)0);
+					).defaultIfEmpty((long)0);*/
 				Mono<NoticeBoardDetailEntity> save;
 				if(noticeBoardDetail.getId() == null) {
-					save = maxOrderSortMono.flatMap(maxOrderSort -> 
-						noticeBoardDetailRepository.save(
-							noticeBoardDetail
-								.withCreateBy(account.getId())
-								.withUpdateBy(account.getId())
-								.withOrderSort(maxOrderSort + 1)
-						)
+					save = noticeBoardDetailRepository.save(
+						noticeBoardDetail
+							.withCreateBy(account.getId())
+							.withUpdateBy(account.getId())
 					);
+
 				}else {
 					save = noticeBoardDetailRepository.findById(noticeBoardDetail.getId())
 					.flatMap(entity -> 

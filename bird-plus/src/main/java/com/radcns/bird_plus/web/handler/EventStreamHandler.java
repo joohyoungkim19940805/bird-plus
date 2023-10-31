@@ -37,7 +37,7 @@ public class EventStreamHandler {
 				.flatMap(serverSentTemplate -> {
 					return accountService.convertRequestToAccount(request)
 						.flatMap(account -> {
-							if(serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.CHTTING_ACCEPT)) {
+							if(serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.CHATTING_ACCEPT)) {
 								return eventStreamService.chattingEmissionStream(serverSentTemplate, account);	
 							}else if(serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.ROOM_ACCEPT)) {
 								return eventStreamService.roomEmissionStream(serverSentTemplate, account);

@@ -40,7 +40,7 @@ public class ServerSentStreamTemplate<T> {
 	}
 	
 	public enum ServerSentStreamType{
-		CHTTING_ACCEPT, 
+		CHATTING_ACCEPT, 
 		ROOM_ACCEPT, 
 		ROOM_IN_ACCOUNT_ACCEPT, 
 		NOTICE_BOARD_ACCEPT, 

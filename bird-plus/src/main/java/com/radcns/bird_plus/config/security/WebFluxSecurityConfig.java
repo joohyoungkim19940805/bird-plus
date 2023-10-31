@@ -81,6 +81,9 @@ public class WebFluxSecurityConfig {
 	                	.referrerPolicy(referrerSpec -> referrerSpec
 	                			.policy(ReferrerPolicyServerHttpHeadersWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
 	                	.permissionsPolicy(permissionsSpec -> permissionsSpec
+	                			/**
+	                			 * @see https://stackoverflow.com/questions/72135699/geolocation-api-granted-on-firefox-but-denied-on-chrome
+	                			 */
 	                			.policy("camera=(), fullscreen=(self), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), sync-xhr=()")
 	                	)
 	                	.frameOptions(frameSprc -> frameSprc
