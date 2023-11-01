@@ -403,7 +403,7 @@ public class NoticeBoardHandler {
 		Long noticeBoardId = Long.valueOf(request.pathVariable("noticeBoardId"));
 
 		return ok()
-			.contentType(MediaType.APPLICATION_JSON)
+			.contentType(MediaType.TEXT_EVENT_STREAM)
 			.body(
 				accountService.convertRequestToAccount(request)
 				.filterWhen(account -> roomInAccountRepository.existsByAccountIdAndWorkspaceIdAndRoomId(account.getId(), workspaceId, roomId))
