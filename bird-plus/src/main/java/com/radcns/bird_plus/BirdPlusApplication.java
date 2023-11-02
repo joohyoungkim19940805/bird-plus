@@ -74,7 +74,7 @@ import spoon.reflect.reference.CtTypeReference;
 								"com.radcns.bird_plus.*"
 							  })
 @SpringBootApplication
-public class BirdPlusApplication //implements ApplicationRunner 
+public class BirdPlusApplication implements ApplicationRunner 
 {
     public static void main(String[] args) {
     	System.setProperty("jasypt.encryptor.password", System.getenv("MY_SERVER_PASSWORD"));
@@ -82,22 +82,22 @@ public class BirdPlusApplication //implements ApplicationRunner
 
 	}
     
-    //@Value("${spring.datasource.url}")
+    @Value("${spring.datasource.url}")
     String url;
     
-    //@Value("${spring.r2dbc.username}")
+    @Value("${spring.r2dbc.username}")
     String username;
     
-    //Value("${spring.r2dbc.password}")
+    @Value("${spring.r2dbc.password}")
     String password;
     
-    //@Value("${spring.r2dbc.properties.schema}")
+    @Value("${spring.r2dbc.properties.schema}")
     String schema;
     private static AutoDbMappingGenerater autoDbMappingGenerater = null;
 	//@Override
 	public void run(ApplicationArguments args) throws Exception {
 		String profiles = System.getenv("MY_SERVER_PROFILES");
-		if( (profiles != null &&! profiles.equals("local")) || autoDbMappingGenerater != null || true) {
+		if( (profiles != null &&! profiles.equals("local")) || autoDbMappingGenerater != null) {
 			return;
 		}
 		autoDbMappingGenerater =
@@ -137,22 +137,30 @@ public class BirdPlusApplication //implements ApplicationRunner
 		   		.repositoryPkClass(Long.class)
 	   			.repositoryExtendsClass(ReactiveCrudRepository.class)
 	   			.columnTypeMapper(Map.ofEntries(
-	   				ColumnEntry.pair("int2", Long.class),
-	   				ColumnEntry.pair("int4", Long.class),
-	   				ColumnEntry.pair("int6", Long.class),
-	   				ColumnEntry.pair("int8", Long.class),
-	   				ColumnEntry.pair("_int2", new UnderType<List<Long>>() {}),
-	   				ColumnEntry.pair("_int4", new UnderType<List<Long>>() {}),
-	   				ColumnEntry.pair("_int6", new UnderType<List<Long>>() {}),
-	   				ColumnEntry.pair("_int8", new UnderType<List<Long>>() {}),
-	   				ColumnEntry.pair("serial", new UnderType<List<Long>>() {}),
-	   				ColumnEntry.pair("bigserial", new UnderType<List<Long>>() {}),
-	   				ColumnEntry.pair("timestamp", LocalDateTime.class),
-	   				ColumnEntry.pair("varchar", String.class),
-	   				ColumnEntry.pair("_varchar", new UnderType<List<String>>() {}),
-	   				ColumnEntry.pair("bool", Boolean.class),
-	   				ColumnEntry.pair("jsonb", Json.class),
-	   				ColumnEntry.pair("json", Json.class)
+		   				ColumnEntry.pair("int", Long.class),
+		   				ColumnEntry.pair("int2", Long.class),
+		   				ColumnEntry.pair("int4", Long.class),
+		   				ColumnEntry.pair("int6", Long.class),
+		   				ColumnEntry.pair("int8", Long.class),
+		   				ColumnEntry.pair("bigint", Long.class),
+		   				ColumnEntry.pair("serial", Long.class),
+		   				ColumnEntry.pair("serial2", Long.class),
+		   				ColumnEntry.pair("serial4", Long.class),
+		   				ColumnEntry.pair("serial6", Long.class),
+		   				ColumnEntry.pair("serial8", Long.class),
+		   				ColumnEntry.pair("bigserial", Long.class),
+		   				ColumnEntry.pair("_int", new UnderType<List<Long>>() {}),
+		   				ColumnEntry.pair("_int2", new UnderType<List<Long>>() {}),
+		   				ColumnEntry.pair("_int4", new UnderType<List<Long>>() {}),
+		   				ColumnEntry.pair("_int6", new UnderType<List<Long>>() {}),
+		   				ColumnEntry.pair("_int8", new UnderType<List<Long>>() {}),
+		   				ColumnEntry.pair("_bigint", new UnderType<List<Long>>() {}),
+		   				ColumnEntry.pair("timestamp", LocalDateTime.class),
+		   				ColumnEntry.pair("varchar", String.class),
+		   				ColumnEntry.pair("_varchar", new UnderType<List<String>>() {}),
+		   				ColumnEntry.pair("bool", Boolean.class),
+		   				ColumnEntry.pair("jsonb", Json.class),
+		   				ColumnEntry.pair("json", Json.class)
 	   			))
 	   			.columnSpecificTypeMapper(Map.ofEntries(
 	   				ColumnEntry.pair("roles", new UnderType<List<Role>>() {}),
