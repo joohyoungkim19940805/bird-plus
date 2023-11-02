@@ -127,10 +127,10 @@ public class Test {
 	public static void main(String a[]) throws ClassNotFoundException {
 		
 		new AutoDbMappingGenerater(AutoDbMappingGeneraterOption.builder()
-		   		.url("jdbc:postgresql://kor-zombi-rds-3.cylfrmmsl7kc.ap-northeast-2.rds.amazonaws.com:5432/kor_zombi_database")
-		   		.username("kor_zombi_rds")
-		   		.password("rlawngud1")
-		   		.schema("bird_plus")
+		   		.url("")
+		   		.username("")
+		   		.password("")
+		   		.schema("")
 		   		.tableNameToEntityStartCharAt(2)
 		   		.defaultRootPath( List.of("src", "main", "java") )
 		   		.defaultPackageRootPath( List.of("com", "radcns", "bird_plus") )

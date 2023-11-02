@@ -77,7 +77,7 @@ import spoon.reflect.reference.CtTypeReference;
 public class BirdPlusApplication //implements ApplicationRunner 
 {
     public static void main(String[] args) {
-
+    	System.setProperty("jasypt.encryptor.password", System.getenv("MY_SERVER_PASSWORD"));
 		SpringApplication.run(BirdPlusApplication.class, args);
 
 	}

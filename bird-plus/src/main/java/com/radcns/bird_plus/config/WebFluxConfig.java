@@ -43,6 +43,7 @@ import com.radcns.bird_plus.config.security.JwtVerifyHandler;
 import com.radcns.bird_plus.util.CommonUtil;
 import com.radcns.bird_plus.util.CreateRandomCodeUtil;
 import com.radcns.bird_plus.util.KeyPairUtil;
+import com.ulisesbocchio.jasyptspringboot.annotation.EncryptablePropertySource;
 
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
