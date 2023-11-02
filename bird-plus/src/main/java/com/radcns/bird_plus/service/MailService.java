@@ -5,8 +5,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 
@@ -29,12 +27,12 @@ import com.radcns.bird_plus.util.properties.EmailProperties.AccountVerifyPropert
 import com.radcns.bird_plus.util.properties.EmailProperties.EmailPropertiesTemplate;
 import com.radcns.bird_plus.util.properties.EmailProperties.ForgotPasswordProperties;
 
-import groovyjarjarantlr4.v4.parse.GrammarTreeVisitor.locals_return;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 @Service

@@ -1,5 +1,6 @@
 package com.radcns.bird_plus.config;
 
+import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -8,6 +9,9 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 
+import org.jasypt.encryption.StringEncryptor;
+import org.jasypt.encryption.pbe.PooledPBEStringEncryptor;
+import org.jasypt.encryption.pbe.config.SimpleStringPBEConfig;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,14 +19,17 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.http.codec.json.Jackson2JsonDecoder;
 import org.springframework.http.codec.json.Jackson2JsonEncoder;
+import org.springframework.http.codec.multipart.DefaultPartHttpMessageReader;
+import org.springframework.http.codec.multipart.MultipartHttpMessageReader;
+import org.springframework.http.codec.multipart.PartEventHttpMessageReader;
 import org.springframework.web.reactive.config.CorsRegistry;
 import org.springframework.web.reactive.config.ViewResolverRegistry;
 import org.springframework.web.reactive.config.WebFluxConfigurer;
-
+import org.springframework.web.reactive.function.client.WebClient;
 import org.thymeleaf.spring6.ISpringWebFluxTemplateEngine;
 import org.thymeleaf.spring6.SpringWebFluxTemplateEngine;
 import org.thymeleaf.spring6.templateresolver.SpringResourceTemplateResolver;
@@ -39,8 +46,9 @@ import com.radcns.bird_plus.util.KeyPairUtil;
 
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import io.netty.resolver.DefaultAddressResolverGroup;
 import nz.net.ultraq.thymeleaf.layoutdialect.LayoutDialect;
-
+import reactor.netty.http.client.HttpClient;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
 
@@ -78,6 +86,14 @@ public class WebFluxConfig implements ApplicationContextAware, WebFluxConfigurer
 		);
 		// * @param byteCount the max number of bytes to buffer, or -1 for unlimited
 		configurer.defaultCodecs().maxInMemorySize(-1);
+		
+		var partReader = new PartEventHttpMessageReader();
+        // Configure the maximum amount of disk space allowed for file parts
+        partReader.setEnableLoggingRequestDetails(true);
+        partReader.setMaxInMemorySize(-1);
+        partReader.setMaxHeadersSize(-1);
+        partReader.setHeadersCharset(StandardCharsets.UTF_8);
+        configurer.defaultCodecs().multipartReader(partReader);
 	}
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -150,6 +166,27 @@ public class WebFluxConfig implements ApplicationContextAware, WebFluxConfigurer
 	@Bean
 	public JwtVerifyHandler jwtVerifyHandler(KeyPair keyPair, ObjectMapper objectMapper) {
 		return new JwtVerifyHandler(keyPair, objectMapper);
+	}
+	
+	@Bean
+	public WebClient.Builder webClientBuilder() {
+		HttpClient httpClient = HttpClient.create().resolver(DefaultAddressResolverGroup.INSTANCE);
+		
+		return WebClient.builder().clientConnector(new ReactorClientHttpConnector(httpClient));
+		
+	}
+	@Bean("jasyptEncryptorDES")
+	public StringEncryptor stringEncryptor() {
+		PooledPBEStringEncryptor encryptor = new PooledPBEStringEncryptor();
+		SimpleStringPBEConfig config = new SimpleStringPBEConfig();
+		config.setPassword(System.getenv("MY_SERVER_PASSWORD")); // 암호화키
+		config.setAlgorithm("PBEWithMD5AndDES"); // 알고리즘
+		config.setKeyObtentionIterations("1000"); // 반복할 해싱 회수
+		config.setPoolSize("1"); // 인스턴스 pool
+		config.setSaltGeneratorClassName("org.jasypt.salt.RandomSaltGenerator"); // salt 생성 클래스
+		config.setStringOutputType("base64"); //인코딩 방식
+		encryptor.setConfig(config);
+		return encryptor;
 	}
 }
 

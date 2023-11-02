@@ -357,44 +357,44 @@ public class NoticeBoardHandler {
 	
 	public Mono<ServerResponse> updateNoticeBoardDetailOrder(ServerRequest request){
 		
-		accountService.convertRequestToAccount(request)
-			.flatMap(account -> {
-				noticeBoardDetailRepository.saveAll(
-					request.bodyToFlux(NoticeBoardDetailEntity.class)
-					.filterWhen(noticeBoardDetailEntity -> 
-						Mono.just(noticeBoardDetailEntity.getId() != null)
-						.flatMap(bol -> {
-							if( ! bol) {
-								return Mono.error(new RoomException(Result._300));
-							}
-							return roomInAccountRepository.existsByAccountIdAndRoomId(account.getId(), noticeBoardDetailEntity.getRoomId());
-						})
-					)
-					.switchIfEmpty(Mono.error(new RoomException(Result._301)))
-					.flatMap(noticeBoardDetail-> {
-						return noticeBoardDetailRepository.findById(noticeBoardDetail.getId()).map(e-> e
-								.withOrderSort(noticeBoardDetail.getOrderSort())
-								.withUpdateAt(LocalDateTime.now())
-						);
+		return accountService.convertRequestToAccount(request)
+		.flatMap(account -> {
+			noticeBoardDetailRepository.saveAll(
+				request.bodyToFlux(NoticeBoardDetailEntity.class)
+				.filterWhen(noticeBoardDetailEntity -> 
+					Mono.just(noticeBoardDetailEntity.getId() != null)
+					.flatMap(bol -> {
+						if( ! bol) {
+							return Mono.error(new RoomException(Result._300));
+						}
+						return roomInAccountRepository.existsByAccountIdAndRoomId(account.getId(), noticeBoardDetailEntity.getRoomId());
 					})
 				)
-				.doOnNext(e->{
-					workspaceBorker.send(
-						new ServerSentStreamTemplate<NoticeBoardDetailEntity>(
-							e.getWorkspaceId(),
-							e.getRoomId(),
-							e.withCreateBy(null).withUpdateBy(null),
-							ServerSentStreamType.NOTICE_BOARD_DETAIL_ACCEPT
-						) {}
+				.switchIfEmpty(Mono.error(new RoomException(Result._301)))
+				.flatMap(noticeBoardDetail-> {
+					return noticeBoardDetailRepository.findById(noticeBoardDetail.getId()).map(e-> e
+							.withOrderSort(noticeBoardDetail.getOrderSort())
+							.withUpdateAt(LocalDateTime.now())
+							.withEmptyLineCount(noticeBoardDetail.getEmptyLineCount())
 					);
-				});
-				
-				return null;
-			});
-		
-		return ok()
-			.contentType(MediaType.APPLICATION_JSON)
-			.body(Result._0, ResponseWrapper.class);
+				})
+			)
+			.doOnNext(e->{
+				workspaceBorker.send(
+					new ServerSentStreamTemplate<NoticeBoardDetailEntity>(
+						e.getWorkspaceId(),
+						e.getRoomId(),
+						e.withCreateBy(null).withUpdateBy(null),
+						ServerSentStreamType.NOTICE_BOARD_DETAIL_ACCEPT
+					) {}
+				);
+			})
+			.subscribe();;
+			
+			return ok()
+					.contentType(MediaType.APPLICATION_JSON)
+					.body(response(Result._0), ResponseWrapper.class);
+		});
 	}
 	
 	public Mono<ServerResponse> searchNoticeBoardDetailList(ServerRequest request){
