@@ -22,6 +22,7 @@ import org.springframework.context.event.ContextStartedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.annotation.Transient;
@@ -106,23 +107,24 @@ public class BirdPlusApplication implements ApplicationRunner
 		   		.username(username)
 		   		.password(password)
 		   		.schema(schema)
-		   		.tableNameToEntityStartCharAt(2)
-		   		.defaultRootPath( List.of("src", "main", "java") )
-		   		.defaultPackageRootPath( List.of("com", "radcns", "bird_plus") )
-		   		.entityClassLastName("Entity")
-		   		.entityClassFieldColumnAnnotationType(Column.class)
-		   		/*.entityClassFieldDefaultAnnotationType(Map.of(
+		   		.tableNameToEntityStartCharAt(2) // ex) 0으로 설정시 == SY_FILE_ICON => SyFileIconEntity로 변경/ 2로 설정시 == SY_FILE_ICON => FileIconEntity로 변경됨
+		   		.defaultRootPath( List.of("src", "main", "java") ) // java 경로
+		   		.defaultPackageRootPath( List.of("com", "radcns", "bird_plus") ) // 프로젝트 루트 경로 (단 /entity 패키지 바로 밑에 도달하는 경로여야 함)
+		   		.entityClassLastName("Entity") // 끝에 붙을 식별 이름 ex) SY_FILE_ICON => FileIcon{끝에 붙을 식별 이름} => FileIconEntity
+		   		.entityClassFieldColumnAnnotationType(Column.class) // 필드에 붙을 어노테이션 ex) private UUID id => @Column private UUID id;
+		   		.entityClassFieldPkAnnotationType(Id.class) // PK인 필드에 붙을 어노테이션, 단 pk가 2개 이상이거나 없는 경우 스킵하도록 되어 있음 
+		   		/*.entityClassFieldDefaultAnnotationType(Map.of( //그 외 
 		   			Getter.class, Collections.emptyMap()
 		   		))*/
-		   		.entityClassSpecificFieldAnnotation(Map.of(
+		   		.entityClassSpecificFieldAnnotation(Map.of( // 그 외 특정 필드에만 붙어야 하는 어노테이션 설정
 					"create_at", Map.of(CreatedDate.class, Collections.emptyMap()),
 					"create_by", Map.of(CreatedBy.class, Collections.emptyMap()),
 					"update_at", Map.of(LastModifiedDate.class, Collections.emptyMap()),
 					"update_by", Map.of(LastModifiedBy.class, Collections.emptyMap()),
 					"password", Map.of(JsonProperty.class, Map.of("access", JsonProperty.Access.WRITE_ONLY))
 				))
-		   		.entityClassTableAnnotationType(Table.class)
-		   		.entityClassDefaultAnnotation(Map.of(
+		   		.entityClassTableAnnotationType(Table.class) // Entity 클래스에 붙어야 할 기본 어노테이션
+		   		.entityClassDefaultAnnotation(Map.of( // 그외 Entity 클래스에 별도로 더 붙이고 싶은 어노테이션 설정
 					Getter.class, Collections.emptyMap(),
 					Setter.class, Collections.emptyMap(),
 					Builder.class, Map.of("toBuilder", true),
@@ -133,7 +135,7 @@ public class BirdPlusApplication implements ApplicationRunner
 					//JsonIgnoreProperties.class, Map.of("ignoreUnknown", true),
 					//JsonInclude.class, Map.of("value", JsonInclude.Include.NON_NULL)
 				))
-		   		.repositoryClassLastName("Repository")
+		   		.repositoryClassLastName("Repository") //
 		   		.repositoryPkClass(Long.class)
 	   			.repositoryExtendsClass(ReactiveCrudRepository.class)
 	   			.columnTypeMapper(Map.ofEntries(

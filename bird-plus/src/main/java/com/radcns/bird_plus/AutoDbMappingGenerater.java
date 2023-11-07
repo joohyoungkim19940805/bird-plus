@@ -241,6 +241,11 @@ public class AutoDbMappingGenerater  {
 									createAnnotation(option.entityClassFieldColumnAnnotationType, Map.of("value", entry.getValue().name))
 								);
 							}
+							if(entry.getValue().isPk && option.entityClassFieldPkAnnotationType != null && ! field.hasAnnotation(option.entityClassFieldPkAnnotationType)) {
+								field.addAnnotation(
+									createAnnotation(option.entityClassFieldPkAnnotationType, Collections.emptyMap())
+								);
+							}
 							entity.addField(field);
 							return Flux.fromIterable(option.entityClassFieldDefaultAnnotationType.entrySet()).flatMap( e-> Mono.delay(Duration.ofMillis(100)).doOnNext(d -> {
 								if(field.hasAnnotation(e.getKey())) {
@@ -382,29 +387,42 @@ public class AutoDbMappingGenerater  {
 		return Mono.fromCallable(() -> {
 			try (Connection connection = DriverManager.getConnection(option.url, option.username, option.password)){
 	        	var databaseMetaData = connection.getMetaData();
-	        	var result = databaseMetaData.getColumns(connection.getCatalog(), option.schema, null, null);
-	        	while (result.next()) {
-        			String tableName = result.getString(3).toLowerCase();
-            		String columnName = result.getString(4).toLowerCase();
-					String dataTypeName = result.getString(6);
-	        		
-            		TableRecord tableRecord = tableMemory.get(tableName);
-            		ColumnRecord columnRecord = null;
-            		if(tableRecord == null) {
-            			String camelTableName = convertUnderbarToCamelName(tableName);
-            			String camelColumnName = convertUnderbarToCamelName(columnName, tableName);
-            			Map<String, ColumnRecord> cloumnMapper = new HashMap<>();
-            			columnRecord = new ColumnRecord(columnName, camelColumnName, dataTypeName);
-            			cloumnMapper.put(columnName, columnRecord);
-            			tableRecord = new TableRecord(tableName, camelTableName, createGroupPackage(tableName), cloumnMapper);
-            			tableMemory.put(tableName, tableRecord);
-            		}else if(! tableRecord.columnMapper.containsKey(columnName)) {
-            			String camelColumnName = convertUnderbarToCamelName(columnName, tableName);
-            			columnRecord = new ColumnRecord(columnName, camelColumnName, dataTypeName);
-            			tableRecord.columnMapper.put(columnName, columnRecord);
-            		}
+	        	try (var result = databaseMetaData.getColumns(connection.getCatalog(), option.schema, null, null)){	        		
+		        	while (result.next()) {
+	        			String tableName = result.getString(3).toLowerCase();
+	            		String columnName = result.getString(4).toLowerCase();
+						String dataTypeName = result.getString(6);
+	            		TableRecord tableRecord = tableMemory.get(tableName);
+	            		ColumnRecord columnRecord = null;
+	            
+	            		if(tableRecord == null) {
+	            			String camelTableName = convertUnderbarToCamelName(tableName);
+	            			String camelColumnName = convertUnderbarToCamelName(columnName, tableName);
+	            			Map<String, ColumnRecord> cloumnMapper = new HashMap<>();
 
-		    	}
+	            			List<String> pkNameList = new ArrayList<>();
+	            			String pkName;
+	            			try(var res = databaseMetaData.getPrimaryKeys(connection.getCatalog(), option.schema, tableName)){
+				        		while(res.next()){// && pkName == null) {
+				        			pkNameList.add(res.getString("COLUMN_NAME"));
+				        		}
+				        	}
+	            			if(pkNameList.size() > 1) {
+	            				pkName = null;
+	            			}else {
+	            				pkName = pkNameList.isEmpty() ? null : pkNameList.get(0);
+	            			}
+	            			columnRecord = new ColumnRecord(columnName, camelColumnName, dataTypeName, columnName.equals(pkName));
+	            			cloumnMapper.put(columnName, columnRecord);
+	            			tableRecord = new TableRecord(tableName, camelTableName, createGroupPackage(tableName), cloumnMapper, pkName);
+	            			tableMemory.put(tableName, tableRecord);
+	            		}else if(! tableRecord.columnMapper.containsKey(columnName)) {
+	            			String camelColumnName = convertUnderbarToCamelName(columnName, tableName);
+	            			columnRecord = new ColumnRecord(columnName, camelColumnName, dataTypeName, columnName.equals(tableRecord.pkName));
+	            			tableRecord.columnMapper.put(columnName, columnRecord);
+	            		}	
+			    	}
+	        	}
 	        	return tableMemory.values();
 	        } catch (SQLException e) {
 				// TODO Auto-generated catch block
@@ -524,12 +542,14 @@ public class AutoDbMappingGenerater  {
     		   String name,
     		   String camelName,
     		   String packagePath,
-    		   Map<String, ColumnRecord> columnMapper
+    		   Map<String, ColumnRecord> columnMapper,
+    		   String pkName
     		) {}
     private record ColumnRecord(
     			String name,
     			String camelName,
-    			String dataTypeName
+    			String dataTypeName,
+    			Boolean isPk
     		) {}
 	public static class AutoDbMappingGeneraterOption{
 		private final String schema;
@@ -551,6 +571,7 @@ public class AutoDbMappingGenerater  {
 		private final Map<Class<? extends Annotation>, Map<String, Object>> entityClassFieldDefaultAnnotationType;
 		private final Map<Class<? extends Annotation>, Map<String, Object>> entityClassDefaultAnnotation;
 		private final Class<? extends Annotation> entityClassTableAnnotationType;
+		private final Class<? extends Annotation> entityClassFieldPkAnnotationType;
 		private final Map<String, ?> columnTypeMapper;
 		private final Map<String, ?> columnSpecificTypeMapper;
 		private final BiConsumer<CtClass<?>, Factory> entityCeateAfterCallBack;
@@ -577,6 +598,7 @@ public class AutoDbMappingGenerater  {
 			entityClassFieldDefaultAnnotationType = builder.entityClassFieldDefaultAnnotationType;
 			entityClassDefaultAnnotation = builder.entityClassDefaultAnnotation;
 			entityClassTableAnnotationType = builder.entityClassTableAnnotationType;
+			entityClassFieldPkAnnotationType = builder.entityClassFieldPkAnnotationType;
 			columnTypeMapper = builder.columnTypeMapper;
 			columnSpecificTypeMapper = builder.columnSpecificTypeMapper;
 			entityCeateAfterCallBack = builder.entityCeateAfterCallBack;
@@ -608,12 +630,14 @@ public class AutoDbMappingGenerater  {
 			private Map<Class<? extends Annotation>, Map<String, Object>> entityClassFieldDefaultAnnotationType = Collections.emptyMap();
 			private Map<Class<? extends Annotation>, Map<String, Object>> entityClassDefaultAnnotation = Collections.emptyMap();
 			private Class<? extends Annotation> entityClassTableAnnotationType;
+			private Class<? extends Annotation> entityClassFieldPkAnnotationType;
 			private Map<String, ?> columnTypeMapper = Collections.emptyMap();
 			private Map<String, ?> columnSpecificTypeMapper = Collections.emptyMap();
 			private BiConsumer<CtClass<?>, Factory> entityCeateAfterCallBack = ((ctElement, factory)->{});
 			private BiConsumer<CtInterface<?>, Factory> repositoryCeateAfterCallBack = ((ctElement, factory)->{});
 			private Boolean isTest = false;
 			private Integer intervalOfMinutes;
+
 			public AutoDbMappingGeneraterOptionBuilder schema(String schema) {
 				this.schema = schema;
 				return this;
@@ -686,6 +710,10 @@ public class AutoDbMappingGenerater  {
 			}
 			public AutoDbMappingGeneraterOptionBuilder entityClassTableAnnotationType(Class<? extends Annotation> entityClassTableAnnotationType) {
 				this.entityClassTableAnnotationType = entityClassTableAnnotationType;
+				return this;
+			}
+			public AutoDbMappingGeneraterOptionBuilder entityClassFieldPkAnnotationType(Class<? extends Annotation> entityClassFieldPkAnnotationType) {
+				this.entityClassFieldPkAnnotationType = entityClassFieldPkAnnotationType;
 				return this;
 			}
 			public AutoDbMappingGeneraterOptionBuilder columnTypeMapper(Map<String, ?> columnTypeMapper) {

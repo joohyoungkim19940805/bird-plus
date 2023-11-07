@@ -1,5 +1,7 @@
 package com.radcns.bird_plus.util.properties;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -10,10 +12,11 @@ import org.springframework.context.annotation.Configuration;
  *
  * email configuration properties
  */
-@Data
 @ToString
 @Configuration
 @ConfigurationProperties(prefix = "mail")
+@Getter
+@Setter
 public class EmailProperties {
 
     private String from;

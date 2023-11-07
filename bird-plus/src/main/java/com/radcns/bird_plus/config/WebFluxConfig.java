@@ -1,13 +1,9 @@
 package com.radcns.bird_plus.config;
 
 import java.nio.charset.StandardCharsets;
-import java.security.KeyFactory;
 import java.security.KeyPair;
-import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.SecureRandom;
+import java.time.Duration;
 
 import org.jasypt.encryption.StringEncryptor;
 import org.jasypt.encryption.pbe.PooledPBEStringEncryptor;
@@ -23,8 +19,6 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.http.codec.json.Jackson2JsonDecoder;
 import org.springframework.http.codec.json.Jackson2JsonEncoder;
-import org.springframework.http.codec.multipart.DefaultPartHttpMessageReader;
-import org.springframework.http.codec.multipart.MultipartHttpMessageReader;
 import org.springframework.http.codec.multipart.PartEventHttpMessageReader;
 import org.springframework.web.reactive.config.CorsRegistry;
 import org.springframework.web.reactive.config.ViewResolverRegistry;
@@ -40,16 +34,18 @@ import org.thymeleaf.templateresolver.ITemplateResolver;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.radcns.bird_plus.config.security.JwtVerifyHandler;
 
-import com.radcns.bird_plus.util.CommonUtil;
-import com.radcns.bird_plus.util.CreateRandomCodeUtil;
 import com.radcns.bird_plus.util.KeyPairUtil;
-import com.ulisesbocchio.jasyptspringboot.annotation.EncryptablePropertySource;
+import com.radcns.bird_plus.util.properties.S3Properties;
 
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
 import io.netty.resolver.DefaultAddressResolverGroup;
 import nz.net.ultraq.thymeleaf.layoutdialect.LayoutDialect;
 import reactor.netty.http.client.HttpClient;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider;
+import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
 
@@ -75,7 +71,6 @@ public class WebFluxConfig implements ApplicationContextAware, WebFluxConfigurer
     
     @Value("${key.private.name}")
 	private String keyPrivateName;
-
     
 	@Override
 	public void configureHttpMessageCodecs(ServerCodecConfigurer configurer) {
@@ -189,6 +184,36 @@ public class WebFluxConfig implements ApplicationContextAware, WebFluxConfigurer
 		encryptor.setConfig(config);
 		return encryptor;
 	}
+	
+	@Bean
+	public S3AsyncClientBuilder s3Client(S3Properties s3Properties) {
+		EnvironmentVariableCredentialsProvider.create();
+		S3AsyncClientBuilder s3AsyncClientBuilder = S3AsyncClient.builder();
+		String profiles = System.getenv("MY_SERVER_PROFILES");
+		if(profiles != null && ! profiles.equals("local")) {
+			s3AsyncClientBuilder.credentialsProvider(InstanceProfileCredentialsProvider.create());
+		}else {
+			s3AsyncClientBuilder.credentialsProvider(() -> {
+				return AwsBasicCredentials.create(s3Properties.getAccessKey(), s3Properties.getSecurityKey());
+			});
+		}
+		s3AsyncClientBuilder.httpClientBuilder(NettyNioAsyncHttpClient.builder()
+	        .connectionTimeout(Duration.ofMillis(5_000))
+	        .maxConcurrency(100)
+	        .tlsNegotiationTimeout(Duration.ofMillis(3_500))
+		)
+		.region(s3Properties.getRegion())
+		.serviceConfiguration(t -> t
+			/**
+			 * 체크섬 유효성 검사를 비활성화하고 청크 인코딩을 활성화합니다. 
+			 * 데이터가 스트리밍 방식으로 서비스에 도착하자마자 버킷에 데이터 업로드를 시작하려고 하기 때문에 이렇게 하는 것입니다.
+			 */
+			.checksumValidationEnabled(false)
+			.chunkedEncodingEnabled(true)
+		);
+		return s3AsyncClientBuilder;
+	}
+	
 }
 
 

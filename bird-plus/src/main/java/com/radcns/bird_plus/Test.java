@@ -18,6 +18,7 @@ import java.util.stream.Stream;
 
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.annotation.Transient;
@@ -136,6 +137,7 @@ public class Test {
 		   		.defaultPackageRootPath( List.of("com", "radcns", "bird_plus") )
 		   		.entityClassLastName("Entity")
 		   		.entityClassFieldColumnAnnotationType(Column.class)
+		   		.entityClassFieldPkAnnotationType(Id.class)
 		   		/*.entityClassFieldDefaultAnnotationType(Map.of(
 		   			Getter.class, Collections.emptyMap()
 		   		))*/

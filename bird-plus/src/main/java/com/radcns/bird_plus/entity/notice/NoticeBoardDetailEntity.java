@@ -101,13 +101,12 @@ public class NoticeBoardDetailEntity {
 
     @Column("empty_line_count")
     private Long emptyLineCount;
-    
 
     public NoticeBoardDetailEntity withContent(String content) {
-    	this.content = Json.of(content);
-    	return this;
+        this.content = Json.of(content);
+        return this;
     }
-    
+
     public void setContent(String content) {
         this.content = Json.of(content);
     }
