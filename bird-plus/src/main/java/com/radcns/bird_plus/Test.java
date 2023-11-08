@@ -161,7 +161,6 @@ public class Test {
 					//JsonInclude.class, Map.of("value", JsonInclude.Include.NON_NULL)
 				))
 		   		.repositoryClassLastName("Repository")
-		   		.repositoryPkClass(Long.class)
 	   			.repositoryExtendsClass(ReactiveCrudRepository.class)
 	   			.columnTypeMapper(Map.ofEntries(
 	   				ColumnEntry.pair("int", Long.class),

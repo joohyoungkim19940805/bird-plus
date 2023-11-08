@@ -47,7 +47,7 @@
 			<artifactId>spring-boot-devtools</artifactId>
 			<scope>runtime</scope>
 			<optional>true</optional>
-			<version>3.1.4</version>
+			<version>3.1.5</version>
 		</dependency>
 
 		<dependency>
@@ -59,7 +59,7 @@
     	 			<artifactId>reactor-netty-core</artifactId>
 				</exclusion>
 			</exclusions>
-		    <version>3.1.4</version>
+		    <version>3.1.5</version>
 		</dependency>
 		<!-- 
 			이 라이브러리는 graphql-java와 spring webflux starter를 포함합니다.
@@ -67,24 +67,24 @@
 		<dependency>
 		    <groupId>org.springframework.boot</groupId>
 		    <artifactId>spring-boot-starter-webflux</artifactId>
-		    <version>3.1.4</version>
+		    <version>3.1.5</version>
 		    <scope>compile</scope>
 		</dependency>
 		
 		<dependency>
 		    <groupId>org.springframework.boot</groupId>
 		    <artifactId>spring-boot-starter-mail</artifactId>
-		    <version>3.1.4</version>
+		    <version>3.1.5</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.springframework.boot</groupId>
 		    <artifactId>spring-boot-starter-validation</artifactId>
-		    <version>3.1.4</version>
+		    <version>3.1.5</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.springframework.boot</groupId>
 		    <artifactId>spring-boot-starter-security</artifactId>
-		    <version>3.1.4</version>
+		    <version>3.1.5</version>
 		</dependency>
 		
 		<dependency>

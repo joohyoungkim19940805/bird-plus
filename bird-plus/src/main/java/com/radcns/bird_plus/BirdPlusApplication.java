@@ -7,19 +7,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-
-import javax.sql.DataSource;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.event.ContextStartedEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
@@ -30,8 +23,6 @@ import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.radcns.bird_plus.AutoDbMappingGenerater.AutoDbMappingGeneraterOption;
 import com.radcns.bird_plus.AutoDbMappingGenerater.ColumnEntry;
@@ -62,15 +53,6 @@ import spoon.reflect.reference.CtTypeReference;
  * 이 클래스의 패키지가 최상위 루트로 지정된다.
  */
 
-//@ServletComponentScan
-
-/*
-[추후 리펙토링 필요한 내용들]
- 2023 09 11 [FO] - 챗팅 해드처럼 데이터를 가져오는 방식을(SSE) 각 room list에 적용 -> 리프레쉬 비용을 절감할 수 있도록 함
-			[FO] - room 생성 후 room에 초대 된 사용자에게 push 할 수 있어야함, 현재는 X(방 만든 사용자가 채팅쳐야 할 것임 (채팅 sse로 동작할 것임)) -> SSE 방식으로 변경 필요
-			
-*/
-//매핑할 패키지 경로를 지정한다. 해당 클래스 외의 패키지 경로를 매핑하고 싶을 때(Autowired bean이 안잡힐 때)
 @ComponentScan(basePackages = {
 								"com.radcns.bird_plus.*"
 							  })
@@ -95,7 +77,7 @@ public class BirdPlusApplication implements ApplicationRunner
     @Value("${spring.r2dbc.properties.schema}")
     String schema;
     private static AutoDbMappingGenerater autoDbMappingGenerater = null;
-	//@Override
+	@Override
 	public void run(ApplicationArguments args) throws Exception {
 		String profiles = System.getenv("MY_SERVER_PROFILES");
 		if( (profiles != null &&! profiles.equals("local")) || autoDbMappingGenerater != null) {
@@ -107,16 +89,17 @@ public class BirdPlusApplication implements ApplicationRunner
 		   		.username(username)
 		   		.password(password)
 		   		.schema(schema)
-		   		.tableNameToEntityStartCharAt(2) // ex) 0으로 설정시 == SY_FILE_ICON => SyFileIconEntity로 변경/ 2로 설정시 == SY_FILE_ICON => FileIconEntity로 변경됨
+		   		.isTest(false) // 테스트 여부, true인 경우 가장 먼저 조회되는 테이블 한 건만을 대상으로 엔티티와 레포지토리 클래스를 생성
+		   		.tableNameToEntityStartCharAt(2) // ex) 0으로 설정시 == SY_FILE_ICON => SyFileIconEntity로 엔티티 생성/ 2 또는 3으로 설정시 == SY_FILE_ICON => FileIconEntity로 생성됨
 		   		.defaultRootPath( List.of("src", "main", "java") ) // java 경로
-		   		.defaultPackageRootPath( List.of("com", "radcns", "bird_plus") ) // 프로젝트 루트 경로 (단 /entity 패키지 바로 밑에 도달하는 경로여야 함)
+		   		.defaultPackageRootPath( List.of("com", "radcns", "bird_plus") ) // 프로젝트 루트 경로, 이 경우 entity 패키지는 com.radcns.bird_plus.entity로 생성 됨
 		   		.entityClassLastName("Entity") // 끝에 붙을 식별 이름 ex) SY_FILE_ICON => FileIcon{끝에 붙을 식별 이름} => FileIconEntity
-		   		.entityClassFieldColumnAnnotationType(Column.class) // 필드에 붙을 어노테이션 ex) private UUID id => @Column private UUID id;
+		   		.entityClassFieldColumnAnnotationType(Column.class) // 필드에 붙을 컬럼 어노테이션 ex) private UUID id => @Column private UUID id;
 		   		.entityClassFieldPkAnnotationType(Id.class) // PK인 필드에 붙을 어노테이션, 단 pk가 2개 이상이거나 없는 경우 스킵하도록 되어 있음 
-		   		/*.entityClassFieldDefaultAnnotationType(Map.of( //그 외 
+		   		/*.entityClassFieldDefaultAnnotationType(Map.of( //그 외 모든 필드에 필수로 들어갈 어노테이션
 		   			Getter.class, Collections.emptyMap()
 		   		))*/
-		   		.entityClassSpecificFieldAnnotation(Map.of( // 그 외 특정 필드에만 붙어야 하는 어노테이션 설정
+		   		.entityClassSpecificFieldAnnotation(Map.of( // 그 외 특정 필드에만 붙어야 하는 어노테이션 설정 (key = 컬럼명, value = 어노테이션 클래스 및 어노테이션에 들어갈 값)
 					"create_at", Map.of(CreatedDate.class, Collections.emptyMap()),
 					"create_by", Map.of(CreatedBy.class, Collections.emptyMap()),
 					"update_at", Map.of(LastModifiedDate.class, Collections.emptyMap()),
@@ -124,7 +107,7 @@ public class BirdPlusApplication implements ApplicationRunner
 					"password", Map.of(JsonProperty.class, Map.of("access", JsonProperty.Access.WRITE_ONLY))
 				))
 		   		.entityClassTableAnnotationType(Table.class) // Entity 클래스에 붙어야 할 기본 어노테이션
-		   		.entityClassDefaultAnnotation(Map.of( // 그외 Entity 클래스에 별도로 더 붙이고 싶은 어노테이션 설정
+		   		.entityClassDefaultAnnotation(Map.of( // 그외 Entity 클래스에 별도로 더 붙이고 싶은 기본 어노테이션 설정
 					Getter.class, Collections.emptyMap(),
 					Setter.class, Collections.emptyMap(),
 					Builder.class, Map.of("toBuilder", true),
@@ -135,10 +118,14 @@ public class BirdPlusApplication implements ApplicationRunner
 					//JsonIgnoreProperties.class, Map.of("ignoreUnknown", true),
 					//JsonInclude.class, Map.of("value", JsonInclude.Include.NON_NULL)
 				))
-		   		.repositoryClassLastName("Repository") //
-		   		.repositoryPkClass(Long.class)
-	   			.repositoryExtendsClass(ReactiveCrudRepository.class)
-	   			.columnTypeMapper(Map.ofEntries(
+		   		// repository 클래스 생성시 pk가 없는 경우 CrudRepository에 제너릭이 없는 형태로 클래스 파일이 생성 되며 레포지토리 관련 옵션은 이미 파일이 존재하는 경우 대부분 적용되지 않습니다.
+		   		.repositoryClassLastName("Repository") // 끝에 붙을 식별 이름 ex) SY_FILE_ICON => FileIcon{끝에 붙을 식별 이름} => FileIconRepository
+	   			.repositoryExtendsClass(ReactiveCrudRepository.class) // 레포지토리가 상속받을 클래스
+	   			/*.repositorySpecificPkClass(Map.of( // 특정 레포지토리의 제너릭 pk 클래스를 설정 (key = 테이블 명, value = pk에 설정할 자바 클래스) 파일이 이미 존재하는 경우 이 옵션은 동작 X
+	   				"sy_file_icon", UUID.class,
+	   				"sy_file", new UnderType<List<String>>() {}
+	   			))*/
+	   			.columnTypeMapper(Map.ofEntries( //db의 컬럼 데이터 타입과 매칭 될 자바 클래스 정의, 현재 설정은 postgresql 기준
 		   				ColumnEntry.pair("int", Long.class),
 		   				ColumnEntry.pair("int2", Long.class),
 		   				ColumnEntry.pair("int4", Long.class),
@@ -164,12 +151,13 @@ public class BirdPlusApplication implements ApplicationRunner
 		   				ColumnEntry.pair("jsonb", Json.class),
 		   				ColumnEntry.pair("json", Json.class)
 	   			))
-	   			.columnSpecificTypeMapper(Map.ofEntries(
+	   			.columnSpecificTypeMapper(Map.ofEntries( // 그 외 db 컬럼의 데이터 타입과 무관하게 특정 컬럼에만 별도로 매칭 될 자바 클래스 정의 (해당 설정이 columnTypeMapper 설정 보다 우선순위)
 	   				ColumnEntry.pair("roles", new UnderType<List<Role>>() {}),
 	   				ColumnEntry.pair("room_type", RoomType.class)
 	   			))
-	   			.entityCeateAfterCallBack((ctClass, factory) -> {
-	   				// create another default entity of field or method...
+	   			.repositoryCeateAfterCallBack((ctInterface, factory) -> {}) // 인터페이스 클래스 생성 후 별도로 콜백을 통해 추가하고 싶은 메소드가 있는 경우 콜백 함수 설정
+	   			.entityCeateAfterCallBack((ctClass, factory) -> { // 엔티티 클래스를 생성 후 별도로 콜백을 통해 추가하고 싶은 메소드가 있는 경우 콜백 함수 설정
+	   				// create another default entity of field and method...
 	   				
 	   				Function<String, CtField<Long>> milsFun = ((name) -> {
 	   					CtTypeReference<Long> createMilsRef = factory.Code().createCtTypeReference(Long.class);
@@ -229,8 +217,6 @@ public class BirdPlusApplication implements ApplicationRunner
 	   				});
 	   				
 	   			})
-	   			.isTest(false)
-	   			//.intervalOfMinutes(5)
 	   			.build()
 		   	);
     }

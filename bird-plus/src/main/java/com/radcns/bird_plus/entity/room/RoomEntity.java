@@ -37,12 +37,15 @@ public class RoomEntity implements TokenTemplate {
     @Column("id")
     private Long id;
 
-    @Column("room_code")
-    private List<String> roomCode;
-
     @Column("room_name")
     private String roomName;
+    
+    @Column("room_type")
+    private RoomType roomType;
 
+    @Column("room_code")
+    private List<String> roomCode;
+    
     @Column("is_enabled")
     private Boolean isEnabled;
 
@@ -129,6 +132,4 @@ public class RoomEntity implements TokenTemplate {
         return List.of(Role.ROLE_BOT);
     }
 
-    @Column("room_type")
-    private RoomType roomType;
 }

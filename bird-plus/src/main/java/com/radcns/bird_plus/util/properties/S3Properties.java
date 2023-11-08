@@ -19,7 +19,7 @@ public class S3Properties {
 	
 	private String securityKey;
 	
-	private Region region;
+	private String region;
 	
 	private String bucket;
 	

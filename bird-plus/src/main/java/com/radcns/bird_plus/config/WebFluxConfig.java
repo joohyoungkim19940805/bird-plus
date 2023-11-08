@@ -44,8 +44,12 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
+import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
 
@@ -186,23 +190,23 @@ public class WebFluxConfig implements ApplicationContextAware, WebFluxConfigurer
 	}
 	
 	@Bean
-	public S3AsyncClientBuilder s3Client(S3Properties s3Properties) {
+	public S3AsyncClientBuilder s3AsyncClientBuilder(S3Properties s3Properties) {
 		EnvironmentVariableCredentialsProvider.create();
-		S3AsyncClientBuilder s3AsyncClientBuilder = S3AsyncClient.builder();
+		var builder = S3AsyncClient.builder();
 		String profiles = System.getenv("MY_SERVER_PROFILES");
 		if(profiles != null && ! profiles.equals("local")) {
-			s3AsyncClientBuilder.credentialsProvider(InstanceProfileCredentialsProvider.create());
+			builder.credentialsProvider(InstanceProfileCredentialsProvider.create());
 		}else {
-			s3AsyncClientBuilder.credentialsProvider(() -> {
+			builder.credentialsProvider(() -> {
 				return AwsBasicCredentials.create(s3Properties.getAccessKey(), s3Properties.getSecurityKey());
 			});
 		}
-		s3AsyncClientBuilder.httpClientBuilder(NettyNioAsyncHttpClient.builder()
+		builder.httpClientBuilder(NettyNioAsyncHttpClient.builder()
 	        .connectionTimeout(Duration.ofMillis(5_000))
 	        .maxConcurrency(100)
 	        .tlsNegotiationTimeout(Duration.ofMillis(3_500))
 		)
-		.region(s3Properties.getRegion())
+		.region(Region.of(s3Properties.getRegion()))
 		.serviceConfiguration(t -> t
 			/**
 			 * 체크섬 유효성 검사를 비활성화하고 청크 인코딩을 활성화합니다. 
@@ -211,9 +215,31 @@ public class WebFluxConfig implements ApplicationContextAware, WebFluxConfigurer
 			.checksumValidationEnabled(false)
 			.chunkedEncodingEnabled(true)
 		);
-		return s3AsyncClientBuilder;
+		
+		return builder;
 	}
 	
+	@Bean
+	public S3Presigner.Builder s3PresignerBuilder(S3Properties s3Properties) {
+		String profiles = System.getenv("MY_SERVER_PROFILES");
+		var builder = S3Presigner.builder();
+		if(profiles != null && ! profiles.equals("local")) {
+			builder.credentialsProvider(InstanceProfileCredentialsProvider.create());
+		}else {
+			builder.credentialsProvider(() -> {
+				return AwsBasicCredentials.create(s3Properties.getAccessKey(), s3Properties.getSecurityKey());
+			});
+		}
+		builder.region(Region.of(s3Properties.getRegion()));
+		/*.serviceConfiguration(
+			S3Configuration
+			.builder()
+			.checksumValidationEnabled(true)
+			.chunkedEncodingEnabled(false)
+			.build()
+		);*/
+		return builder;
+	}
 }
 
 

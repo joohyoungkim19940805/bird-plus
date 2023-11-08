@@ -53,8 +53,8 @@ public class AutoDbMappingGenerater  {
 	protected static volatile ConcurrentMap<String, Path[]> packageHistory = new ConcurrentHashMap<>();
 	protected final Launcher spoon = new Launcher();
 	protected final JavaOutputProcessor javaOutputProcessor = new JavaOutputProcessor();
-	protected final Mono<Map<String, Entry<CtClass<?>, Map<String, CtFieldReference<?>>>>> entityFilter; 
-	protected final Mono<Map<String, Entry<CtInterface<?>, Map<String, CtFieldReference<?>>>>> repositoryFilter; 
+	//protected final Mono<Map<String, Entry<CtClass<?>, Map<String, CtFieldReference<?>>>>> entityFilter; 
+	//protected final Mono<Map<String, Entry<CtInterface<?>, Map<String, CtFieldReference<?>>>>> repositoryFilter; 
 	protected final AutoDbMappingGeneraterOption option;
     
 	protected final String defaultRootDirectories = System.getProperty("user.dir") + "\\\\";
@@ -96,37 +96,6 @@ public class AutoDbMappingGenerater  {
 		
 		createDefaultDirectories();
 
-		this.entityFilter = Mono.fromCallable(()->{
-			return spoon.getFactory().Package().getRootPackage().getElements(new AbstractFilter<CtClass<?>>() {
-				@Override
-				public boolean matches(CtClass<?> element) {
-					return element.getSimpleName().endsWith("Entity");
-				};
-			});
-		})
-		.subscribeOn(Schedulers.boundedElastic())
-		.flatMapMany(Flux::fromIterable)
-		.collectMap(
-			k -> k.getSimpleName(), 
-			v -> Map.entry(v, v.getAllFields().stream().collect(Collectors.toMap(fieldsK -> fieldsK.getSimpleName(), fieldsV -> fieldsV)))
-		)
-		;
-
-		this.repositoryFilter = Mono.fromCallable(()->{
-			return spoon.getFactory().Package().getRootPackage().getElements(new AbstractFilter<CtInterface<?>>() {
-				@Override
-				public boolean matches(CtInterface<?> element) {
-					return element.getSimpleName().endsWith("Repository");
-				};
-			});
-		})
-		.subscribeOn(Schedulers.boundedElastic())
-		.flatMapMany(Flux::fromIterable)
-		.collectMap(
-				k -> k.getSimpleName(), 
-				v -> Map.entry(v, v.getAllFields().stream().collect(Collectors.toMap(fieldsK -> fieldsK.getSimpleName(), fieldsV -> fieldsV)))
-		)
-		;
 		System.out.println();
 		System.out.println("loading end!");
 		interval.dispose();
@@ -138,8 +107,8 @@ public class AutoDbMappingGenerater  {
 	    @SuppressWarnings("resource")
 		Scanner input = new Scanner(System.in);
 	    Integer command = null;
-	    Integer intervalOfMinutes = option.intervalOfMinutes;
-	    while (input.hasNext() && intervalOfMinutes == null) {
+	    Integer intervalOfMinutes = null;
+	    while (input.hasNext()) {
 	    	String inputValue = input.next();
 	    	command = parserOnlyNumber(inputValue);
 	    	System.out.println("                            - run command : " + command);
@@ -168,7 +137,7 @@ public class AutoDbMappingGenerater  {
 	    if(command == 0) {
 	    	return;
 	    }
-		var observe = Flux.interval(Duration.ofMinutes(intervalOfMinutes))
+		var observe = Flux.interval(Duration.ofMinutes(intervalOfMinutes == null ? 1 : intervalOfMinutes))
 		.onBackpressureDrop()
 		.subscribeOn(Schedulers.single())
 		.doOnNext(counter -> {
@@ -207,6 +176,41 @@ public class AutoDbMappingGenerater  {
 			i.set(0);
 			//System.out.println("count ::: " + counter);
 		}
+		
+		Mono<Map<String, Entry<CtClass<?>, Map<String, CtFieldReference<?>>>>> entityFilter = Mono.fromCallable(()->{
+			var entityLastName = option.entityClassLastName;
+			return spoon.getFactory().Package().getRootPackage().getElements(new AbstractFilter<CtClass<?>>() {
+				@Override
+				public boolean matches(CtClass<?> element) {
+					return element.getSimpleName().endsWith(entityLastName);
+				};
+			});
+		})
+		.subscribeOn(Schedulers.boundedElastic())
+		.flatMapMany(Flux::fromIterable)
+		.collectMap(
+			k -> k.getSimpleName(), 
+			v -> Map.entry(v, v.getAllFields().stream().collect(Collectors.toMap(fieldsK -> fieldsK.getSimpleName(), fieldsV -> fieldsV)))
+		)
+		;
+
+		Mono<Map<String, Entry<CtInterface<?>, Map<String, CtFieldReference<?>>>>> repositoryFilter = Mono.fromCallable(()->{
+			var repositoryLastName = option.repositoryClassLastName;
+			return spoon.getFactory().Package().getRootPackage().getElements(new AbstractFilter<CtInterface<?>>() {
+				@Override
+				public boolean matches(CtInterface<?> element) {
+					return element.getSimpleName().endsWith(repositoryLastName);
+				};
+			});
+		})
+		.subscribeOn(Schedulers.boundedElastic())
+		.flatMapMany(Flux::fromIterable)
+		.collectMap(
+				k -> k.getSimpleName(), 
+				v -> Map.entry(v, v.getAllFields().stream().collect(Collectors.toMap(fieldsK -> fieldsK.getSimpleName(), fieldsV -> fieldsV)))
+		)
+		;
+		
 		return entityFilter.doOnNext(entityFilterMap->{
 			repositoryFilter.doOnNext(repositoryFilterMap->{
 				scanningDB().flatMap(tableRecord->{
@@ -271,13 +275,44 @@ public class AutoDbMappingGenerater  {
 							Entry<CtInterface<?>, Map<String, CtFieldReference<?>>> memoryRepositry = repositoryFilterMap.get(Character.toUpperCase(tableRecord.camelName.charAt(0)) + tableRecord.camelName.substring(1) + option.repositoryClassLastName);
 							CtInterface<?> interfaze = createInterface(tableRecord, memoryRepositry);
 							CtTypeReference<?> parentType = spoon.getFactory().Code().createCtTypeReference(option.repositoryExtendsClass);
-							CtTypeReference<?> parentGernericOfPk;
+							CtTypeReference<?> parentGernericOfPk = null;
+
 							if(option.repositorySpecificPkClass.containsKey(tableRecord.name)) {
-								parentGernericOfPk = spoon.getFactory().Code().createCtTypeReference(option.repositorySpecificPkClass.get(tableRecord.name));
-							}else {
-								parentGernericOfPk = spoon.getFactory().Code().createCtTypeReference(option.repositoryPkClass);
+								Object objType = option.repositorySpecificPkClass.get(tableRecord.name);
+								if(objType == null) {
+									parentGernericOfPk = null;
+								}else if(objType.getClass().getSuperclass().equals(UnderType.class)) {
+									UnderType<?> underType = UnderType.class.cast(objType);
+									CtTypeReference<?> type = spoon.getFactory().Code().createCtTypeReference(underType.getTopClass());
+									var list = underType.getClassPath();
+									CtTypeReference<?> prevType = type;
+									for(int j = 1, len = list.size() ; j < len ; j += 1) {
+										UnderTypeRecord underTypeRecord = list.get(j);
+										CtTypeReference<?> genericType = spoon.getFactory().Code().createCtTypeReference(underTypeRecord.clazz());
+										genericType.setActualTypeArguments(
+											underTypeRecord.childList().stream()
+											.map(e-> spoon.getFactory().Code().createCtTypeReference(e.clazz()))
+											.toList()
+										);
+										prevType.setActualTypeArguments(List.of(genericType));
+										prevType = genericType;
+									}
+									parentGernericOfPk = type;
+								}else {
+									parentGernericOfPk = spoon.getFactory().Code().createCtTypeReference((Class<?>)objType);
+								}
+								
+							}else if(tableRecord.columnMapper.containsKey(tableRecord.pkName)){
+								var pkColumn = tableRecord.columnMapper.get(tableRecord.pkName);
+								var pkClass = option.columnTypeMapper.get(pkColumn.dataTypeName);
+								if(pkClass != null) {
+									parentGernericOfPk = spoon.getFactory().Code().createCtTypeReference((Class<?>)pkClass);
+								}
 							}
-							parentType.setActualTypeArguments(List.of(entity.getReference(), parentGernericOfPk));
+
+							if(parentGernericOfPk != null) {
+								parentType.setActualTypeArguments(List.of(entity.getReference(), parentGernericOfPk));
+							}
 							interfaze.addSuperInterface(parentType);
 							
 							option.entityCeateAfterCallBack.accept(entity, spoon.getFactory());
@@ -375,11 +410,9 @@ public class AutoDbMappingGenerater  {
 		AtomicInteger i = new AtomicInteger();
 		return Stream.of(name.substring(isTable ? option.tableNameToEntityStartCharAt : 0).split("_")).filter(e-> ! e.isBlank()).map(e->{
 			String s = e.trim().toLowerCase();
-			
-			if(i.getAndIncrement() == 0) {
-				return e;
+			if(i.getAndIncrement() == 0 &&  ! isTable) {
+				return s;
 			}
-			
 			return Character.toUpperCase(s.charAt(0)) + s.substring(1);
 		}).collect(Collectors.joining());
 	}
@@ -389,8 +422,8 @@ public class AutoDbMappingGenerater  {
 	        	var databaseMetaData = connection.getMetaData();
 	        	try (var result = databaseMetaData.getColumns(connection.getCatalog(), option.schema, null, null)){	        		
 		        	while (result.next()) {
-	        			String tableName = result.getString(3).toLowerCase();
-	            		String columnName = result.getString(4).toLowerCase();
+	        			String tableName = result.getString(3);//.toLowerCase();
+	            		String columnName = result.getString(4);//.toLowerCase();
 						String dataTypeName = result.getString(6);
 	            		TableRecord tableRecord = tableMemory.get(tableName);
 	            		ColumnRecord columnRecord = null;
@@ -564,8 +597,7 @@ public class AutoDbMappingGenerater  {
 		@SuppressWarnings("unused")
 		private final Class<?> entityExtendsClass;
 		private final Class<?> repositoryExtendsClass;
-		private final Class<?> repositoryPkClass;
-		private final Map<String, Class<?>> repositorySpecificPkClass;
+		private final Map<String, ?> repositorySpecificPkClass;
 		private final Map<String, Map<Class<? extends Annotation>, Map<String, Object>>> entityClassSpecificFieldAnnotation;
 		private final Class<? extends Annotation> entityClassFieldColumnAnnotationType;
 		private final Map<Class<? extends Annotation>, Map<String, Object>> entityClassFieldDefaultAnnotationType;
@@ -577,7 +609,6 @@ public class AutoDbMappingGenerater  {
 		private final BiConsumer<CtClass<?>, Factory> entityCeateAfterCallBack;
 		private final BiConsumer<CtInterface<?>, Factory> repositoryCeateAfterCallBack;
 		private final Boolean isTest;
-		private final Integer intervalOfMinutes;
 
 		protected AutoDbMappingGeneraterOption(AutoDbMappingGeneraterOptionBuilder builder){
 			schema = builder.schema;
@@ -591,7 +622,6 @@ public class AutoDbMappingGenerater  {
 			repositoryClassLastName = builder.repositoryClassLastName;
 			entityExtendsClass = builder.entityExtendsClass;
 			repositoryExtendsClass = builder.repositoryExtendsClass;
-			repositoryPkClass = builder.repositoryPkClass;
 			repositorySpecificPkClass = builder.repositorySpecificPkClass;
 			entityClassSpecificFieldAnnotation = builder.entityClassSpecificFieldAnnotation;
 			entityClassFieldColumnAnnotationType = builder.entityClassFieldColumnAnnotationType;
@@ -604,7 +634,6 @@ public class AutoDbMappingGenerater  {
 			entityCeateAfterCallBack = builder.entityCeateAfterCallBack;
 			repositoryCeateAfterCallBack = builder.repositoryCeateAfterCallBack;
 			isTest = builder.isTest;
-			intervalOfMinutes= builder.intervalOfMinutes;
 		}
 		
 		public static AutoDbMappingGeneraterOptionBuilder builder(){
@@ -623,8 +652,7 @@ public class AutoDbMappingGenerater  {
 			private String repositoryClassLastName = "Repository";
 			private Class<?> entityExtendsClass;
 			private Class<?> repositoryExtendsClass;
-			private Class<?> repositoryPkClass;
-			private Map<String, Class<?>> repositorySpecificPkClass = Collections.emptyMap();
+			private Map<String, ?> repositorySpecificPkClass = Collections.emptyMap();
 			private Map<String, Map<Class<? extends Annotation>, Map<String, Object>>> entityClassSpecificFieldAnnotation = Collections.emptyMap();
 			private Class<? extends Annotation> entityClassFieldColumnAnnotationType;
 			private Map<Class<? extends Annotation>, Map<String, Object>> entityClassFieldDefaultAnnotationType = Collections.emptyMap();
@@ -636,7 +664,6 @@ public class AutoDbMappingGenerater  {
 			private BiConsumer<CtClass<?>, Factory> entityCeateAfterCallBack = ((ctElement, factory)->{});
 			private BiConsumer<CtInterface<?>, Factory> repositoryCeateAfterCallBack = ((ctElement, factory)->{});
 			private Boolean isTest = false;
-			private Integer intervalOfMinutes;
 
 			public AutoDbMappingGeneraterOptionBuilder schema(String schema) {
 				this.schema = schema;
@@ -692,11 +719,7 @@ public class AutoDbMappingGenerater  {
 				this.repositoryExtendsClass = repositoryExtendsClass;
 				return this;
 			}
-			public AutoDbMappingGeneraterOptionBuilder repositoryPkClass(Class<?> repositoryPkClass) {
-				this.repositoryPkClass = repositoryPkClass;
-				return this;
-			}
-			public AutoDbMappingGeneraterOptionBuilder repositorySpecificPkClass(Map<String, Class<?>> repositorySpecificPkClass) {
+			public AutoDbMappingGeneraterOptionBuilder repositorySpecificPkClass(Map<String, ?> repositorySpecificPkClass) {
 				this.repositorySpecificPkClass = repositorySpecificPkClass;
 				return this;
 			}
@@ -734,10 +757,6 @@ public class AutoDbMappingGenerater  {
 			}
 			public AutoDbMappingGeneraterOptionBuilder isTest(Boolean isTest) {
 				this.isTest = isTest;
-				return this;
-			}
-			public AutoDbMappingGeneraterOptionBuilder intervalOfMinutes(Integer intervalOfMinutes) {
-				this.intervalOfMinutes= intervalOfMinutes;
 				return this;
 			}
 			public AutoDbMappingGeneraterOption build() {

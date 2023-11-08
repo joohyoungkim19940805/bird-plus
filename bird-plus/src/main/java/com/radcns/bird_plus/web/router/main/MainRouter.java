@@ -13,6 +13,7 @@ import com.radcns.bird_plus.web.handler.EventStreamHandler;
 import com.radcns.bird_plus.web.handler.MainHandler;
 import com.radcns.bird_plus.web.handler.NoticeBoardHandler;
 import com.radcns.bird_plus.web.handler.RoomHandler;
+import com.radcns.bird_plus.web.handler.S3Handler;
 import com.radcns.bird_plus.web.handler.WorkspaceHandler;
 
 import java.net.URI;
@@ -160,6 +161,14 @@ public class MainRouter implements IndexRouterSwagger{
 				).build();
 	}
 	
+	@Bean
+	public RouterFunction<ServerResponse> apiS3(S3Handler s3Handler){
+		return route().nest(path("/api/generate-presigned-url"), builder -> builder
+				.nest(path("/test"), createPathBuilder -> createPathBuilder
+						.POST("/", accept(MediaType.APPLICATION_JSON), s3Handler::generatePresignedUrl)
+						.build())
+				).build();
+	}
 	/*
 	public Mono<ServerResponse> admin(ServerRequest request){
 

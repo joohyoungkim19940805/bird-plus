@@ -1,6 +1,4 @@
 package com.radcns.bird_plus.entity.file;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import lombok.AllArgsConstructor;
@@ -19,15 +17,13 @@ import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 @Table("sy_file_icon")
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@ToString
-@NoArgsConstructor
-@Getter
-@With
-@Setter
 @AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
+@NoArgsConstructor
+@With
+@Getter
+@Setter
 @Builder(toBuilder = true)
+@ToString
 public class FileIconEntity {
     public void setCreateAt(LocalDateTime createAt) {
         this.createAt = createAt;

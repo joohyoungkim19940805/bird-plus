@@ -55,7 +55,7 @@ public class EventStreamService {
 					MyJoinedRoomListResponse.builder()
 						.id(roomInAccountEntity.getId())
 						.roomId(roomInAccountEntity.getRoomId())
-						.roomCode(roomEntity.getRoomCode())
+						//.roomCode(roomEntity.getRoomCode())
 						.roomName(roomEntity.getRoomName())
 						.isEnabled(roomEntity.getIsEnabled())
 						.workspaceId(roomEntity.getWorkspaceId())

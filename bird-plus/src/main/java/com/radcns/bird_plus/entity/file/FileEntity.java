@@ -1,6 +1,4 @@
 package com.radcns.bird_plus.entity.file;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import lombok.AllArgsConstructor;
@@ -12,21 +10,20 @@ import lombok.ToString;
 import lombok.With;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 @Table("sy_file")
-@With
-@Getter
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@NoArgsConstructor
-@ToString
-@Builder(toBuilder = true)
-@Setter
 @AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
+@Builder(toBuilder = true)
+@ToString
+@Getter
+@Setter
+@With
+@NoArgsConstructor
 public class FileEntity {
     public void setCreateAt(LocalDateTime createAt) {
         this.createAt = createAt;
@@ -65,6 +62,7 @@ public class FileEntity {
     private LocalDateTime updateAt;
 
     @Column("id")
+    @Id
     private Long id;
 
     @Column("create_at")
