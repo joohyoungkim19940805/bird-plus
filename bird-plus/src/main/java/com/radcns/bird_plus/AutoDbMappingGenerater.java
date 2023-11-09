@@ -440,10 +440,10 @@ public class AutoDbMappingGenerater  {
 				        			pkNameList.add(res.getString("COLUMN_NAME"));
 				        		}
 				        	}
-	            			if(pkNameList.size() > 1) {
+	            			if(pkNameList.isEmpty() || pkNameList.size() > 1) {
 	            				pkName = null;
 	            			}else {
-	            				pkName = pkNameList.isEmpty() ? null : pkNameList.get(0);
+	            				pkName = pkNameList.get(0);
 	            			}
 	            			columnRecord = new ColumnRecord(columnName, camelColumnName, dataTypeName, columnName.equals(pkName));
 	            			cloumnMapper.put(columnName, columnRecord);

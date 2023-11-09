@@ -18,6 +18,7 @@ import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.ServerSideEncryption;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.CreateMultipartUploadPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 import static com.radcns.bird_plus.util.ResponseWrapper.response;
 import static org.springframework.web.reactive.function.server.ServerResponse.ok;
@@ -41,8 +42,8 @@ public class S3Handler {
 					.bucket(s3Properties.getBucket())
 					.key("test/test.png")
 					.sseCustomerAlgorithm(ServerSideEncryption.AES256.toString())
-					.sseCustomerKey("d29ya3NwYWNlSWQ9MSxyb29tSWQ9NQ==")
-					.sseCustomerKeyMD5("3BAD3985D05865FAF3805C572C8C8986")
+					.sseCustomerKey("zCl8fl7i8t8q4IVZpQTp5QkIwR+S1RH2m3lpgnaMI+g=")
+					.sseCustomerKeyMD5("WPgosOwwFY/pIMDVwcxnpg==")
 					.build();
 				
 				PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()

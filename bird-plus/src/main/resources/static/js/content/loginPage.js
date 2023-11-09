@@ -98,7 +98,7 @@ const getStart = new class GetStart{
 					<div>
 						<label for="sign_up_name">your full name</label>
 					</div>
-					<input type="text" name="full_name" id="sign_up_email" placeholder="Please enter your Email" required/>
+					<input type="text" name="full_name" id="full_name" placeholder="Please enter your full name" required/>
 				</div>
 				<div>
 					<div>
@@ -538,7 +538,8 @@ const getStart = new class GetStart{
 			account_name: accountName,
 			email,
 			password,
-			password_again: passwordAgain
+			password_again: passwordAgain,
+			full_name: fullName
 		} = form
 		let isClick = false;
 		form.onsubmit = (event) => {
@@ -557,6 +558,7 @@ const getStart = new class GetStart{
 					email: email.value,
 					password: password.value,
 					passwordAgain: passwordAgain.value,
+					fullName: fullName.value
 				})
 			}).then(response => {
 				if( ! response.ok){
