@@ -158,7 +158,8 @@ public class WebFluxConfig implements ApplicationContextAware, WebFluxConfigurer
 		if(keyPairFileDir == null || keyPairFileDir.isEmpty()) {
 			keyPairFileDir = System.getProperty("user.home");
 		}
-		var keyPairUtil = new KeyPairUtil(keyPairFileDir, keyPublicName, keyPrivateName);
+		var keyPairUtil = new KeyPairUtil();
+		keyPairUtil.saveAndSetVariableKeyPair(keyPairFileDir, keyPublicName, keyPrivateName);
 		return keyPairUtil.getKeyPair();
 		//return keyPair;//Keys.keyPairFor(SignatureAlgorithm.RS256);
 	}

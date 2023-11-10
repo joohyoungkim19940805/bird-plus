@@ -164,8 +164,11 @@ public class MainRouter implements IndexRouterSwagger{
 	@Bean
 	public RouterFunction<ServerResponse> apiS3(S3Handler s3Handler){
 		return route().nest(path("/api/generate-presigned-url"), builder -> builder
-				.nest(path("/test"), createPathBuilder -> createPathBuilder
-						.POST("/", accept(MediaType.APPLICATION_JSON), s3Handler::generatePresignedUrl)
+				.nest(path("/create"), createPathBuilder -> createPathBuilder
+						.POST("/", accept(MediaType.APPLICATION_JSON), s3Handler::generatePutObjectPresignedUrl)
+						.build())
+				.nest(path("/search"), searchPathBuilder -> searchPathBuilder
+						.POST("/", accept(MediaType.APPLICATION_JSON), s3Handler::generateGetObjectPresignedUrl)
 						.build())
 				).build();
 	}
