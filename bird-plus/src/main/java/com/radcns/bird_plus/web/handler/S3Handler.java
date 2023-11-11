@@ -70,11 +70,12 @@ public class S3Handler {
 				try {
 					sseCustomerKeyRequest.initVerify(KeyPairUtil.loadPublicKey(sseCustomerKeyRequest.getDataKey()));
 				} catch (InvalidKeyException | NoSuchAlgorithmException | SignatureException e) {
+					e.printStackTrace();
 					return Mono.error(new S3ApiException(Result._502));
 				}
-				
+
 				try {
-					encryptCipher = Cipher.getInstance("RSA");
+					encryptCipher = Cipher.getInstance("RSA/ECB/OAEPPadding");
 					encryptCipher.init(
 						Cipher.ENCRYPT_MODE,
 						KeyPairUtil.loadPublicKey(sseCustomerKeyRequest.getEncryptionKey()),

@@ -35,6 +35,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.With;
 
 public class S3SseUtil {
@@ -82,6 +83,7 @@ public class S3SseUtil {
 	@NoArgsConstructor
 	@AllArgsConstructor
 	@With
+	@ToString
 	public static class SSE_CustomerKeyRequest{
 		private String data;
 		private String sign;
@@ -108,14 +110,16 @@ public class S3SseUtil {
 			System.out.println("kjh isVerify ::: " + isVerify);
 			if(isVerify) {
 				String dataString = new String(dataByte, StandardCharsets.UTF_8);
+				dataString = dataString.substring(0, dataString.length() - 1);
 				String[] dataList = dataString.split(",");
-				if(dataList.length != 4) {
+				if(dataList.length != 5) {
 					throw new S3ApiException(Result._503);
 				}
 				this.roomId = dataList[0].trim();
 				this.workspaceId = dataList[1].trim();
-				this.accountName = dataList[2].trim();
-				this.fileName = dataList[3].trim();
+				this.fileName = dataList[2].trim();
+				this.accountName = dataList[3].trim();
+				this.encryptionKey = dataList[4].trim();
 			}
 			return isVerify;
 		}
