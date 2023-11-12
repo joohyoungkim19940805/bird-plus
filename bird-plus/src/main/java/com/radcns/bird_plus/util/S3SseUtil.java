@@ -107,7 +107,6 @@ public class S3SseUtil {
 			signature.update(dataByte);
 			
 			boolean isVerify = signature.verify( BaseEncoding.base64().decode(sign) );
-			System.out.println("kjh isVerify ::: " + isVerify);
 			if(isVerify) {
 				String dataString = new String(dataByte, StandardCharsets.UTF_8);
 				dataString = dataString.substring(0, dataString.length() - 1);

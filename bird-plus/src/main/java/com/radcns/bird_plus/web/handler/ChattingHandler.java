@@ -83,6 +83,8 @@ public class ChattingHandler {
 			accountService.convertRequestToAccount(request)
 			.flatMap(account -> {
 				return request.bodyToMono(ChattingEntity.class)
+				.filterWhen(chattingEntity -> roomInAccountRepository.existsByAccountIdAndWorkspaceIdAndRoomId(account.getId(), chattingEntity.getWorkspaceId(), chattingEntity.getRoomId()))
+				.switchIfEmpty(Mono.error(new RoomException(Result._301)))
 				.flatMap(chattingEntity -> 
 					chattingRepository.save(
 						chattingEntity
