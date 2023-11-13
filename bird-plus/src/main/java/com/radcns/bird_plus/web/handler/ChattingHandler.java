@@ -85,16 +85,27 @@ public class ChattingHandler {
 				return request.bodyToMono(ChattingEntity.class)
 				.filterWhen(chattingEntity -> roomInAccountRepository.existsByAccountIdAndWorkspaceIdAndRoomId(account.getId(), chattingEntity.getWorkspaceId(), chattingEntity.getRoomId()))
 				.switchIfEmpty(Mono.error(new RoomException(Result._301)))
-				.flatMap(chattingEntity -> 
-					chattingRepository.save(
-						chattingEntity
-						.withAccountId(account.getId())
-						.withCreateBy(account.getId())
-						.withUpdateBy(account.getId())
-						.withAccountId(account.getId())
-						.withAccountName(account.getAccountName())
-					)
-				)
+				.flatMap(chattingEntity -> {
+					Mono<ChattingEntity> save;
+					if(chattingEntity.getId() != null) {
+						save = chattingRepository.findById(chattingEntity.getId()).flatMap(e->{
+							e.setUpdateBy(account.getId());
+							e.setUpdateAt(LocalDateTime.now());
+							e.setChatting(chattingEntity.getChatting());
+							return chattingRepository.save(e);
+						});
+					}else{
+						save = chattingRepository.save(
+							chattingEntity
+							.withAccountId(account.getId())
+							.withCreateBy(account.getId())
+							.withUpdateBy(account.getId())
+							.withAccountName(account.getAccountName())
+						);
+					}
+					
+					return save;
+				})
 				.doOnSuccess(e->{/*
 					EmitResult result = workspaceBorker.sendChatting(
 						ChattingResponse.builder()

@@ -93,6 +93,7 @@ public class S3SseUtil {
 		private String workspaceId;
 		private String accountName;
 		private String fileName;
+		private String newFileName;
 		private String contentType;
 		private String customerProvidedKey;
 		private UploadType uploadType;
@@ -133,23 +134,7 @@ public class S3SseUtil {
 		private String encryptionKey;
 		private String encryptionMd;
 		private URL presignedUrl;
+		private String newFileName;
 	}
 	
-	public static void main(String a[]) throws NoSuchAlgorithmException, InvalidKeySpecException {
-		//d29ya3NwYWNlSWQ9MSxyb29tSWQ9NSxhY2NvdW50SWQ9Ng==
-		//d29ya3NwYWNlSWQ9MSxyb29tSWQ9NSxhY2NvdW50SWQ9Ng==
-		//System.out.println(BaseEncoding.base64().encode("workspaceId=1,roomId=5".getBytes()));
-		SecretKey test = S3SseUtil.generateKey("workspaceId=1,roomId=5", "account_name");
-	    System.out.println(test.toString());
-	    System.out.println(test.getEncoded().length);
-	    System.out.println(new String(test.getEncoded()));
-		//System.out.println(test);
-		System.out.println(BaseEncoding.base64().encode(test.getEncoded()));
-		MessageDigest md = MessageDigest.getInstance("MD5");
-		//vWWLqsnrbGBCu61wwAImhqvlBb840GW/TxIyMoh4RfM=
-		md.update(test.getEncoded());
-		byte hash[] = md.digest();
-		System.out.println(BaseEncoding.base64().encode(hash));
-		
-	}
 }

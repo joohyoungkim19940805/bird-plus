@@ -29,7 +29,6 @@ public class CreateRandomCodeUtil {
 	
 	private static final Logger logger = LoggerFactory.getLogger(CreateRandomCodeUtil.class);
 	
-	private int keyBit;
 	private byte[] keySize = new byte[32];
 	private SecureRandom random = new SecureRandom();
 	private KeyGenerator keyGen;
@@ -60,10 +59,6 @@ public class CreateRandomCodeUtil {
 		}	
 	}
 	
-	
-	public String createCode() {
-		return createCode(this.keySize);
-	}
 	public String createCode(byte[] keySize) {
 		random.nextBytes(keySize);
 		return create(keySize);
@@ -77,18 +72,13 @@ public class CreateRandomCodeUtil {
 	}
 	private String create(byte[] b) {
 		try {
-			System.out.println("test 1 :::" + new String(cipher.doFinal(b)));
-
-			System.out.println("test 1 :::" + new String(cipher.doFinal(b), StandardCharsets.UTF_8));
-			System.out.println("test 1 :::" + new String(cipher.doFinal(b), StandardCharsets.UTF_16));
-			
 			return BaseEncoding.base64().encode(cipher.doFinal(b));
 		} catch (IllegalBlockSizeException | BadPaddingException e) {
 			logger.error(e.getMessage(), e);
 			return null;
 		}
 	}
-	public static void main(String a[]) throws NoSuchAlgorithmException {
+	public static void main2(String a[]) throws NoSuchAlgorithmException {
 		//d29ya3NwYWNlSWQ9MSxyb29tSWQ9NSxhY2NvdW50SWQ9Ng==
 		//d29ya3NwYWNlSWQ9MSxyb29tSWQ9NSxhY2NvdW50SWQ9Ng==
 		//System.out.println(BaseEncoding.base64().encode("workspaceId=1,roomId=5".getBytes()));
@@ -101,5 +91,12 @@ public class CreateRandomCodeUtil {
 		byte hash[] = md.digest();
 		System.out.println(BaseEncoding.base64().encode(hash));
 		
+	}
+	public static void main(String a[]) {
+		System.out.println(
+		new CreateRandomCodeUtil().createCode(new byte[32])
+		);		System.out.println(
+				new CreateRandomCodeUtil().createCode(new byte[32])
+				);
 	}
 }

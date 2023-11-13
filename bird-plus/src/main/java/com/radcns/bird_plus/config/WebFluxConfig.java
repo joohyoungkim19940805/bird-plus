@@ -33,7 +33,7 @@ import org.thymeleaf.templateresolver.ITemplateResolver;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.radcns.bird_plus.config.security.JwtVerifyHandler;
-
+import com.radcns.bird_plus.util.CreateRandomCodeUtil;
 import com.radcns.bird_plus.util.KeyPairUtil;
 import com.radcns.bird_plus.util.properties.S3Properties;
 
@@ -176,6 +176,12 @@ public class WebFluxConfig implements ApplicationContextAware, WebFluxConfigurer
 		return WebClient.builder().clientConnector(new ReactorClientHttpConnector(httpClient));
 		
 	}
+	
+	@Bean
+	public CreateRandomCodeUtil createRandomCodeUtil() {
+		return new CreateRandomCodeUtil();
+	}
+	
 	@Bean("jasyptEncryptorDES")
 	public StringEncryptor stringEncryptor() {
 		PooledPBEStringEncryptor encryptor = new PooledPBEStringEncryptor();
