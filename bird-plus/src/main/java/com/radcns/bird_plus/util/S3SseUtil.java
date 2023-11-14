@@ -13,6 +13,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Stream;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
@@ -110,8 +111,7 @@ public class S3SseUtil {
 			boolean isVerify = signature.verify( BaseEncoding.base64().decode(sign) );
 			if(isVerify) {
 				String dataString = new String(dataByte, StandardCharsets.UTF_8);
-				dataString = dataString.substring(0, dataString.length() - 1);
-				String[] dataList = dataString.split(",");
+				String[] dataList = dataString.split(":");
 				if(dataList.length != 5) {
 					throw new S3ApiException(Result._503);
 				}

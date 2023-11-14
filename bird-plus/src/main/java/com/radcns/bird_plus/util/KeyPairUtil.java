@@ -151,8 +151,7 @@ public class KeyPairUtil {
     public static PublicKey loadPublicKey(String encodingPublic) {
     	PublicKey publicKey = null;
     	try {
-    		System.out.println("kjh test2222 <<<< ");
-    		System.out.println(encodingPublic);
+
     		X509EncodedKeySpec keySpec = new X509EncodedKeySpec(KeyPairUtil.decoder.decode(encodingPublic.getBytes()));
     		
     		publicKey = KeyFactory.getInstance("RSA").generatePublic(keySpec);

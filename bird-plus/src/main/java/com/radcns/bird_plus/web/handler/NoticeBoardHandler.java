@@ -345,7 +345,7 @@ public class NoticeBoardHandler {
 						) {}
 					);
 				})
-				.flatMap(e->response(Result._0))
+				.flatMap(e->response(Result._0, e))
 				;
 			})
 		);
