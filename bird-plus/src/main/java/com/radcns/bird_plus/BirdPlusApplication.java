@@ -57,6 +57,7 @@ import spoon.reflect.reference.CtTypeReference;
 								"com.radcns.bird_plus.*"
 							  })
 @SpringBootApplication
+// 메신저 명칭 = greased lightning messenger;
 public class BirdPlusApplication implements ApplicationRunner 
 {
     public static void main(String[] args) {

@@ -99,7 +99,7 @@ public class S3SseUtil {
 		private String customerProvidedKey;
 		private UploadType uploadType;
 		public enum UploadType{
-			CHATTING
+			CHATTING, NOTICE
 		}
 
 		public boolean initVerify(PublicKey publicKey) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
