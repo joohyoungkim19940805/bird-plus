@@ -39,13 +39,13 @@ public class RoomEntity implements TokenTemplate {
 
     @Column("room_name")
     private String roomName;
-    
+
     @Column("room_type")
     private RoomType roomType;
 
     @Column("room_code")
     private List<String> roomCode;
-    
+
     @Column("is_enabled")
     private Boolean isEnabled;
 
@@ -131,5 +131,4 @@ public class RoomEntity implements TokenTemplate {
         // TODO Auto-generated method stub
         return List.of(Role.ROLE_BOT);
     }
-
 }
