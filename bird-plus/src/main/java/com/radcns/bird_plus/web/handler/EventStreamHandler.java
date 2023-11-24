@@ -47,7 +47,10 @@ public class EventStreamHandler {
 									serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.NOTICE_BOARD_DELETE_ACCEPT) 
 							) {
 								return eventStreamService.noticeBoardEmissionStream(serverSentTemplate, account);	
-							}else {
+							}else if(serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.CHATTING_REACTION_ACCEPT)) {
+								return eventStreamService.chattingReactionEmissionStream(serverSentTemplate, account);
+							}
+							else {
 								return Mono.just(serverSentTemplate);
 							}
 							//return Mono.empty();

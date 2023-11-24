@@ -38,9 +38,6 @@ public class ChattingEntity {
     @Column("account_id")
     private Long accountId;
 
-    @Column("account_name")
-    private String accountName;
-
     @Column("room_id")
     private Long roomId;
 
@@ -139,6 +136,8 @@ public class ChattingEntity {
 
             private String accountName;
 
+            private Json reaction;
+            
             @Transient
             private Long createMils;
 
@@ -176,12 +175,21 @@ public class ChattingEntity {
             public void setChatting(String chatting) {
                 this.chatting = Json.of(chatting);
             }
-
             public String getChatting() {
                 if (this.chatting == null) {
                     return "";
                 }
                 return this.chatting.asString();
+            }
+            
+            public void setReaction(String reaction) {
+            	this.reaction = Json.of(reaction);
+            }
+            public String getReaction() {
+            	if(this.reaction == null) {
+            		return "";
+            	}
+            	return this.reaction.asString();
             }
         }
     }

@@ -77,4 +77,14 @@ public class EventStreamService {
 			}
 		});
 	}
+	public Mono<ServerSentStreamTemplate<?>> chattingReactionEmissionStream(ServerSentStreamTemplate<?> serverSentTemplate, AccountEntity account) {
+		return roomInAccountRepository.existsByAccountIdAndWorkspaceIdAndRoomId(account.getId(), serverSentTemplate.getWorkspaceId(), serverSentTemplate.getRoomId())
+		.flatMap(bol ->{
+			if(bol) {
+				return Mono.just(serverSentTemplate);
+			}else {
+				return Mono.empty();
+			}
+		});
+	}
 }

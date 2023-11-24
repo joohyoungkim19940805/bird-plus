@@ -9,26 +9,61 @@ import reactor.core.publisher.Mono;
 public interface ChattingRepository extends ReactiveCrudRepository<ChattingEntity, Long> {
     @Query("""
     SELECT
-    	ch.id,
-    	ch.room_id,
-    	ch.workspace_id,
-    	ch.chatting,
-    	ch.create_at,
-    	ch.update_at,
+    	cc.id,
+    	cc.room_id,
+    	cc.workspace_id,
+    	cc.chatting,
+    	cc.create_at,
+    	cc.update_at,
     	aa.full_name,
-    	aa.account_name
+    	aa.account_name,
+    	(
+    		SELECT 
+    			json_agg(json_build_object(
+    				'emoticon', sedp.emoticon,
+    				'emoticonType', sedp.emoticon_type,
+    				'description', sedp.description,
+    				'groupTitle', sedp.group_title ,
+    				'subgroupTitle', sedp.subgroup_title,
+    				'reactionId', ccr.id,
+    				'reactionList', (
+    					SELECT
+    						json_agg( json_build_object( 
+    							'fullName', aa2.full_name 
+    						) )
+    					FROM 
+    						ch_chatting_reaction_count ccrc 
+    					INNER JOIN
+    						bird_plus.ac_account aa2
+    					ON
+    						ccrc.account_id = aa2.id 
+    					WHERE 
+    						ccrc.reaction_id = ccr.id
+    				)
+    			))
+    		FROM 
+    			ch_chatting_reaction ccr
+    		INNER JOIN
+    			sy_emoticon_duplication_processing sedp 
+    		ON
+    			ccr.emoticon_id = sedp.id
+    		WHERE
+    			ccr.chatting_id = cc.id
+    		GROUP BY
+    			ccr.chatting_id
+    	) AS reaction
     FROM
-    	ch_chatting ch
+    	ch_chatting cc
     INNER JOIN
     	ac_account aa
     ON
-    	ch.account_id = aa.id
+    	cc.account_id = aa.id
     WHERE
-    	ch.workspace_id = :#{[0]}
+    	cc.workspace_id = :#{[0]}
     AND
-    	ch.room_id = :#{[1]}
+    	cc.room_id = :#{[1]}
     ORDER BY
-    	ch.create_at
+    	cc.create_at
     DESC
     OFFSET
     	:#{[2].offset}
@@ -38,20 +73,21 @@ public interface ChattingRepository extends ReactiveCrudRepository<ChattingEntit
     """)
     Flux<ChattingDomain.ChattingResponse> findAllJoinAccountByWorkspaceIdAndRoomId(Long workspaceId, Long roomId, Pageable pageble);
 
-    @Query("""
-    SELECT
-    	count(1)
-    FROM
-    	ch_chatting ch
-    INNER JOIN
-    	ac_account aa
-    ON
-    	ch.account_id = aa.id
-    WHERE
-    	ch.workspace_id = :#{[0]}
-    AND
-    	ch.room_id = :#{[1]}
+    /*@Query("""
+	    SELECT
+	    	count(1)
+	    FROM
+	    	cc_chatting cc
+	    INNER JOIN
+	    	ac_account aa
+	    ON
+	    	cc.account_id = aa.id
+	    WHERE
+	    	cc.workspace_id = :#{[0]}
+		AND
+    		cc.room_id = :#{[1]}
     ;
-    """)
-    Mono<Long> countJoinAccountByWorkspaceIdAndRoomId(Long workspaceId, Long roomId);
+	""")
+    */
+    Mono<Long> countByWorkspaceIdAndRoomId(Long workspaceId, Long roomId);
 }

@@ -9,6 +9,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 
 import com.radcns.bird_plus.web.handler.AccountHandler;
 import com.radcns.bird_plus.web.handler.ChattingHandler;
+import com.radcns.bird_plus.web.handler.EmoticonHandler;
 import com.radcns.bird_plus.web.handler.EventStreamHandler;
 import com.radcns.bird_plus.web.handler.MainHandler;
 import com.radcns.bird_plus.web.handler.NoticeBoardHandler;
@@ -155,8 +156,8 @@ public class MainRouter implements IndexRouterSwagger{
 						//.POST("/group", accept(MediaType.APPLICATION_JSON), noticeBoardHandler::updateNoticeBoardGroup)
 						.build())
 				.nest(path("/search"), searchPathBuilder -> searchPathBuilder
-							.GET("/notice-board-list/{workspaceId}/{roomId}", accept(MediaType.TEXT_EVENT_STREAM), noticeBoardHandler::searchNoticeBoardList)
-							.GET("/notice-board-detail-list/{workspaceId}/{roomId}/{noticeBoardId}", accept(MediaType.TEXT_EVENT_STREAM), noticeBoardHandler::searchNoticeBoardDetailList)
+						.GET("/notice-board-list/{workspaceId}/{roomId}", accept(MediaType.TEXT_EVENT_STREAM), noticeBoardHandler::searchNoticeBoardList)
+						.GET("/notice-board-detail-list/{workspaceId}/{roomId}/{noticeBoardId}", accept(MediaType.TEXT_EVENT_STREAM), noticeBoardHandler::searchNoticeBoardDetailList)
 						.build())
 				).build();
 	}
@@ -169,6 +170,21 @@ public class MainRouter implements IndexRouterSwagger{
 						.build())
 				.nest(path("/search"), searchPathBuilder -> searchPathBuilder
 						.POST("/", accept(MediaType.APPLICATION_JSON), s3Handler::generateGetObjectPresignedUrl)
+						.build())
+				).build();
+	}
+	
+	@Bean
+	public RouterFunction<ServerResponse> emoticon(EmoticonHandler emoticonHandler){
+		return route().nest(path("/api/emoticon"), builder -> builder
+				.nest(path("/create"), createPathBuilder -> createPathBuilder
+						.POST("/reaction", accept(MediaType.APPLICATION_JSON), emoticonHandler::createEmoticonReaction)
+						.build())
+				.nest(path("/delete"), deletePathBuilder -> deletePathBuilder
+						.POST("/", accept(MediaType.APPLICATION_JSON), emoticonHandler::deleteEmoticon)
+						.build())
+				.nest(path("/search"), searchPathBuilder -> searchPathBuilder
+						.GET("/is-reaction", accept(MediaType.APPLICATION_JSON), emoticonHandler::getIsReaction)
 						.build())
 				).build();
 	}

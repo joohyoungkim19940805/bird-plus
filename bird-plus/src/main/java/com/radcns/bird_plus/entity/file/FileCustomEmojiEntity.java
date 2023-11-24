@@ -1,13 +1,6 @@
-package com.radcns.bird_plus.entity.chatting;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.radcns.bird_plus.entity.chatting.ChattingReactionCountEntity.ChattingReactionCountDomain.ChattingReactionCountResponse;
-import com.radcns.bird_plus.entity.emoticon.constant.EmoticonType;
-
+package com.radcns.bird_plus.entity.file;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,17 +16,15 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
-@Table("ch_chatting_reaction")
-@AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-@Getter
+@Table("sy_file_custom_emoji")
 @With
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@NoArgsConstructor
-@ToString
 @Builder(toBuilder = true)
+@ToString
 @Setter
-public class ChattingReactionEntity {
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+public class FileCustomEmojiEntity {
     public void setCreateAt(LocalDateTime createAt) {
         this.createAt = createAt;
         this.createMils = createAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
@@ -66,9 +57,6 @@ public class ChattingReactionEntity {
     @CreatedBy
     private Long createBy;
 
-    @Column("chatting_id")
-    private Long chattingId;
-
     @Column("update_at")
     @LastModifiedDate
     private LocalDateTime updateAt;
@@ -85,49 +73,15 @@ public class ChattingReactionEntity {
     @LastModifiedBy
     private Long updateBy;
 
+    @Column("icon_name")
+    private String iconName;
+
+    @Column("url")
+    private String url;
+
     @Transient
     private Long createMils;
 
     @Transient
     private Long updateMils;
-
-    @Column("room_id")
-    private Long roomId;
-
-    @Column("workspace_id")
-    private Long workspaceId;
-
-    @Column("emoticon_id")
-    private Long emoticonId;
-    
-    public static class ChattingReactionDomain{
-    	@Getter
-    	@Setter
-    	public static class ChattingReactionRequest{
-    		private String emoticon;
-    		private String code;
-    		private String description;
-    		private EmoticonType emoticonType;
-    		private String groupTitle;
-    		private String subgroupTitle;
-    		private Long workspaceId;
-    		private Long roomId;
-    		private Long chattingId;
-    	}
-    	@Getter
-    	@Setter
-    	@Builder(toBuilder = true)
-    	public static class ChattingReactionResponse{
-    		private String emoticon;
-    		private EmoticonType emoticonType;
-    		private Long workspaceId;
-    		private Long roomId;
-    		private Long chattingId;
-    		private Long reactionId;
-    		private Long count;
-    		private String groupTitle;
-    		private String subgroupTitle;
-    		private List<ChattingReactionCountResponse> reactionList;
-    	}
-    }
 }

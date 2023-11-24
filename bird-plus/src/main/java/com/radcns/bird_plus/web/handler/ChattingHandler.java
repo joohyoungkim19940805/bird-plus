@@ -100,7 +100,6 @@ public class ChattingHandler {
 							.withAccountId(account.getId())
 							.withCreateBy(account.getId())
 							.withUpdateBy(account.getId())
-							.withAccountName(account.getAccountName())
 						);
 					}
 					
@@ -162,7 +161,7 @@ public class ChattingHandler {
 			);
 			return chattingRepository.findAllJoinAccountByWorkspaceIdAndRoomId(workspaceId, roomId, pageRequest)
 				.collectList()
-				.zipWith(chattingRepository.countJoinAccountByWorkspaceIdAndRoomId(workspaceId, roomId))
+				.zipWith(chattingRepository.countByWorkspaceIdAndRoomId(workspaceId, roomId))
 				.map(entityTuples -> 
 					new PageImpl<>(entityTuples.getT1(), pageRequest, entityTuples.getT2())
 				)
