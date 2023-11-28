@@ -880,7 +880,7 @@ const getStart = new class GetStart{
 		createWorkspacePage.onclick = () => this.showCreateWorkspacePage();
 		searchWorkspacePage.onclick = () => this.showSearchWorkspacePage();
 		let page = 0, size = 10;
-		let createWorkspaceList = () => fetch(`/api/workspace/search/workspace-my-joined-list?page=${page}&size=${size}`, {
+		let createWorkspaceList = () => fetch(`/api/workspace/search/my-joined-list?page=${page}&size=${size}`, {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json'
@@ -966,7 +966,7 @@ const getStart = new class GetStart{
 					});
 					containerDiv.append(goToButton);
 					goToButton.onclick = () => {
-						window.location.href = 'bird-plus-desktop://param';
+						window.location.href = `grease-lightning-chat://param?workspaceId=${workspaceId}`;
 						let moveDownload = setTimeout(()=>{
 							window.removeEventListener('blur', onBlurEvent, false);
 							//window.location.href = 'http://naver.com';

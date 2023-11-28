@@ -26,6 +26,7 @@ public interface ChattingRepository extends ReactiveCrudRepository<ChattingEntit
     				'groupTitle', sedp.group_title ,
     				'subgroupTitle', sedp.subgroup_title,
     				'reactionId', ccr.id,
+    				'createAt', ccr.create_at,
     				'reactionList', (
     					SELECT
     						json_agg( json_build_object( 

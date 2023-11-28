@@ -14,11 +14,12 @@ public interface ChattingReactionRepository extends ReactiveCrudRepository<Chatt
 			SELECT 
     			json_agg(json_build_object(
     				'emoticon', sedp.emoticon,
-    				'emoticon_type', sedp.emoticon_type,
+    				'emoticonType', sedp.emoticon_type,
     				'description', sedp.description,
-    				'group_title', sedp.group_title ,
-    				'subgroup_title', sedp.subgroup_title,
-    				'reaction_id', ccr.id,
+    				'groupTitle', sedp.group_title ,
+    				'subgroupTitle', sedp.subgroup_title,
+    				'reactionId', ccr.id,
+    				'createAt', ccr.create_at,
     				'reactionList', (
     					SELECT
     						json_agg( json_build_object( 

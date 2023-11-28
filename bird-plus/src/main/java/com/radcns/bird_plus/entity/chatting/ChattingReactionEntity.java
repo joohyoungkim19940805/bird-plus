@@ -105,7 +105,6 @@ public class ChattingReactionEntity {
     	@Setter
     	public static class ChattingReactionRequest{
     		private String emoticon;
-    		private String code;
     		private String description;
     		private EmoticonType emoticonType;
     		private String groupTitle;

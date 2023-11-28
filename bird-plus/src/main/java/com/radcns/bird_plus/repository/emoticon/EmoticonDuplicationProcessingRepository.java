@@ -6,6 +6,6 @@ import reactor.core.publisher.Mono;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 public interface EmoticonDuplicationProcessingRepository extends ReactiveCrudRepository<EmoticonDuplicationProcessingEntity, Long> {
 
-	Mono<EmoticonDuplicationProcessingEntity> findByNamespaceKey(String namespaceKey);
+	Mono<EmoticonDuplicationProcessingEntity> findByEmoticon(String emoticon);
 	
 }

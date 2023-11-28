@@ -4,6 +4,7 @@ import static com.radcns.bird_plus.util.ResponseWrapper.response;
 import static org.springframework.web.reactive.function.server.ServerResponse.ok;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -54,11 +55,10 @@ public class EmoticonHandler {
 		var createResult = accountService.convertRequestToAccount(request)
 		.flatMap(account -> 
 			request.bodyToMono(ChattingReactionRequest.class)
-			.flatMap(emoticon -> emoticonDuplicationProcessingRepository.findByNamespaceKey(emoticon.getCode())
+			.flatMap(emoticon -> emoticonDuplicationProcessingRepository.findByEmoticon(emoticon.getEmoticon())
 				.switchIfEmpty(emoticonDuplicationProcessingRepository.save(
 					EmoticonDuplicationProcessingEntity.builder()
 					.emoticon(emoticon.getEmoticon())
-					.namespaceKey(emoticon.getCode())
 					.emoticonType(emoticon.getEmoticonType())
 					.description(emoticon.getDescription())
 					.groupTitle(emoticon.getGroupTitle())

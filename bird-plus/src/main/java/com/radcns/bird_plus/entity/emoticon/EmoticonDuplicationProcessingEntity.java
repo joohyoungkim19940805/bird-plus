@@ -53,9 +53,6 @@ public class EmoticonDuplicationProcessingEntity {
         return this.updateMils;
     }
 
-    @Column("namespace_key")
-    private String namespaceKey;
-
     @Column("emoticon_type")
     private EmoticonType emoticonType;
 
