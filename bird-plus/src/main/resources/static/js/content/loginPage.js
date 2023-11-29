@@ -966,7 +966,7 @@ const getStart = new class GetStart{
 					});
 					containerDiv.append(goToButton);
 					goToButton.onclick = () => {
-						goToButton.dataset.workspaceId = workspaceId;
+						//goToButton.dataset.workspaceId = workspaceId;
 						let cookie = document.cookie.split(';').reduce( (t,e) =>{
 						    let [k, v] = e.split('=')
 						    t[k] = v;
