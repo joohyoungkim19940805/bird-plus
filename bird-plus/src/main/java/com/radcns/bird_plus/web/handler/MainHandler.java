@@ -234,7 +234,7 @@ public class MainHandler {
 		return accountService.authenticate(request.bodyToMono(AccountEntity.class), request.remoteAddress())
 				.flatMap(token -> ok()
 						.cookie(ResponseCookie.fromClientResponse(HttpHeaders.AUTHORIZATION, token.getToken())
-								.httpOnly(true)
+								.httpOnly(false)
 								.sameSite("Strict")
 								.path("/")
 		        				.build())

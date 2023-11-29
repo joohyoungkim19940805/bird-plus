@@ -966,14 +966,20 @@ const getStart = new class GetStart{
 					});
 					containerDiv.append(goToButton);
 					goToButton.onclick = () => {
-						window.location.href = `grease-lightning-chat://param?workspaceId=${workspaceId}`;
+						goToButton.dataset.workspaceId = workspaceId;
+						let cookie = document.cookie.split(';').reduce( (t,e) =>{
+						    let [k, v] = e.split('=')
+						    t[k] = v;
+						    return t
+						}, {})
+						window.location.href = `grease-lightning-chat://param?workspaceId=${workspaceId}&Authorization=${cookie.Authorization}`;
 						let moveDownload = setTimeout(()=>{
 							window.removeEventListener('blur', onBlurEvent, false);
 							//window.location.href = 'http://naver.com';
 							if(confirm('do you want download app?')){
 								alert('아직 빌드 파일을 생성하지 못하였기 때문에 다운로드 할 수 없습니다..')
 							}
-						}, 500)
+						}, 2000)
 						const onBlurEvent = () => {
 							window.removeEventListener('blur', onBlurEvent, false);
 							clearTimeout(moveDownload);
