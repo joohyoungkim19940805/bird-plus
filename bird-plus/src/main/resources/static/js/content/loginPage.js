@@ -844,7 +844,10 @@ const getStart = new class GetStart{
 				if(result.code == 0){
 					this.showStartMenuPage().then((startMenuPage) => {
 						workspaceName.value = '';
+						workspaceFilter.value = '';
+						workspaceFilterHistory.replaceChildren();
 						isOneClick = true;
+						
 						this.createStartMenuEvent(startMenuPage);
 					});
 				}else{
