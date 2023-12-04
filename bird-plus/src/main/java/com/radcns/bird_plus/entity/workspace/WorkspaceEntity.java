@@ -115,6 +115,12 @@ public class WorkspaceEntity {
 
             private Long joinedCount;
         }
+        
+        @Getter
+        @Setter
+        public static class JoinedWorkspaceRequest{
+        	private Long id;
+        }
     }
 
     @Column("is_private")

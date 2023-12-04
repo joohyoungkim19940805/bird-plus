@@ -49,7 +49,9 @@ public class ServerSentStreamTemplate<T> {
 		
 		NOTICE_BOARD_ACCEPT, 
 		NOTICE_BOARD_DELETE_ACCEPT,
-		NOTICE_BOARD_DETAIL_ACCEPT
+		NOTICE_BOARD_DETAIL_ACCEPT,
+		
+		WORKSPACE_PERMIT_REQUEST_ACCEPT
 		;
 		public final static Class<ChattingResponse> CHATTING_ACCEPT_CAST_CLASS = ChattingResponse.class;
 		public final static Class<ChattingReactionResponse> CHATTING_REACTION_ACCEPT_CAST_CLASS = ChattingReactionResponse.class;

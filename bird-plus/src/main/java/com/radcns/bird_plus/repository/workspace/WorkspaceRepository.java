@@ -7,6 +7,9 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import com.radcns.bird_plus.entity.workspace.WorkspaceEntity.WorkspaceDomain.SearchWorkspaceListResponse;
 public interface WorkspaceRepository extends ReactiveCrudRepository<WorkspaceEntity, Long> {
+	
+	Mono<Boolean> existsByOwnerAccountId(Long accountId);
+	
     @Query("""
     SELECT
     	ww.id,

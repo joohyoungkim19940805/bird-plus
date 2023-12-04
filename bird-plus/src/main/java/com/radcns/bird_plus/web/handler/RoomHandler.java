@@ -66,7 +66,7 @@ public class RoomHandler {
 		return accountService.convertRequestToAccount(request)
 		.flatMap(account -> 
 			request.bodyToMono(RoomEntity.class)
-			.filterWhen(e-> workspaceInAccountRepository.existsByWorkspaceIdAndAccountId(e.getWorkspaceId(), account.getId()))
+			.filterWhen(e-> workspaceInAccountRepository.existsByWorkspaceIdAndAccountIdAndIsEnabled(e.getWorkspaceId(), account.getId(), true))
 			.switchIfEmpty(Mono.error(new WorkspaceException(Result._201)))
 			.flatMap(room ->{
 				room.setCreateBy(account.getId());
@@ -127,7 +127,7 @@ public class RoomHandler {
 		.contentType(MediaType.APPLICATION_JSON)
 		.body(
 			accountService.convertRequestToAccount(request)
-			.filterWhen(e-> workspaceInAccountRepository.existsByWorkspaceIdAndAccountId(workspaceId, e.getId()))
+			.filterWhen(e-> workspaceInAccountRepository.existsByWorkspaceIdAndAccountIdAndIsEnabled(workspaceId, e.getId(), true))
 			.switchIfEmpty(Mono.error(new WorkspaceException(Result._201)))
 			.flatMap(e->{
 				return roomRepository.existsByCreateByAndWorkspaceIdAndRoomType(e.getId(), workspaceId, RoomType.SELF)
@@ -191,7 +191,7 @@ public class RoomHandler {
 					.flatMap(createRoomInAccount -> {
 						return accountRepository.findByAccountName(createRoomInAccount.getAccountName())
 						.filterWhen(e -> 
-							workspaceInAccountRepository.existsByWorkspaceIdAndAccountId(createRoomInAccount.getWorkspaceId(), e.getId())
+							workspaceInAccountRepository.existsByWorkspaceIdAndAccountIdAndIsEnabled(createRoomInAccount.getWorkspaceId(), e.getId(), true)
 						)
 						.flatMap(e-> {
 							RoomInAccountEntity roomInAccountEntity = RoomInAccountEntity.builder()
@@ -376,7 +376,7 @@ public class RoomHandler {
 		.contentType(MediaType.APPLICATION_JSON)
 		.body(
 			accountService.convertRequestToAccount(request)
-			.filterWhen(account -> workspaceInAccountRepository.existsByAccountId(account.getId()))
+			.filterWhen(account -> workspaceInAccountRepository.existsByAccountIdAndIsEnabled(account.getId(), true))
 			.switchIfEmpty(Mono.error(new WorkspaceException(Result._201)))
 			.flatMap(account -> {
 				var param = request.queryParams();
@@ -420,7 +420,7 @@ public class RoomHandler {
 		Long workspaceId = Long.valueOf(request.pathVariable("workspaceId"));
 
 		var response = accountService.convertRequestToAccount(request)
-			.filterWhen(account -> workspaceInAccountRepository.existsByAccountId(account.getId()))
+			.filterWhen(account -> workspaceInAccountRepository.existsByAccountIdAndIsEnabled(account.getId(), true))
 			.switchIfEmpty(Mono.error(new WorkspaceException(Result._201)))
 			.flatMap(account -> {
 				var param = request.queryParams();
@@ -468,7 +468,7 @@ public class RoomHandler {
 		
 		Long workspaceId = Long.valueOf(request.pathVariable("workspaceId"));
 		var response = accountService.convertRequestToAccount(request)
-			.filterWhen(account -> workspaceInAccountRepository.existsByAccountId(account.getId()))
+			.filterWhen(account -> workspaceInAccountRepository.existsByAccountIdAndIsEnabled(account.getId(), true))
 			.switchIfEmpty(Mono.error(new WorkspaceException(Result._201)))
 			.flatMap(account -> {
 				var param = request.queryParams();

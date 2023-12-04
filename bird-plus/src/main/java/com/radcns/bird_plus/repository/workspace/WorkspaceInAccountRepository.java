@@ -1,6 +1,8 @@
 package com.radcns.bird_plus.repository.workspace;
 import com.radcns.bird_plus.entity.workspace.WorkspaceInAccountEntity;
 import com.radcns.bird_plus.entity.workspace.WorkspaceInAccountEntity.WorkspaceMembersDomain;
+import com.radcns.bird_plus.entity.workspace.WorkspaceInAccountEntity.WorkspaceMembersDomain.WokrspaceInAccountPermitListResponse;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
@@ -8,9 +10,13 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 public interface WorkspaceInAccountRepository extends ReactiveCrudRepository<WorkspaceInAccountEntity, Long> {
     Mono<Boolean> existsByAccountId(Long accountId);
+    Mono<Boolean> existsByAccountIdAndIsEnabled(Long accountId, Boolean isEnabled);
 
     Mono<Boolean> existsByWorkspaceIdAndAccountId(Long workspaceId, Long accountId);
+    Mono<Boolean> existsByWorkspaceIdAndAccountIdAndIsEnabled(Long workspaceId, Long accountId, Boolean isEnabled);
 
+    Mono<Boolean> existsByWorkspaceIdAndAccountIdAndIsAdmin(Long workspaceId, Long accountId, Boolean isEnabled, Boolean isAdmin);
+    
     @Query("""
     SELECT
     	wwia.workspace_id,
@@ -34,6 +40,8 @@ public interface WorkspaceInAccountRepository extends ReactiveCrudRepository<Wor
     	wwia.workspace_id = ww.id
     WHERE
     	wwia.account_id = :#{[0]}
+    AND
+    	wwia.is_enabled = true
     ORDER BY
     	ww.create_at DESC
     OFFSET
@@ -54,7 +62,9 @@ public interface WorkspaceInAccountRepository extends ReactiveCrudRepository<Wor
     ON
     	wwia.workspace_id = ww.id
     WHERE
-    	wwia.account_id = :accountId;
+    	wwia.account_id = :accountId
+    AND 
+    	wwia.is_enabled = true
     """)
     Mono<Long> countByAccountId(Long accountId);
 
@@ -155,4 +165,30 @@ public interface WorkspaceInAccountRepository extends ReactiveCrudRepository<Wor
     ;
     """)
     Mono<Long> countJoinAccountByWorkspaceIdAndNotAccountIdAndFullName(Long workpsaceId, Long accountId, String fullName);
+    
+    
+    @Query("""
+    	SELECT 
+    		wwia.id,
+    		wwia.workspace_id,
+    		aa.account_name,
+    		aa.email,
+    		aa.full_name,
+    		aa.job_grade,
+    		aa.department
+    	FROM
+    		wo_workspace_in_account wwia
+    	INNER JOIN
+    		ac_account aa
+    	ON 
+    		wwia.account_id = aa.id
+    	WHERE
+    		wwia.workspace_id = :#{[0]}
+    	AND
+    		wwia.is_enabled = false
+    	;
+    		""")
+    Flux<WokrspaceInAccountPermitListResponse> findAllPermitList(Long workspaceId);
+
+    
 }

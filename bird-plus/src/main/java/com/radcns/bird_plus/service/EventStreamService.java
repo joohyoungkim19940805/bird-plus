@@ -10,6 +10,7 @@ import com.radcns.bird_plus.entity.room.RoomInAccountEntity;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity.RoomInAccountDomain.MyJoinedRoomListResponse;
 import com.radcns.bird_plus.repository.room.RoomInAccountRepository;
 import com.radcns.bird_plus.repository.room.RoomRepository;
+import com.radcns.bird_plus.repository.workspace.WorkspaceInAccountRepository;
 import com.radcns.bird_plus.util.stream.ServerSentStreamTemplate;
 import com.radcns.bird_plus.util.stream.ServerSentStreamTemplate.ServerSentStreamType;
 
@@ -24,6 +25,9 @@ public class EventStreamService {
 	
 	@Autowired
 	private RoomInAccountRepository roomInAccountRepository;
+	
+	@Autowired
+	private WorkspaceInAccountRepository workspaceInAccountRepository;
 	
 	public Mono<ServerSentStreamTemplate<?>> chattingEmissionStream(ServerSentStreamTemplate<?> serverSentTemplate, AccountEntity account) {
 		return roomInAccountRepository.existsByAccountIdAndWorkspaceIdAndRoomId(account.getId(), serverSentTemplate.getWorkspaceId(), serverSentTemplate.getRoomId())
@@ -80,6 +84,16 @@ public class EventStreamService {
 	public Mono<ServerSentStreamTemplate<?>> chattingReactionEmissionStream(ServerSentStreamTemplate<?> serverSentTemplate, AccountEntity account) {
 		return roomInAccountRepository.existsByAccountIdAndWorkspaceIdAndRoomId(account.getId(), serverSentTemplate.getWorkspaceId(), serverSentTemplate.getRoomId())
 		.flatMap(bol ->{
+			if(bol) {
+				return Mono.just(serverSentTemplate);
+			}else {
+				return Mono.empty();
+			}
+		});
+	}
+	public Mono<ServerSentStreamTemplate<?>> workspacePermitRequestStream(ServerSentStreamTemplate<?> serverSentTemplate, AccountEntity account){
+		return workspaceInAccountRepository.existsByWorkspaceIdAndAccountIdAndIsEnabled(serverSentTemplate.getWorkspaceId(), account.getId(), true)
+		.flatMap(bol -> {
 			if(bol) {
 				return Mono.just(serverSentTemplate);
 			}else {

@@ -13,9 +13,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
+import com.radcns.bird_plus.entity.room.RoomInAccountEntity;
 import com.radcns.bird_plus.entity.workspace.WorkspaceEntity;
 import com.radcns.bird_plus.entity.workspace.WorkspaceInAccountEntity;
+import com.radcns.bird_plus.entity.workspace.WorkspaceEntity.WorkspaceDomain.JoinedWorkspaceRequest;
 import com.radcns.bird_plus.entity.workspace.WorkspaceInAccountEntity.WorkspaceMembersDomain;
+import com.radcns.bird_plus.entity.workspace.WorkspaceInAccountEntity.WorkspaceMembersDomain.WokrspaceInAccountPermitListResponse;
+import com.radcns.bird_plus.entity.workspace.WorkspaceInAccountEntity.WorkspaceMembersDomain.WorkspaceInAccountGiveAdmin;
+import com.radcns.bird_plus.entity.workspace.WorkspaceInAccountEntity.WorkspaceMembersDomain.WorkspaceInAccountPermitRequest;
+import com.radcns.bird_plus.entity.workspace.WorkspaceInAccountEntity.WorkspaceMembersDomain.WorkspaceInAccountPermitRequest.PermitType;
 import com.radcns.bird_plus.repository.account.AccountRepository;
 import com.radcns.bird_plus.repository.workspace.WorkspaceInAccountRepository;
 import com.radcns.bird_plus.repository.workspace.WorkspaceRepository;
@@ -23,8 +29,13 @@ import com.radcns.bird_plus.service.AccountService;
 import com.radcns.bird_plus.util.ResponseWrapper;
 import com.radcns.bird_plus.util.exception.WorkspaceException;
 import com.radcns.bird_plus.util.exception.BirdPlusException.Result;
+import com.radcns.bird_plus.util.stream.ServerSentStreamTemplate;
+import com.radcns.bird_plus.util.stream.WorkspaceBroker;
+import com.radcns.bird_plus.util.stream.ServerSentStreamTemplate.ServerSentStreamType;
+
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 
 @Component
 public class WorkspaceHandler {
@@ -41,6 +52,10 @@ public class WorkspaceHandler {
 	@Autowired
 	private AccountRepository accountRepository;
 	
+	@Autowired
+	private WorkspaceBroker workspaceBorker;
+	
+	
 	public Mono<ServerResponse> createWorkspace(ServerRequest request){
 		//serverRequest.bodyToMono()
 		return accountService.convertRequestToAccount(request)
@@ -55,6 +70,8 @@ public class WorkspaceHandler {
 					WorkspaceInAccountEntity.builder()
 					.accountId(account.getId())
 					.workspaceId(e.getId())
+					.isEnabled(true)
+					.isAdmin(true)
 					.build()
 				).subscribe()
 			)
@@ -92,7 +109,7 @@ public class WorkspaceHandler {
 		.contentType(MediaType.APPLICATION_JSON)
 		.body(
 			accountService.convertRequestToAccount(request)
-			.flatMap(account -> workspaceInAccountRepository.existsByAccountId(account.getId()))
+			.flatMap(account -> workspaceInAccountRepository.existsByAccountIdAndIsEnabled(account.getId(), true))
 			.flatMap(isExists -> response(Result._0, isExists))
 		, ResponseWrapper.class)
 		;
@@ -130,8 +147,8 @@ public class WorkspaceHandler {
 		.contentType(MediaType.APPLICATION_JSON)
 		.body(
 			accountService.convertRequestToAccount(request)
-			.filterWhen(e -> workspaceInAccountRepository.existsByWorkspaceIdAndAccountId(workspaceId, e.getId()))
-			.switchIfEmpty(Mono.error(new WorkspaceException(Result._200)))
+			.filterWhen(e -> workspaceInAccountRepository.existsByWorkspaceIdAndAccountIdAndIsEnabled(workspaceId, e.getId(), true))
+			.switchIfEmpty(Mono.error(new WorkspaceException(Result._201)))
 			.flatMap(account -> {
 				var param = request.queryParams();
 				String fullName = param.getFirst("fullName");
@@ -181,4 +198,123 @@ public class WorkspaceHandler {
 		, ResponseWrapper.class)
 		;
 	}
+	
+	public Mono<ServerResponse> createJoinedWorkspace(ServerRequest request) {
+		
+		return accountService.convertRequestToAccount(request)
+		.flatMap(account-> 
+			request.bodyToMono(JoinedWorkspaceRequest.class).flatMap(joinedWorkspaceRequest -> 
+				workspaceRepository.findById(joinedWorkspaceRequest.getId())
+				.filterWhen(workspaceEntity -> workspaceInAccountRepository.existsByWorkspaceIdAndAccountId(workspaceEntity.getId(), account.getId()).map(e->! e))
+				.switchIfEmpty(Mono.error(new WorkspaceException(Result._203)))
+				.filterWhen(workspaceEntity -> {
+					if(workspaceEntity.getAccessFilter().size() == 0) {
+						return Mono.just(Boolean.TRUE);
+					}					
+					String joinedEmail = account.getEmail().substring( account.getEmail().indexOf("@") );
+					
+					return Flux.fromIterable(workspaceEntity.getAccessFilter()).any(e->e.equals(joinedEmail));
+				})
+				.switchIfEmpty(Mono.error(new WorkspaceException(Result._202)))
+				.flatMap(workspaceEntity -> {
+					WorkspaceInAccountEntity workspaceInAccountEntity = WorkspaceInAccountEntity.builder()
+					.accountId(account.getId())
+					.workspaceId(workspaceEntity.getId())
+					.isEnabled( ! workspaceEntity.getIsFinallyPermit())
+					.isAdmin(false)
+					.build();
+					return workspaceInAccountRepository.save(workspaceInAccountEntity).map(e->e.withAccountId(null))
+						.doOnSuccess(e->{
+							workspaceBorker.send(
+								new ServerSentStreamTemplate<WokrspaceInAccountPermitListResponse>(
+									e.getWorkspaceId(),
+									(long)0,
+									WokrspaceInAccountPermitListResponse.builder()
+										.id(e.getId())
+										.workspaceId(e.getWorkspaceId())
+										.accountName(account.getAccountName())
+										.email(account.getEmail())
+										.fullName(account.getFullName())
+										.jobGrade(account.getJobGrade())
+										.department(account.getDepartment())
+									.build(),
+									ServerSentStreamType.WORKSPACE_PERMIT_REQUEST_ACCEPT
+								) {}
+							);
+						});
+				})
+			)
+		).flatMap(e->{
+			 return ok()
+				.contentType(MediaType.APPLICATION_JSON)
+				.body(response(Result._0, e), ResponseWrapper.class)
+				;
+		});
+
+	}
+	public Mono<ServerResponse> createPermitWokrspaceInAccount(ServerRequest request){
+		
+		return accountService.convertRequestToAccount(request)
+		.flatMap(account -> 
+			request.bodyToMono(WorkspaceInAccountPermitRequest.class)
+			.filterWhen(e->workspaceInAccountRepository.existsByWorkspaceIdAndAccountIdAndIsAdmin(e.getWorkspaceId(), account.getId(), true, true))
+			.switchIfEmpty(Mono.error(new WorkspaceException(Result._203)))
+			.flatMap(workspaceInAccountPermitRequest-> {
+				return workspaceInAccountRepository.findById(workspaceInAccountPermitRequest.getId()).flatMap(workspaceInAccountEntity -> {
+					if(workspaceInAccountPermitRequest.getPermitType().equals(PermitType.PERMIT)) {
+						workspaceInAccountRepository.save(workspaceInAccountEntity.withIsEnabled(true)).subscribe();
+					}else if(workspaceInAccountPermitRequest.getPermitType().equals(PermitType.REJECT)) {
+						workspaceInAccountRepository.delete(workspaceInAccountEntity).subscribe();
+					}
+					
+					return Mono.just(workspaceInAccountEntity);
+				});
+			})
+			.flatMap(e->ok()
+				.contentType(MediaType.APPLICATION_JSON)
+				.body(response(Result._0, e.withAccountId(null)), ResponseWrapper.class)
+			)			
+		);
+	}
+	
+	public Mono<ServerResponse> giveAdmin(ServerRequest request){
+		return accountService.convertRequestToAccount(request)
+			.flatMap(account -> 
+			request.bodyToMono(WorkspaceInAccountGiveAdmin.class)
+			.filterWhen(e->workspaceInAccountRepository.existsByWorkspaceIdAndAccountIdAndIsAdmin(e.getWorkspaceId(), account.getId(), true, true))
+			.switchIfEmpty(Mono.error(new WorkspaceException(Result._203)))
+			.flatMap(e->workspaceInAccountRepository.findById(e.getId()))
+			.flatMap(e-> workspaceInAccountRepository.save(e.withIsAdmin(true)))
+			.flatMap(e->ok()
+				.contentType(MediaType.APPLICATION_JSON)
+				.body(response(Result._0, e.withAccountId(null)), ResponseWrapper.class)
+			)
+		);
+	}
+	
+	public Mono<ServerResponse> searchPermitRequestList(ServerRequest request){
+		Long workspaceId = Long.valueOf(request.pathVariable("workspaceId"));
+		
+		return accountService.convertRequestToAccount(request)
+		.filterWhen(e-> workspaceInAccountRepository.existsByWorkspaceIdAndAccountIdAndIsEnabled(workspaceId, e.getId(), true))
+		.switchIfEmpty(Mono.error(new WorkspaceException(Result._201)))
+		.flatMap(account -> {
+			Sinks.Many<WokrspaceInAccountPermitListResponse> sinks = Sinks.many().unicast().onBackpressureBuffer();
+			
+			workspaceInAccountRepository.findAllPermitList(workspaceId)
+			.doOnNext(e->{
+				sinks.tryEmitNext(e);
+			})
+			.doFinally(f->{
+				sinks.tryEmitComplete();
+			})
+			.subscribe();
+
+			return ok()
+			.contentType(MediaType.TEXT_EVENT_STREAM)
+			.body(sinks.asFlux(), WokrspaceInAccountPermitListResponse.class);
+		});
+		
+	}
+
 }

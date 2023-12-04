@@ -94,6 +94,9 @@ public class MainRouter implements IndexRouterSwagger{
 		return route().nest(path("/api/workspace"), builder -> builder
 				.nest(path("/create"), createPathBuilder -> createPathBuilder
 						.POST("/", accept(MediaType.APPLICATION_JSON), workspaceHandler::createWorkspace)
+						.POST("/joined", accept(MediaType.APPLICATION_JSON), workspaceHandler::createJoinedWorkspace)
+						.POST("/permit", accept(MediaType.APPLICATION_JSON), workspaceHandler::createPermitWokrspaceInAccount)
+						.POST("/give-admin", accept(MediaType.APPLICATION_JSON), workspaceHandler::giveAdmin)
 					.build())
 				/*.nest(path("update") , updatePathBuilder -> updatePathBuilder
 					.build())*/
@@ -103,6 +106,7 @@ public class MainRouter implements IndexRouterSwagger{
 						.GET("/my-joined-list", accept(MediaType.APPLICATION_JSON), workspaceHandler::searchWorkspaceMyJoined)
 						.GET("/joined-account-list/{workspaceId}", accept(MediaType.APPLICATION_JSON), workspaceHandler::searchWorkspaceInAccount)
 						.GET("/detail/{workspaceId}", accept(MediaType.APPLICATION_JSON), workspaceHandler::getWorkspaceDetail)
+						.GET("/permit-request-list/{workspaceId}", accept(MediaType.TEXT_EVENT_STREAM), workspaceHandler::searchPermitRequestList)
 					.build())
 				).build();
 		/*

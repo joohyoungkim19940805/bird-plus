@@ -68,6 +68,9 @@ public class WorkspaceInAccountEntity {
     @LastModifiedBy
     private Long updateBy;
 
+    @Column("is_admin")
+    private Boolean isAdmin;
+    
     @Transient
     Long createMils;
 
@@ -132,6 +135,38 @@ public class WorkspaceInAccountEntity {
             private String jobGrade;
 
             private String department;
+        }
+        
+        @Getter
+        @Setter
+        @Builder(toBuilder = true)
+        public static class WokrspaceInAccountPermitListResponse{
+        	private Long id;
+        	private Long workspaceId;
+        	private String accountName;
+        	private String email;
+        	private String fullName;
+        	private String jobGrade;
+        	private String department;
+        	
+        }
+        
+        @Getter
+        @Setter
+        public static class WorkspaceInAccountPermitRequest{
+        	private Long id;
+        	private Long workspaceId;
+        	private PermitType permitType;
+        	public static enum PermitType{
+        		PERMIT, REJECT
+        	}
+        }
+        
+        @Getter
+        @Setter
+        public static class WorkspaceInAccountGiveAdmin{
+        	private Long id;
+        	private Long workspaceId;
         }
     }
 

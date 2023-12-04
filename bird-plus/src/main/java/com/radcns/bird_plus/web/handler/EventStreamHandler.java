@@ -49,6 +49,8 @@ public class EventStreamHandler {
 								return eventStreamService.noticeBoardEmissionStream(serverSentTemplate, account);	
 							}else if(serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.CHATTING_REACTION_ACCEPT)) {
 								return eventStreamService.chattingReactionEmissionStream(serverSentTemplate, account);
+							}else if(serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.WORKSPACE_PERMIT_REQUEST_ACCEPT)) {
+								return eventStreamService.workspacePermitRequestStream(serverSentTemplate, account);
 							}
 							else {
 								return Mono.just(serverSentTemplate);
