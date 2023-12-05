@@ -205,8 +205,10 @@ public class WorkspaceHandler {
 		.flatMap(account-> 
 			request.bodyToMono(JoinedWorkspaceRequest.class).flatMap(joinedWorkspaceRequest -> 
 				workspaceRepository.findById(joinedWorkspaceRequest.getId())
-				.filterWhen(workspaceEntity -> workspaceInAccountRepository.existsByWorkspaceIdAndAccountId(workspaceEntity.getId(), account.getId()).map(e->! e))
+				.filterWhen(workspaceEntity -> workspaceInAccountRepository.existsByWorkspaceIdAndAccountIdAndIsEnabled(workspaceEntity.getId(), account.getId(), true).map(e->! e))
 				.switchIfEmpty(Mono.error(new WorkspaceException(Result._203)))
+				.filterWhen(workspaceEntity -> workspaceInAccountRepository.existsByWorkspaceIdAndAccountId(workspaceEntity.getId(), account.getId()).map(e->! e))
+				.switchIfEmpty(Mono.error(new WorkspaceException(Result._206)))
 				.filterWhen(workspaceEntity -> {
 					if(workspaceEntity.getAccessFilter().size() == 0) {
 						return Mono.just(Boolean.TRUE);
@@ -224,24 +226,24 @@ public class WorkspaceHandler {
 					.isAdmin(false)
 					.build();
 					return workspaceInAccountRepository.save(workspaceInAccountEntity).map(e->e.withAccountId(null))
-						.doOnSuccess(e->{
-							workspaceBorker.send(
-								new ServerSentStreamTemplate<WokrspaceInAccountPermitListResponse>(
-									e.getWorkspaceId(),
-									(long)0,
-									WokrspaceInAccountPermitListResponse.builder()
-										.id(e.getId())
-										.workspaceId(e.getWorkspaceId())
-										.accountName(account.getAccountName())
-										.email(account.getEmail())
-										.fullName(account.getFullName())
-										.jobGrade(account.getJobGrade())
-										.department(account.getDepartment())
-									.build(),
-									ServerSentStreamType.WORKSPACE_PERMIT_REQUEST_ACCEPT
-								) {}
-							);
-						});
+					.doOnSuccess(e->{
+						workspaceBorker.send(
+							new ServerSentStreamTemplate<WokrspaceInAccountPermitListResponse>(
+								e.getWorkspaceId(),
+								(long)0,
+								WokrspaceInAccountPermitListResponse.builder()
+									.id(e.getId())
+									.workspaceId(e.getWorkspaceId())
+									.accountName(account.getAccountName())
+									.email(account.getEmail())
+									.fullName(account.getFullName())
+									.jobGrade(account.getJobGrade())
+									.department(account.getDepartment())
+								.build(),
+								ServerSentStreamType.WORKSPACE_PERMIT_REQUEST_ACCEPT
+							) {}
+						);
+					});
 				})
 			)
 		).flatMap(e->{
@@ -261,11 +263,29 @@ public class WorkspaceHandler {
 			.switchIfEmpty(Mono.error(new WorkspaceException(Result._203)))
 			.flatMap(workspaceInAccountPermitRequest-> {
 				return workspaceInAccountRepository.findById(workspaceInAccountPermitRequest.getId()).flatMap(workspaceInAccountEntity -> {
-					if(workspaceInAccountPermitRequest.getPermitType().equals(PermitType.PERMIT)) {
-						workspaceInAccountRepository.save(workspaceInAccountEntity.withIsEnabled(true)).subscribe();
-					}else if(workspaceInAccountPermitRequest.getPermitType().equals(PermitType.REJECT)) {
-						workspaceInAccountRepository.delete(workspaceInAccountEntity).subscribe();
+					Mono<?> saveOrDelete;
+					if(workspaceInAccountPermitRequest.getPermitType() == null ) {
+						throw new WorkspaceException(Result._205);
+					}else if(workspaceInAccountPermitRequest.getPermitType().equals(PermitType.PERMIT)) {
+						saveOrDelete = workspaceInAccountRepository.save(workspaceInAccountEntity.withIsEnabled(true));
+					}else{//(workspaceInAccountPermitRequest.getPermitType().equals(PermitType.REJECT)) {
+						saveOrDelete = workspaceInAccountRepository.delete(workspaceInAccountEntity);
 					}
+					saveOrDelete.doOnSuccess(e->{
+						workspaceBorker.send(
+							new ServerSentStreamTemplate<WorkspaceInAccountPermitRequest>(
+								workspaceInAccountEntity.getWorkspaceId(),
+								(long)0,
+								WorkspaceInAccountPermitRequest.builder()
+									.id(workspaceInAccountEntity.getId())
+									.workspaceId(workspaceInAccountEntity.getWorkspaceId())
+									.permitType(workspaceInAccountPermitRequest.getPermitType())
+									.accountName(workspaceInAccountPermitRequest.getAccountName())
+								.build(),
+								ServerSentStreamType.WORKSPACE_PERMIT_RESULT_ACCEPT
+							) {}
+						);
+					}).subscribe();
 					
 					return Mono.just(workspaceInAccountEntity);
 				});

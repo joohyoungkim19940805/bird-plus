@@ -30,6 +30,8 @@ public abstract non-sealed class BirdPlusException extends RuntimeException impl
 		_202(202, "해당 워크스페이스에서 허용하는 이메일이 아닙니다.", "WORKSPACE ACCESS EMAIL DEFINED"),
 		_203(203, "이미 참여 중인 워크스페이스 입니다.", "ALREADY JOINED WORKSPACE"),
 		_204(204, "해당 기능에 권한이 존재하지 않습니다.", "THIS FUNCTION ACCESS DEFINED"),
+		_205(205, "알 수 없는 명령입니다.", "UNKOWN COMMAND"),
+		_206(206, "해당 워크스페이스에 접근을 허가받지 못했습니다.", "WORKSPACE ACCESS NOT PERMIT"),
 		_300(300, "존재하지 않는 방입니다.", "INVALID ROOM"),
 		_301(301, "해당 방에 접근 할 권한이 없습니다.", "ROOM ACCESS DEFINED"),
 		_302(302, "이미 존재하는 방입니다.", "ROOM ACCESS DEFINED"),

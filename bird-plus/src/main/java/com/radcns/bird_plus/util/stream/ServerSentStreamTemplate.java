@@ -7,6 +7,8 @@ import com.radcns.bird_plus.entity.notice.NoticeBoardEntity;
 import com.radcns.bird_plus.entity.notice.NoticeBoardInheritsTable;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity.RoomInAccountDomain.RoomJoinedAccountResponse;
+import com.radcns.bird_plus.entity.workspace.WorkspaceInAccountEntity.WorkspaceMembersDomain.WokrspaceInAccountPermitListResponse;
+import com.radcns.bird_plus.entity.workspace.WorkspaceInAccountEntity.WorkspaceMembersDomain.WorkspaceInAccountPermitRequest;
 
 import lombok.Getter;
 import lombok.ToString;
@@ -51,7 +53,8 @@ public class ServerSentStreamTemplate<T> {
 		NOTICE_BOARD_DELETE_ACCEPT,
 		NOTICE_BOARD_DETAIL_ACCEPT,
 		
-		WORKSPACE_PERMIT_REQUEST_ACCEPT
+		WORKSPACE_PERMIT_REQUEST_ACCEPT,
+		WORKSPACE_PERMIT_RESULT_ACCEPT
 		;
 		public final static Class<ChattingResponse> CHATTING_ACCEPT_CAST_CLASS = ChattingResponse.class;
 		public final static Class<ChattingReactionResponse> CHATTING_REACTION_ACCEPT_CAST_CLASS = ChattingReactionResponse.class;
@@ -62,6 +65,9 @@ public class ServerSentStreamTemplate<T> {
 		public final static Class<NoticeBoardInheritsTable> NOTICE_BOARD_ACCEPT_CAST_CLASS = NoticeBoardInheritsTable.class;
 		public final static Class<NoticeBoardInheritsTable> NOTICE_BOARD_DELETE_ACCEPT_CAST_CLASS = NoticeBoardInheritsTable.class;
 		public final static Class<NoticeBoardDetailEntity> NOTICE_BOARD_DETAIL_ACCEPT_CAST_CLASS = NoticeBoardDetailEntity.class;
-		 
+		
+		public final static Class<WokrspaceInAccountPermitListResponse> WORKSPACE_PERMIT_REQUEST_ACCEPT_CAST_CLASS = WokrspaceInAccountPermitListResponse.class;
+		public final static Class<WorkspaceInAccountPermitRequest> WORKSPACE_PERMIT_RESULT_ACCEPT_CAST_CLASS = WorkspaceInAccountPermitRequest.class;
+		
 	}
 }

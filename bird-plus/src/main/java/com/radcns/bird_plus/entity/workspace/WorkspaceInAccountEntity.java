@@ -140,6 +140,8 @@ public class WorkspaceInAccountEntity {
         @Getter
         @Setter
         @Builder(toBuilder = true)
+        @NoArgsConstructor
+        @AllArgsConstructor
         public static class WokrspaceInAccountPermitListResponse{
         	private Long id;
         	private Long workspaceId;
@@ -153,10 +155,14 @@ public class WorkspaceInAccountEntity {
         
         @Getter
         @Setter
+        @Builder(toBuilder = true)
+        @NoArgsConstructor
+        @AllArgsConstructor
         public static class WorkspaceInAccountPermitRequest{
         	private Long id;
         	private Long workspaceId;
         	private PermitType permitType;
+        	private String accountName;
         	public static enum PermitType{
         		PERMIT, REJECT
         	}

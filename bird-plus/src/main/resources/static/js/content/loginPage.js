@@ -669,8 +669,6 @@ const getStart = new class GetStart{
 					});
 					containerDiv.append(joinedButton);
 					joinedButton.onclick = () => {
-						console.log(JSON.stringify({id}));
-						console.log(id);
 						fetch(`/api/workspace/create/joined`, {
 							method: 'POST',
 							headers:{
@@ -680,36 +678,20 @@ const getStart = new class GetStart{
 						}).then(response => {
 							if( ! response.ok){
 								console.error(response);
-								alert('')
 							}
 							return response.json();
 						}).then(result => {
 							console.log(result);
 							if(result.code == 0){
-								if( ! result.data.isEnabled){
+								if(result.data.isEnabled){
 									alert('승인 받은 사용자만 접속 가능합니다. 관리자에게 최종 승인을 요청하십시오.')
 								}else{
-									let cookie = document.cookie.split(';').reduce( (t,e) =>{
-									    let [k, v] = e.split('=')
-									    t[k] = v;
-								    return t
-									}, {})
-									window.location.href = `grease-lightning-chat://param?workspaceId=${workspaceId}&Authorization=${cookie.Authorization}`;
-									let moveDownload = setTimeout(()=>{
-										window.removeEventListener('blur', onBlurEvent, false);
-										//window.location.href = 'http://naver.com';
-										if(confirm('do you want download app?')){
-											alert('아직 빌드 파일을 생성하지 못하였기 때문에 다운로드 할 수 없습니다..')
-										}
-									}, 2000)
-									const onBlurEvent = () => {
-										window.removeEventListener('blur', onBlurEvent, false);
-										clearTimeout(moveDownload);
-										
-									}
-									window.addEventListener('blur', onBlurEvent);
+									this.#goToWorkspace(id);
 								}
-							}else{
+							}else if(result.code == 203){
+								this.#goToWorkspace(id);
+							}
+							else{
 								alert(result.message);
 							}
 						})
@@ -1013,25 +995,7 @@ const getStart = new class GetStart{
 					containerDiv.append(goToButton);
 					goToButton.onclick = () => {
 						//goToButton.dataset.workspaceId = workspaceId;
-						let cookie = document.cookie.split(';').reduce( (t,e) =>{
-						    let [k, v] = e.split('=')
-						    t[k] = v;
-						    return t
-						}, {})
-						window.location.href = `grease-lightning-chat://param?workspaceId=${workspaceId}&Authorization=${cookie.Authorization}`;
-						let moveDownload = setTimeout(()=>{
-							window.removeEventListener('blur', onBlurEvent, false);
-							//window.location.href = 'http://naver.com';
-							if(confirm('do you want download app?')){
-								alert('아직 빌드 파일을 생성하지 못하였기 때문에 다운로드 할 수 없습니다..')
-							}
-						}, 2000)
-						const onBlurEvent = () => {
-							window.removeEventListener('blur', onBlurEvent, false);
-							clearTimeout(moveDownload);
-							
-						}
-						window.addEventListener('blur', onBlurEvent);
+						this.#goToWorkspace(workspaceId);
 					}
 					visibleObserver.observe(li);
 					return li;
@@ -1046,5 +1010,25 @@ const getStart = new class GetStart{
 		renderingWorkspaceListPage();
 		return startMenuPage;
 	}
-	
+	#goToWorkspace(workspaceId){
+		let cookie = document.cookie.split(';').reduce( (t,e) =>{
+		    let [k, v] = e.split('=')
+		    t[k] = v;
+	    return t
+		}, {})
+		window.location.href = `grease-lightning-chat://param?workspaceId=${workspaceId}&Authorization=${cookie.Authorization}`;
+		let moveDownload = setTimeout(()=>{
+			window.removeEventListener('blur', onBlurEvent, false);
+			//window.location.href = 'http://naver.com';
+			if(confirm('do you want download app?')){
+				alert('아직 빌드 파일을 생성하지 못하였기 때문에 다운로드 할 수 없습니다..')
+			}
+		}, 2000)
+		const onBlurEvent = () => {
+			window.removeEventListener('blur', onBlurEvent, false);
+			clearTimeout(moveDownload);
+			
+		}
+		window.addEventListener('blur', onBlurEvent);
+	}
 }();
