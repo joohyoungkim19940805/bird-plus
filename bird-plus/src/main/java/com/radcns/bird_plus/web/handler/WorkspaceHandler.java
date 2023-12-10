@@ -152,7 +152,7 @@ public class WorkspaceHandler {
 			.flatMap(account -> {
 				var param = request.queryParams();
 				String fullName = param.getFirst("fullName");
-				
+				Long roomId = Long.valueOf(param.getOrDefault("roomId", List.of("0")).get(0));
 				PageRequest pageRequest = PageRequest.of(
 					Integer.valueOf(param.getOrDefault("page", List.of("0")).get(0)),
 					Integer.valueOf(param.getOrDefault("size", List.of("10")).get(0))	
@@ -160,12 +160,14 @@ public class WorkspaceHandler {
 				
 				Flux<WorkspaceMembersDomain.WorkspaceInAccountListResponse> workspaceInAccountFlux;
 				Mono<Long> workspaceInAccountCountMono;
+				System.out.println("kjh test ::: ");
+				System.out.println(fullName);
 				if(fullName != null && ! fullName.isBlank()) {
-					workspaceInAccountFlux = workspaceInAccountRepository.findAllJoinAccountByWorkspaceIdAndNotAccountIdAndFullName(workspaceId, account.getId(), fullName, pageRequest);
-					workspaceInAccountCountMono = workspaceInAccountRepository.countJoinAccountByWorkspaceIdAndNotAccountIdAndFullName(workspaceId, account.getId(), fullName);
+					workspaceInAccountFlux = workspaceInAccountRepository.findAllJoinAccountByWorkspaceIdAndNotAccountIdAndFullName(workspaceId, roomId, account.getId(), fullName, pageRequest);
+					workspaceInAccountCountMono = workspaceInAccountRepository.countJoinAccountByWorkspaceIdAndNotAccountIdAndFullName(workspaceId, roomId, account.getId(), fullName);
 				}else {
-					workspaceInAccountFlux = workspaceInAccountRepository.findAllJoinAccountByWorkspaceIdAndNotAccountId(workspaceId, account.getId(), pageRequest);
-					workspaceInAccountCountMono = workspaceInAccountRepository.countJoinAccountByWorkspaceIdAndNotAccountId(workspaceId, account.getId());
+					workspaceInAccountFlux = workspaceInAccountRepository.findAllJoinAccountByWorkspaceIdAndNotAccountId(workspaceId, roomId, account.getId(), pageRequest);
+					workspaceInAccountCountMono = workspaceInAccountRepository.countJoinAccountByWorkspaceIdAndNotAccountId(workspaceId, roomId, account.getId());
 				}
 				
 				return workspaceInAccountFlux
@@ -178,14 +180,7 @@ public class WorkspaceHandler {
 			.flatMap(list -> response(Result._0, list))
 		, ResponseWrapper.class)
 		;
-		/*
-		accountService.convertJwtToAccount(request)
-		.filterWhen(e -> workspaceInAccountRepository.existsByWorkspaceIdAndAccountId(workspaceId, e.getId()))
-		.flatMap(account -> {
-			return workspaceInAccountRepository.findAllJoinAccountByWorkspaceIdAndNotAccountId(workspaceId, account.getId())
-			;
-		})
-		*/
+
 	}
 	
 	public Mono<ServerResponse> getWorkspaceDetail(ServerRequest request){

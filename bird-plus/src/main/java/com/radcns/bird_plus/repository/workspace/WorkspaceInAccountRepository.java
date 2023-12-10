@@ -86,15 +86,25 @@ public interface WorkspaceInAccountRepository extends ReactiveCrudRepository<Wor
     WHERE
     	wwia.workspace_id = :#{[0]}
     AND
-    	wwia.account_id != :#{[1]}
+    	wwia.account_id != :#{[2]}
+    AND NOT EXISTS(
+    	SELECT 
+    		1
+    	FROM
+    		ro_room_in_account rria 
+    	WHERE 
+    		room_id = :#{[1]}
+    	AND
+    		aa.id = rria.account_id
+    )
     OFFSET
-    	:#{[2].offset}
+    	:#{[3].offset}
     LIMIT
-    	:#{[2].pageSize}
+    	:#{[3].pageSize}
     ;
     """)
-    Flux<WorkspaceMembersDomain.WorkspaceInAccountListResponse> findAllJoinAccountByWorkspaceIdAndNotAccountId(// like 문 추가 할 예정
-    Long workspaceId, Long accountId, Pageable pageble);
+    Flux<WorkspaceMembersDomain.WorkspaceInAccountListResponse> findAllJoinAccountByWorkspaceIdAndNotAccountId(
+    Long workspaceId, Long roomId, Long accountId, Pageable pageble);
 
     @Query("""
     SELECT
@@ -110,10 +120,20 @@ public interface WorkspaceInAccountRepository extends ReactiveCrudRepository<Wor
     WHERE
     	wwia.workspace_id = :#{[0]}
     AND
-    	wwia.account_id != :#{[1]}
+    	wwia.account_id != :#{[2]}
+    AND NOT EXISTS(
+    	SELECT 
+    		1
+    	FROM
+    		ro_room_in_account rria 
+    	WHERE 
+    		room_id = :#{[1]}
+    	AND
+    		aa.id = rria.account_id
+    )
     ;
     """)
-    Mono<Long> countJoinAccountByWorkspaceIdAndNotAccountId(Long workpsaceId, Long accountId);
+    Mono<Long> countJoinAccountByWorkspaceIdAndNotAccountId(Long workpsaceId, Long roomId, Long accountId);
 
     @Query("""
     SELECT
@@ -133,17 +153,27 @@ public interface WorkspaceInAccountRepository extends ReactiveCrudRepository<Wor
     WHERE
     	wwia.workspace_id = :#{[0]}
     AND
-    	wwia.account_id != :#{[1]}
+    	wwia.account_id != :#{[2]}
+    AND NOT EXISTS(
+    	SELECT 
+    		1
+    	FROM
+    		ro_room_in_account rria 
+    	WHERE 
+    		room_id = :#{[1]}
+    	AND
+    		aa.id = rria.account_id
+    )
     AND
-    	(aa.full_name ILIKE concat('%', :#{[2]}, '%'))
+    	(aa.full_name ILIKE concat('%', :#{[3]}, '%'))
     OFFSET
-    	:#{[3].offset}
+    	:#{[4].offset}
     LIMIT
-    	:#{[3].pageSize}
+    	:#{[4].pageSize}
     ;
     """)
     Flux<WorkspaceMembersDomain.WorkspaceInAccountListResponse> findAllJoinAccountByWorkspaceIdAndNotAccountIdAndFullName(// like 문 추가 할 예정
-    Long workspaceId, Long accountId, String fullName, Pageable pageble);
+    Long workspaceId, Long roomId, Long accountId, String fullName, Pageable pageble);
 
     @Query("""
     SELECT
@@ -159,12 +189,23 @@ public interface WorkspaceInAccountRepository extends ReactiveCrudRepository<Wor
     WHERE
     	wwia.workspace_id = :#{[0]}
     AND
-    	wwia.account_id != :#{[1]}
+    	wwia.account_id != :#{[2]}
+    AND NOT EXISTS(
+    	SELECT 
+    		1
+    	FROM
+    		ro_room_in_account rria 
+    	WHERE 
+    		room_id = :#{[1]}
+    	AND
+    		aa.id = rria.account_id
+    )
     AND
-    	(aa.full_name ILIKE concat('%', :#{[2]}, '%'))
+    	(aa.full_name ILIKE concat('%', :#{[3]}, '%'))
     ;
     """)
-    Mono<Long> countJoinAccountByWorkspaceIdAndNotAccountIdAndFullName(Long workpsaceId, Long accountId, String fullName);
+    Mono<Long> countJoinAccountByWorkspaceIdAndNotAccountIdAndFullName(
+    		Long workpsaceId, Long roomId, Long accountId, String fullName);
     
     
     @Query("""
