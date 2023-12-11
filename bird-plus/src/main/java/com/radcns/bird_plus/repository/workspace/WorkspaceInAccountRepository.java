@@ -15,7 +15,7 @@ public interface WorkspaceInAccountRepository extends ReactiveCrudRepository<Wor
     Mono<Boolean> existsByWorkspaceIdAndAccountId(Long workspaceId, Long accountId);
     Mono<Boolean> existsByWorkspaceIdAndAccountIdAndIsEnabled(Long workspaceId, Long accountId, Boolean isEnabled);
 
-    Mono<Boolean> existsByWorkspaceIdAndAccountIdAndIsAdmin(Long workspaceId, Long accountId, Boolean isEnabled, Boolean isAdmin);
+    Mono<Boolean> existsByWorkspaceIdAndAccountIdAndIsAdmin(Long workspaceId, Long accountId, Boolean isAdmin);
     
     @Query("""
     SELECT
@@ -70,8 +70,10 @@ public interface WorkspaceInAccountRepository extends ReactiveCrudRepository<Wor
 
     @Query("""
     SELECT
-    	wwia.workspace_id ,
-    	aa.account_name ,
+    	wwia.workspace_id,
+    	wwia.id,
+    	wwia.is_admin,
+    	aa.account_name,
     	aa.full_name,
     	aa.job_grade,
     	aa.department
@@ -93,7 +95,11 @@ public interface WorkspaceInAccountRepository extends ReactiveCrudRepository<Wor
     	FROM
     		ro_room_in_account rria 
     	WHERE 
-    		room_id = :#{[1]}
+    		room_id = 
+    				CASE 
+    					WHEN :#{[1]} = 0 then null
+						ELSE :#{[1]}
+					END
     	AND
     		aa.id = rria.account_id
     )
@@ -127,7 +133,11 @@ public interface WorkspaceInAccountRepository extends ReactiveCrudRepository<Wor
     	FROM
     		ro_room_in_account rria 
     	WHERE 
-    		room_id = :#{[1]}
+    		room_id = 
+    				CASE 
+    					WHEN :#{[1]} = 0 then null
+						ELSE :#{[1]}
+					END
     	AND
     		aa.id = rria.account_id
     )
@@ -138,6 +148,8 @@ public interface WorkspaceInAccountRepository extends ReactiveCrudRepository<Wor
     @Query("""
     SELECT
     	wwia.workspace_id,
+    	wwia.id,
+    	wwia.is_admin,
     	aa.account_name,
     	aa.full_name,
     	aa.job_grade,
@@ -160,7 +172,11 @@ public interface WorkspaceInAccountRepository extends ReactiveCrudRepository<Wor
     	FROM
     		ro_room_in_account rria 
     	WHERE 
-    		room_id = :#{[1]}
+    		room_id = 
+    				CASE 
+    					WHEN :#{[1]} = 0 then null
+						ELSE :#{[1]}
+					END
     	AND
     		aa.id = rria.account_id
     )
@@ -196,7 +212,11 @@ public interface WorkspaceInAccountRepository extends ReactiveCrudRepository<Wor
     	FROM
     		ro_room_in_account rria 
     	WHERE 
-    		room_id = :#{[1]}
+    		room_id = 
+    				CASE 
+    					WHEN :#{[1]} = 0 then null
+						ELSE :#{[1]}
+					END
     	AND
     		aa.id = rria.account_id
     )

@@ -542,8 +542,13 @@ const getStart = new class GetStart{
 			full_name: fullName
 		} = form
 		let isClick = false;
+
 		form.onsubmit = (event) => {
 			event.preventDefault();
+			/*if(fullName.value == ''){
+				alert('full name is empty');
+				return;
+			}*/
 			if(isClick){
 				return;
 			}

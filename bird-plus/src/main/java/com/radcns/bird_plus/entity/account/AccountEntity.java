@@ -139,6 +139,15 @@ public class AccountEntity implements TokenTemplate {
         public static class AccountVerifyRequest {
             private String email;
         }
+        
+        @Setter
+        @Getter
+        public static class SimpleUpdateAccountInfoRequest{
+        	private String fullName;
+        	private String jobGrade;
+        	private String department;
+        	private String profileImage;
+        }
     }
 
     @Override

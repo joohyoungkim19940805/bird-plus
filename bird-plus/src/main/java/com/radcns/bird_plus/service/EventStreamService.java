@@ -92,7 +92,7 @@ public class EventStreamService {
 		});
 	}
 	public Mono<ServerSentStreamTemplate<?>> workspacePermitRequestStream(ServerSentStreamTemplate<?> serverSentTemplate, AccountEntity account){
-		return workspaceInAccountRepository.existsByWorkspaceIdAndAccountIdAndIsEnabled(serverSentTemplate.getWorkspaceId(), account.getId(), true)
+		return workspaceInAccountRepository.existsByWorkspaceIdAndAccountIdAndIsAdmin(serverSentTemplate.getWorkspaceId(), account.getId(), true)
 		.flatMap(bol -> {
 			if(bol) {
 				return Mono.just(serverSentTemplate);

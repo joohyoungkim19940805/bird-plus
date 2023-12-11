@@ -246,4 +246,20 @@ public interface RoomInAccountRepository extends ReactiveCrudRepository<RoomInAc
     ;
     """)
     Mono<Long> countJoinRoomByAccountIdAndWorkspaceIdAndRoomNameAndRoomType(Long accountId, Long workspaceId, String roomName, List<RoomType> roomType);
+
+    @Query("""
+	 SELECT 
+    	array_to_string(array_agg(aa.full_name), ',')
+	 FROM
+	 	ro_room_in_account rria
+	 INNER JOIN 
+    	ac_account aa
+	 ON 
+    	rria.account_id = aa.id
+	 WHERE 
+	 	room_id = :#{[0]}
+	 AND
+    	rria.account_id != :#{[1]}
+    """)
+    Mono<String> findGroupMessengerRoomName(Long roomId, Long accountId);
 }

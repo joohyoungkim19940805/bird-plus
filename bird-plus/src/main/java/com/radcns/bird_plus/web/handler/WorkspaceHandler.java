@@ -160,8 +160,7 @@ public class WorkspaceHandler {
 				
 				Flux<WorkspaceMembersDomain.WorkspaceInAccountListResponse> workspaceInAccountFlux;
 				Mono<Long> workspaceInAccountCountMono;
-				System.out.println("kjh test ::: ");
-				System.out.println(fullName);
+
 				if(fullName != null && ! fullName.isBlank()) {
 					workspaceInAccountFlux = workspaceInAccountRepository.findAllJoinAccountByWorkspaceIdAndNotAccountIdAndFullName(workspaceId, roomId, account.getId(), fullName, pageRequest);
 					workspaceInAccountCountMono = workspaceInAccountRepository.countJoinAccountByWorkspaceIdAndNotAccountIdAndFullName(workspaceId, roomId, account.getId(), fullName);
@@ -254,7 +253,7 @@ public class WorkspaceHandler {
 		return accountService.convertRequestToAccount(request)
 		.flatMap(account -> 
 			request.bodyToMono(WorkspaceInAccountPermitRequest.class)
-			.filterWhen(e->workspaceInAccountRepository.existsByWorkspaceIdAndAccountIdAndIsAdmin(e.getWorkspaceId(), account.getId(), true, true))
+			.filterWhen(e->workspaceInAccountRepository.existsByWorkspaceIdAndAccountIdAndIsAdmin(e.getWorkspaceId(), account.getId(), true))
 			.switchIfEmpty(Mono.error(new WorkspaceException(Result._203)))
 			.flatMap(workspaceInAccountPermitRequest-> {
 				return workspaceInAccountRepository.findById(workspaceInAccountPermitRequest.getId()).flatMap(workspaceInAccountEntity -> {
@@ -296,9 +295,11 @@ public class WorkspaceHandler {
 		return accountService.convertRequestToAccount(request)
 			.flatMap(account -> 
 			request.bodyToMono(WorkspaceInAccountGiveAdmin.class)
-			.filterWhen(e->workspaceInAccountRepository.existsByWorkspaceIdAndAccountIdAndIsAdmin(e.getWorkspaceId(), account.getId(), true, true))
-			.switchIfEmpty(Mono.error(new WorkspaceException(Result._203)))
+			.filterWhen(e->workspaceInAccountRepository.existsByWorkspaceIdAndAccountIdAndIsAdmin(e.getWorkspaceId(), account.getId(), true))
+			.switchIfEmpty(Mono.error(new WorkspaceException(Result._204)))
 			.flatMap(e->workspaceInAccountRepository.findById(e.getId()))
+			.filterWhen(workspaceInAccount ->workspaceInAccountRepository.existsByAccountIdAndIsEnabled(workspaceInAccount.getAccountId(), true))
+			.switchIfEmpty(Mono.error(new WorkspaceException(Result._206)))
 			.flatMap(e-> workspaceInAccountRepository.save(e.withIsAdmin(true)))
 			.flatMap(e->ok()
 				.contentType(MediaType.APPLICATION_JSON)
@@ -331,5 +332,17 @@ public class WorkspaceHandler {
 		});
 		
 	}
-
+	
+	public Mono<ServerResponse> getIsAdmin(ServerRequest request){
+		Long workspaceId = Long.valueOf(request.pathVariable("workspaceId"));
+		return accountService.convertRequestToAccount(request)
+			.flatMap(account -> {
+				return workspaceInAccountRepository.existsByWorkspaceIdAndAccountIdAndIsAdmin(workspaceId, account.getId(), true);
+			}).flatMap(e->
+				ok()
+				.contentType(MediaType.APPLICATION_JSON)
+				.body(response(Result._0, e), ResponseWrapper.class)
+			);
+	}
+	
 }

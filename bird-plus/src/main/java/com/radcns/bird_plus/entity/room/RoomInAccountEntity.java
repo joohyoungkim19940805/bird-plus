@@ -104,6 +104,9 @@ public class RoomInAccountEntity {
         @Getter
         @Setter
         @Builder
+        @NoArgsConstructor
+        @AllArgsConstructor
+        @With
         public static class MyJoinedRoomListResponse {
             private Long id;
 

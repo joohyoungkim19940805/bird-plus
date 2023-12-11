@@ -18,6 +18,7 @@ import com.radcns.bird_plus.web.handler.S3Handler;
 import com.radcns.bird_plus.web.handler.WorkspaceHandler;
 
 import java.net.URI;
+import java.util.List;
 
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 import static org.springframework.web.reactive.function.server.RequestPredicates.path;
@@ -64,9 +65,10 @@ public class MainRouter implements IndexRouterSwagger{
 						.GET("/get-account-info", accept(MediaType.APPLICATION_JSON), accountHandler::getAccountInfo)
 					.build())
 				/*.nest(path("/create"), createPathBuilder -> createPathBuilder
-					.build())
-				.nest(path("update") , updatePathBuilder -> updatePathBuilder
 					.build())*/
+				.nest(path("update") , updatePathBuilder -> updatePathBuilder
+						.POST("/simple-account-info", accept(MediaType.APPLICATION_JSON), accountHandler::updateSimpleAccountInfo)
+					.build())
 				).build();
 	}
 	
@@ -107,6 +109,7 @@ public class MainRouter implements IndexRouterSwagger{
 						.GET("/joined-account-list/{workspaceId}", accept(MediaType.APPLICATION_JSON), workspaceHandler::searchWorkspaceInAccount)
 						.GET("/detail/{workspaceId}", accept(MediaType.APPLICATION_JSON), workspaceHandler::getWorkspaceDetail)
 						.GET("/permit-request-list/{workspaceId}", accept(MediaType.TEXT_EVENT_STREAM), workspaceHandler::searchPermitRequestList)
+						.GET("/is-admin/{workspaceId}", accept(MediaType.APPLICATION_JSON), workspaceHandler::getIsAdmin)
 					.build())
 				).build();
 		/*
@@ -207,6 +210,5 @@ public class MainRouter implements IndexRouterSwagger{
 	}
 	
 	*/
-	
 	
 }

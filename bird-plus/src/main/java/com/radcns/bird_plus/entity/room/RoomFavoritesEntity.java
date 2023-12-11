@@ -99,6 +99,9 @@ public class RoomFavoritesEntity {
     public static class RoomFavoritesDomain {
         @Getter
         @Setter
+        @NoArgsConstructor
+        @AllArgsConstructor
+        @With
         public static class MyFavoritesRoomListResponse {
             private Long id;
 

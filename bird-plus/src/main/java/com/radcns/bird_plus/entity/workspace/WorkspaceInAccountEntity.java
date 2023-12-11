@@ -126,6 +126,10 @@ public class WorkspaceInAccountEntity {
         @Getter
         @Setter
         public static class WorkspaceInAccountListResponse {
+        	private Long id;
+        	
+        	private Boolean isAdmin;
+        	
             private Long workspaceId;
 
             private String accountName;

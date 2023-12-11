@@ -438,6 +438,12 @@ public class RoomHandler {
 				
 				if(roomName.isBlank()) {
 					return roomInAccountRepository.findAllJoinRoomByAccountIdAndWorkspaceIdAndRoomType(account.getId(), workspaceId, roomType, pageRequest)
+						.flatMap(e-> {
+							if( ! e.getRoomType().equals(RoomType.MESSENGER)) {
+								return Mono.just(e);
+							}
+							return roomInAccountRepository.findGroupMessengerRoomName(e.getRoomId(), account.getId()).map(messengerRoomName->e.withRoomName(messengerRoomName));
+						})
 						.collectList()
 						.zipWith(roomInAccountRepository.countJoinRoomByAccountIdAndWorkspaceIdAndRoomType(account.getId(), workspaceId, roomType))
 						.map(entityTuples -> 
@@ -447,6 +453,12 @@ public class RoomHandler {
 				}
 				
 				return roomInAccountRepository.findAllJoinRoomByAccountIdAndWorkspaceIdAndRoomNameAndRoomType(account.getId(), workspaceId, roomName, roomType, pageRequest)
+					.flatMap(e-> {
+						if( ! e.getRoomType().equals(RoomType.MESSENGER)) {
+							return Mono.just(e);
+						}
+						return roomInAccountRepository.findGroupMessengerRoomName(e.getRoomId(), account.getId()).map(messengerRoomName->e.withRoomName(messengerRoomName));
+					})
 					.collectList()
 					.zipWith(roomInAccountRepository.countJoinRoomByAccountIdAndWorkspaceIdAndRoomNameAndRoomType(account.getId(), workspaceId, roomName, roomType))
 					.map(entityTuples -> 
@@ -481,6 +493,12 @@ public class RoomHandler {
 				
 				if(roomName.isBlank()) {
 					return roomFavoritesRepository.findAllJoinRoomByAccountIdAndWorkspaceId(account.getId(), workspaceId, pageRequest)
+						.flatMap(e-> {
+							if( ! e.getRoomType().equals(RoomType.MESSENGER)) {
+								return Mono.just(e);
+							}
+							return roomInAccountRepository.findGroupMessengerRoomName(e.getRoomId(), account.getId()).map(messengerRoomName->e.withRoomName(messengerRoomName));
+						})
 						.collectList()
 						.zipWith(roomFavoritesRepository.countJoinRoomByAccountIdAndWorkspaceId(account.getId(), workspaceId))
 						.map(entityTuples -> 
@@ -490,6 +508,12 @@ public class RoomHandler {
 				}
 				
 				return roomFavoritesRepository.findAllJoinRoomByAccountIdAndWorkspaceIdAndRoomName(account.getId(), workspaceId, roomName, pageRequest)
+					.flatMap(e-> {
+						if( ! e.getRoomType().equals(RoomType.MESSENGER)) {
+							return Mono.just(e);
+						}
+						return roomInAccountRepository.findGroupMessengerRoomName(e.getRoomId(), account.getId()).map(messengerRoomName->e.withRoomName(messengerRoomName));
+					})
 					.collectList()
 					.zipWith(roomFavoritesRepository.countJoinRoomByAccountIdAndWorkspaceIdAndRoomName(account.getId(), workspaceId, roomName))
 					.map(entityTuples -> 
