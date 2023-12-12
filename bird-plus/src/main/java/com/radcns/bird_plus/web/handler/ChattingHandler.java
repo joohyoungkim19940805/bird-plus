@@ -95,12 +95,16 @@ public class ChattingHandler {
 							return chattingRepository.save(e);
 						});
 					}else{
-						save = chattingRepository.save(
-							chattingEntity
-							.withAccountId(account.getId())
-							.withCreateBy(account.getId())
-							.withUpdateBy(account.getId())
-						);
+						save =  chattingRepository.findMaxByWorkspaceIdAndRoomId(chattingEntity.getWorkspaceId(), chattingEntity.getRoomId())
+							.defaultIfEmpty((long)0)
+							.flatMap(maxSequence->chattingRepository.save(
+								chattingEntity
+								.withPageSequence(maxSequence + 1)
+								.withAccountId(account.getId())
+								.withCreateBy(account.getId())
+								.withUpdateBy(account.getId())
+							))
+						;
 					}
 					
 					return save;
@@ -127,6 +131,7 @@ public class ChattingHandler {
 								.roomId(e.getRoomId())
 								.workspaceId(e.getWorkspaceId())
 								.chatting(Json.of(e.getChatting()))
+								.pageSequence(e.getPageSequence())
 								.createAt(LocalDateTime.now())
 								.updateAt(LocalDateTime.now())
 								.fullName(account.getFullName())
@@ -155,17 +160,27 @@ public class ChattingHandler {
 		.flatMap(account -> {
 			var param = request.queryParams();
 			
+			Long page = Long.valueOf(param.getOrDefault("page", List.of("0")).get(0));
+			Long size = Long.valueOf(param.getOrDefault("size", List.of("10")).get(0));
+			
 			PageRequest pageRequest = PageRequest.of(
 				Integer.valueOf(param.getOrDefault("page", List.of("0")).get(0)),
 				Integer.valueOf(param.getOrDefault("size", List.of("10")).get(0))	
 			);
-			return chattingRepository.findAllJoinAccountByWorkspaceIdAndRoomId(workspaceId, roomId, pageRequest)
+
+			return chattingRepository.findMaxByWorkspaceIdAndRoomId(workspaceId, roomId).flatMap(maxPageSequence -> {
+				Long endNo = ( maxPageSequence - size * ( page + 1 ) ) + 1;
+				Long startNo = size * page + 1;
+				startNo = maxPageSequence - (startNo == 1 ? 0 : startNo);
+				
+				return chattingRepository.findAllJoinAccountByWorkspaceIdAndRoomId(workspaceId, roomId, startNo, endNo)
 				.collectList()
 				.zipWith(chattingRepository.countByWorkspaceIdAndRoomId(workspaceId, roomId))
 				.map(entityTuples -> 
 					new PageImpl<>(entityTuples.getT1(), pageRequest, entityTuples.getT2())
-				)
-				;
+				);
+			});
+			
 		});
 
 		return ok()

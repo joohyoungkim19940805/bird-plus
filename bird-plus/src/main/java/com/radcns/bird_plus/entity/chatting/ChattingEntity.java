@@ -69,6 +69,9 @@ public class ChattingEntity {
     @LastModifiedBy
     private Long updateBy;
 
+    @Column("page_sequence")
+    private Long pageSequence;
+    
     @Transient
     List<Long> updateMilsArray;
 
@@ -140,6 +143,8 @@ public class ChattingEntity {
             private String accountName;
 
             private Json reaction;
+            
+            private Long pageSequence;
             
             @Transient
             private Long createMils;

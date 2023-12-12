@@ -7,7 +7,24 @@ import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 public interface ChattingRepository extends ReactiveCrudRepository<ChattingEntity, Long> {
-    @Query("""
+    /*
+	'createAt', ccr.create_at,
+	'reactionList', (
+		SELECT
+			json_agg( json_build_object( 
+				'fullName', aa2.full_name 
+			) )
+		FROM 
+			ch_chatting_reaction_count ccrc 
+		INNER JOIN
+			ac_account aa2
+		ON
+			ccrc.account_id = aa2.id 
+		WHERE 
+			ccrc.reaction_id = ccr.id
+	)
+    */
+	@Query("""
     SELECT
     	cc.id,
     	cc.room_id,
@@ -15,6 +32,7 @@ public interface ChattingRepository extends ReactiveCrudRepository<ChattingEntit
     	cc.chatting,
     	cc.create_at,
     	cc.update_at,
+    	cc.page_sequence,
     	aa.full_name,
     	aa.account_name,
     	(
@@ -28,19 +46,19 @@ public interface ChattingRepository extends ReactiveCrudRepository<ChattingEntit
     				'reactionId', ccr.id,
     				'createAt', ccr.create_at,
     				'reactionList', (
-    					SELECT
-    						json_agg( json_build_object( 
-    							'fullName', aa2.full_name 
-    						) )
-    					FROM 
-    						ch_chatting_reaction_count ccrc 
-    					INNER JOIN
-    						bird_plus.ac_account aa2
-    					ON
-    						ccrc.account_id = aa2.id 
-    					WHERE 
-    						ccrc.reaction_id = ccr.id
-    				)
+						SELECT
+							json_agg( json_build_object( 
+								'fullName', aa2.full_name 
+							) )
+						FROM 
+							ch_chatting_reaction_count ccrc 
+						INNER JOIN
+							ac_account aa2
+						ON
+							ccrc.account_id = aa2.id 
+						WHERE 
+							ccrc.reaction_id = ccr.id
+					)
     			))
     		FROM 
     			ch_chatting_reaction ccr
@@ -63,16 +81,20 @@ public interface ChattingRepository extends ReactiveCrudRepository<ChattingEntit
     	cc.workspace_id = :#{[0]}
     AND
     	cc.room_id = :#{[1]}
+    AND
+    	cc.page_sequence  <= :#{[2]}
+    AND
+    	cc.page_sequence  >= :#{[3]}
     ORDER BY
     	cc.create_at
     DESC
-    OFFSET
-    	:#{[2].offset}
-    LIMIT
-    	:#{[2].pageSize}
     ;
     """)
-    Flux<ChattingDomain.ChattingResponse> findAllJoinAccountByWorkspaceIdAndRoomId(Long workspaceId, Long roomId, Pageable pageble);
+    /*OFFSET
+	:#{[2].offset}
+	LIMIT
+	:#{[2].pageSize}*/
+    Flux<ChattingDomain.ChattingResponse> findAllJoinAccountByWorkspaceIdAndRoomId(Long workspaceId, Long roomId, Long startNo, Long endNo);
 
     /*@Query("""
 	    SELECT
@@ -91,4 +113,16 @@ public interface ChattingRepository extends ReactiveCrudRepository<ChattingEntit
 	""")
     */
     Mono<Long> countByWorkspaceIdAndRoomId(Long workspaceId, Long roomId);
+    
+    @Query("""
+    SELECT
+    	MAX(cc.page_sequence)
+    FROM
+    	ch_chatting cc
+    WHERE
+    	cc.workspace_id = :#{[0]}
+    AND	
+    	cc.room_id = :#{[1]}
+    """)
+    Mono<Long> findMaxByWorkspaceIdAndRoomId(Long workspaceId, Long roomId);
 }
