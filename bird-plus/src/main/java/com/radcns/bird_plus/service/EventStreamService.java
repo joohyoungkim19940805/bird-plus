@@ -47,12 +47,14 @@ public class EventStreamService {
 	
 	public Mono<ServerSentStreamTemplate<?>> roomEmissionStream(ServerSentStreamTemplate<?> serverSentTemplate, AccountEntity account){
 		RoomInAccountEntity roomInAccountEntity = ServerSentStreamType.ROOM_ACCEPT_CAST_CLASS.cast(serverSentTemplate.getContent());
+
 		if( ! roomInAccountEntity.getAccountId().equals(account.getId())) {
 			return Mono.empty();
 		}
 		
 		return roomRepository.findById(roomInAccountEntity.getRoomId())
 			.map(roomEntity -> {
+				System.out.println("kjh test 44444 ::::: !!!!! " + roomEntity.getRoomName());
 				return new ServerSentStreamTemplate<MyJoinedRoomListResponse>(
 					roomInAccountEntity.getWorkspaceId(),
 					roomInAccountEntity.getRoomId(),

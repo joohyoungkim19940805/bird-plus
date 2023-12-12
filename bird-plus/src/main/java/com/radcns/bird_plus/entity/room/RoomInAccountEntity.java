@@ -69,9 +69,6 @@ public class RoomInAccountEntity {
     @Transient
     Long updateMils;
 
-    @Transient
-    RoomInAccountDomain.RoomJoinedAccountResponse roomJoinedAccountResponse;
-
     public void setCreateAt(LocalDateTime createAt) {
         this.createAt = createAt;
         this.createMils = createAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();

@@ -53,7 +53,7 @@ public class WorkspaceHandler {
 	private AccountRepository accountRepository;
 	
 	@Autowired
-	private WorkspaceBroker workspaceBorker;
+	private WorkspaceBroker workspaceBroker;
 	
 	
 	public Mono<ServerResponse> createWorkspace(ServerRequest request){
@@ -221,7 +221,7 @@ public class WorkspaceHandler {
 					.build();
 					return workspaceInAccountRepository.save(workspaceInAccountEntity).map(e->e.withAccountId(null))
 					.doOnSuccess(e->{
-						workspaceBorker.send(
+						workspaceBroker.send(
 							new ServerSentStreamTemplate<WokrspaceInAccountPermitListResponse>(
 								e.getWorkspaceId(),
 								(long)0,
@@ -266,7 +266,7 @@ public class WorkspaceHandler {
 						saveOrDelete = workspaceInAccountRepository.delete(workspaceInAccountEntity);
 					}
 					saveOrDelete.doOnSuccess(e->{
-						workspaceBorker.send(
+						workspaceBroker.send(
 							new ServerSentStreamTemplate<WorkspaceInAccountPermitRequest>(
 								workspaceInAccountEntity.getWorkspaceId(),
 								(long)0,

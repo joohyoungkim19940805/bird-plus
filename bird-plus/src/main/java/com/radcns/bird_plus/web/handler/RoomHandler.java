@@ -15,6 +15,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
+import com.radcns.bird_plus.entity.chatting.ChattingEntity;
+import com.radcns.bird_plus.entity.chatting.ChattingEntity.ChattingDomain.ChattingResponse;
 import com.radcns.bird_plus.entity.room.RoomEntity;
 import com.radcns.bird_plus.entity.room.RoomFavoritesEntity;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity;
@@ -22,6 +24,7 @@ import com.radcns.bird_plus.entity.room.RoomInAccountEntity.RoomInAccountDomain;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity.RoomInAccountDomain.RoomJoinedAccountResponse;
 import com.radcns.bird_plus.entity.room.constant.RoomType;
 import com.radcns.bird_plus.repository.account.AccountRepository;
+import com.radcns.bird_plus.repository.chatting.ChattingRepository;
 import com.radcns.bird_plus.repository.room.RoomFavoritesRepository;
 import com.radcns.bird_plus.repository.room.RoomInAccountRepository;
 import com.radcns.bird_plus.repository.room.RoomRepository;
@@ -35,6 +38,7 @@ import com.radcns.bird_plus.util.stream.ServerSentStreamTemplate;
 import com.radcns.bird_plus.util.stream.WorkspaceBroker;
 import com.radcns.bird_plus.util.stream.ServerSentStreamTemplate.ServerSentStreamType;
 
+import io.r2dbc.postgresql.codec.Json;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
@@ -60,8 +64,9 @@ public class RoomHandler {
 	private WorkspaceInAccountRepository workspaceInAccountRepository;
 	
 	@Autowired
-	private WorkspaceBroker workspaceBorker;
-	
+	private WorkspaceBroker workspaceBroker;
+	@Autowired
+	private ChattingRepository chattingRepository;
 	public Mono<ServerResponse> createRoom(ServerRequest request){
 		return accountService.convertRequestToAccount(request)
 		.flatMap(account -> 
@@ -99,7 +104,7 @@ public class RoomHandler {
 							});
 					}
 				}).doOnSuccess(result->{
-					workspaceBorker.send(
+					workspaceBroker.send(
 						new ServerSentStreamTemplate<RoomInAccountEntity>(
 							result.getWorkspaceId(),
 							result.getRoomId(),
@@ -129,29 +134,50 @@ public class RoomHandler {
 			accountService.convertRequestToAccount(request)
 			.filterWhen(e-> workspaceInAccountRepository.existsByWorkspaceIdAndAccountIdAndIsEnabled(workspaceId, e.getId(), true))
 			.switchIfEmpty(Mono.error(new WorkspaceException(Result._201)))
-			.flatMap(e->{
-				return roomRepository.existsByCreateByAndWorkspaceIdAndRoomType(e.getId(), workspaceId, RoomType.SELF)
+			.flatMap(account->{
+				return roomRepository.existsByCreateByAndWorkspaceIdAndRoomType(account.getId(), workspaceId, RoomType.SELF)
 				.flatMap(bol -> {
 					if(bol) {
-						return roomRepository.findByCreateByAndWorkspaceIdAndRoomType(e.getId(), workspaceId, RoomType.SELF);
+						return roomRepository.findByCreateByAndWorkspaceIdAndRoomType(account.getId(), workspaceId, RoomType.SELF)
+							.map(roomEntity -> {
+								if( ! roomEntity.getRoomName().equals( account.getFullName() )) {
+									return roomRepository.save(roomEntity.withRoomName(account.getFullName()))
+											.doOnSuccess(e->{
+												roomInAccountRepository.findByRoomIdAndAccountId(e.getId(), account.getId())
+												.doOnNext(roomInAccount->{
+													workspaceBroker.send(
+														new ServerSentStreamTemplate<RoomInAccountEntity>(
+															roomInAccount.getWorkspaceId(),
+															roomInAccount.getRoomId(),
+															roomInAccount,
+															ServerSentStreamType.ROOM_ACCEPT
+														) {}
+													);
+												})
+												.subscribe();
+											});
+								}else {
+									return roomEntity;
+								}
+							});
 					}else {
 						return roomRepository.save(
 							RoomEntity
 							.builder()
-							.createBy(e.getId())
-							.roomName(e.getFullName())
+							.createBy(account.getId())
+							.roomName(account.getFullName())
 							.workspaceId(workspaceId)
 							.roomType(RoomType.SELF)
 							.build()
 						)
 						.doOnSuccess(roomEntity->{
 							roomEntity.setCreateBy(null);
-							roomInAccountRepository.findMaxJoinRoomByAccountIdAndWorkspaceIdAndRoomType(e.getId(), workspaceId, List.of(RoomType.SELF))
+							roomInAccountRepository.findMaxJoinRoomByAccountIdAndWorkspaceIdAndRoomType(account.getId(), workspaceId, List.of(RoomType.SELF))
 							.defaultIfEmpty((long)0)
 							.flatMap(count -> {
 								RoomInAccountEntity roomInAccountEntity = RoomInAccountEntity.builder()
 									.roomId(roomEntity.getId())
-									.accountId(e.getId())
+									.accountId(account.getId())
 									.orderSort(count + 1)
 									.workspaceId(workspaceId)
 								.build();
@@ -159,7 +185,7 @@ public class RoomHandler {
 								return roomInAccountRepository.save(roomInAccountEntity);
 							})
 							.doOnSuccess(result->{
-								workspaceBorker.send(
+								workspaceBroker.send(
 									new ServerSentStreamTemplate<RoomInAccountEntity>(
 										result.getWorkspaceId(),
 										result.getRoomId(),
@@ -179,6 +205,107 @@ public class RoomHandler {
 	}
 	
 	public Mono<ServerResponse> createRoomInAccount(ServerRequest request){
+		return accountService.convertRequestToAccount(request)
+		.flatMap(account -> {
+			
+			request.bodyToFlux(RoomInAccountDomain.CreateRoomInAccountRequest.class).flatMap(createRoomInAccount -> 
+				accountRepository.findByAccountName(createRoomInAccount.getAccountName())
+				.filterWhen(e -> 
+					workspaceInAccountRepository.existsByWorkspaceIdAndAccountIdAndIsEnabled(createRoomInAccount.getWorkspaceId(), e.getId(), true)
+				)
+				.flatMap(inviteAccount -> {
+					RoomInAccountEntity roomInAccountEntity = RoomInAccountEntity.builder()
+					.accountId(inviteAccount.getId())
+					.workspaceId(createRoomInAccount.getWorkspaceId())
+					.roomId(createRoomInAccount.getRoomId())
+					.createBy(account.getId())
+					.build();
+					List<RoomType> roomType;
+					if(createRoomInAccount.getRoomType().equals(RoomType.ROOM_PRIVATE) || createRoomInAccount.getRoomType().equals(RoomType.ROOM_PRIVATE)) {
+						roomType = List.of(RoomType.ROOM_PRIVATE, RoomType.ROOM_PUBLIC);
+					}else{//(e.getRoomType().equals(RoomType.MESSENGER) || e.getRoomType().equals(RoomType.SELF)) {
+						roomType = List.of(RoomType.MESSENGER, RoomType.SELF);
+					}
+					
+					return roomInAccountRepository.findMaxJoinRoomByAccountIdAndWorkspaceIdAndRoomType(roomInAccountEntity.getAccountId(), roomInAccountEntity.getWorkspaceId(), roomType)
+					.defaultIfEmpty((long)0)
+					.map(count -> roomInAccountEntity.withOrderSort(count + 1))
+					.flatMap(e->roomInAccountRepository.save(e))
+					.doOnSuccess(e->{
+
+						workspaceBroker.send(
+							new ServerSentStreamTemplate<RoomJoinedAccountResponse>(
+								e.getWorkspaceId(),
+								e.getRoomId(),
+								RoomJoinedAccountResponse.builder()
+									.roomId(createRoomInAccount.getRoomId())
+									.workspaceId(createRoomInAccount.getWorkspaceId())
+									.accountName(inviteAccount.getAccountName())
+									.fullName(inviteAccount.getFullName())
+									.job_grade(inviteAccount.getJobGrade())
+									.department(inviteAccount.getDepartment())
+									.roomType(createRoomInAccount.getRoomType())
+									.createMils(e.getCreateMils())
+									.updateMils(e.getUpdateMils())
+								.build(),
+								ServerSentStreamType.ROOM_IN_ACCOUNT_ACCEPT
+							) {}
+						);
+
+						workspaceBroker.send(
+							new ServerSentStreamTemplate<RoomInAccountEntity>(
+								e.getWorkspaceId(),
+								e.getRoomId(),
+								e,
+								ServerSentStreamType.ROOM_ACCEPT
+							) {}
+						);
+						
+						ChattingEntity chattingEntity = ChattingEntity.builder()
+						.accountId(account.getId())
+						.roomId(createRoomInAccount.getRoomId())
+						.workspaceId(createRoomInAccount.getWorkspaceId())
+						.createBy(account.getId())
+						.build();
+						chattingEntity.setChatting(ChattingEntity.INVITE_ROOM_IN_ACCOUNT_NOTIFICATION.formatted(account.getFullName(), inviteAccount.getFullName()));
+
+						chattingRepository.save(chattingEntity).doOnSuccess(ss->{
+							workspaceBroker.send(
+								new ServerSentStreamTemplate<ChattingResponse>(
+									createRoomInAccount.getWorkspaceId(),
+									createRoomInAccount.getRoomId(),
+									ChattingResponse.builder()
+										.id(ss.getId())
+										.roomId(createRoomInAccount.getRoomId())
+										.workspaceId(createRoomInAccount.getWorkspaceId())
+										.chatting(Json.of(chattingEntity.getChatting()))
+										.createAt(LocalDateTime.now())
+										.updateAt(LocalDateTime.now())
+										.fullName(account.getFullName())
+										.accountName(account.getAccountName())
+									.build(),
+									ServerSentStreamType.CHATTING_ACCEPT
+								) {}
+							);
+						})
+						.subscribe();
+					})
+					.doFinally(f->{
+						
+					})
+					.delayElement(Duration.ofMillis(1000))
+					;
+				})
+			)
+			.subscribe();
+			
+			return ok()
+					.contentType(MediaType.APPLICATION_JSON)
+					.body(response(Result._0, null), ResponseWrapper.class);
+		})
+		;
+
+		/*
 		return ok()
 		//.contentType(MediaType.TEXT_EVENT_STREAM)
 		.contentType(MediaType.APPLICATION_JSON)
@@ -219,7 +346,37 @@ public class RoomHandler {
 							return roomInAccountRepository.findMaxJoinRoomByAccountIdAndWorkspaceIdAndRoomType
 								(roomInAccountEntity.getAccountId(), roomInAccountEntity.getWorkspaceId(), roomType)
 								.defaultIfEmpty((long)0)
-								.map(count -> roomInAccountEntity.withOrderSort(count + 1));
+								.map(count -> roomInAccountEntity.withOrderSort(count + 1)).doOnSuccess((s)->{
+									ChattingEntity chattingEntity = ChattingEntity.builder()
+									.id(account.getId())
+									.roomId(createRoomInAccount.getRoomId())
+									.workspaceId(createRoomInAccount.getWorkspaceId())
+									.createBy(account.getId())
+									.build();
+									chattingEntity.setChatting(ChattingEntity.INVITE_ROOM_IN_ACCOUNT_NOTIFICATION.formatted(account.getFullName(),e.getFullName()));
+
+									chattingRepository.save(chattingEntity).doOnSubscribe(ss->{
+										workspaceBroker.send(
+											new ServerSentStreamTemplate<ChattingResponse>(
+												createRoomInAccount.getWorkspaceId(),
+												createRoomInAccount.getRoomId(),
+												ChattingResponse.builder()
+													.id(account.getId())
+													.roomId(createRoomInAccount.getRoomId())
+													.workspaceId(createRoomInAccount.getWorkspaceId())
+													.chatting(Json.of(chattingEntity.getChatting()))
+													.createAt(LocalDateTime.now())
+													.updateAt(LocalDateTime.now())
+													.fullName(account.getFullName())
+													.accountName(account.getAccountName())
+												.build(),
+												ServerSentStreamType.CHATTING_ACCEPT
+											) {}
+										);
+									})
+									.delayElement(Duration.ofMinutes(1))
+									.subscribe();
+								});
 						})
 						;
 					})
@@ -227,7 +384,7 @@ public class RoomHandler {
 				save.doOnNext((e)-> {
 					e.getRoomJoinedAccountResponse().setCreateMils(e.getCreateMils());
 					e.getRoomJoinedAccountResponse().setUpdateMils(e.getUpdateMils());
-					workspaceBorker.send(
+					workspaceBroker.send(
 						new ServerSentStreamTemplate<RoomJoinedAccountResponse>(
 							e.getWorkspaceId(),
 							e.getRoomId(),
@@ -235,13 +392,10 @@ public class RoomHandler {
 							ServerSentStreamType.ROOM_IN_ACCOUNT_ACCEPT
 						) {}
 					);
-					
-					//e.setAccountId(null);
-					
-					//sinks.tryEmitNext(e.getRoomJoinedAccountResponse());
+
 					
 					e.setRoomJoinedAccountResponse(null);
-					workspaceBorker.send(
+					workspaceBroker.send(
 						new ServerSentStreamTemplate<RoomInAccountEntity>(
 							e.getWorkspaceId(),
 							e.getRoomId(),
@@ -249,20 +403,15 @@ public class RoomHandler {
 							ServerSentStreamType.ROOM_ACCEPT
 						) {}
 					);
-					//return e;
-				})
 
+				})
 				.delayElements(Duration.ofMillis(100))
-				//.doFinally((e)->{
-				//	sinks.tryEmitComplete();
-				//})
 				.subscribe();
-				//return sinks.asFlux();
 				return response(Result._0, null);
 			})
 		,  ResponseWrapper.class);
 		//, RoomInAccountDomain.RoomJoinedAccountResponse.class);
-		
+		*/
 	}
 	
 	public Mono<ServerResponse> updateRoomInAccountOrder(ServerRequest request){
@@ -438,12 +587,12 @@ public class RoomHandler {
 				
 				if(roomName.isBlank()) {
 					return roomInAccountRepository.findAllJoinRoomByAccountIdAndWorkspaceIdAndRoomType(account.getId(), workspaceId, roomType, pageRequest)
-						.flatMap(e-> {
+						/*.flatMap(e-> {
 							if( ! e.getRoomType().equals(RoomType.MESSENGER)) {
 								return Mono.just(e);
 							}
 							return roomInAccountRepository.findGroupMessengerRoomName(e.getRoomId(), account.getId()).map(messengerRoomName->e.withRoomName(messengerRoomName));
-						})
+						})*/
 						.collectList()
 						.zipWith(roomInAccountRepository.countJoinRoomByAccountIdAndWorkspaceIdAndRoomType(account.getId(), workspaceId, roomType))
 						.map(entityTuples -> 
@@ -453,12 +602,12 @@ public class RoomHandler {
 				}
 				
 				return roomInAccountRepository.findAllJoinRoomByAccountIdAndWorkspaceIdAndRoomNameAndRoomType(account.getId(), workspaceId, roomName, roomType, pageRequest)
-					.flatMap(e-> {
+					/*.flatMap(e-> {
 						if( ! e.getRoomType().equals(RoomType.MESSENGER)) {
 							return Mono.just(e);
 						}
 						return roomInAccountRepository.findGroupMessengerRoomName(e.getRoomId(), account.getId()).map(messengerRoomName->e.withRoomName(messengerRoomName));
-					})
+					})*/
 					.collectList()
 					.zipWith(roomInAccountRepository.countJoinRoomByAccountIdAndWorkspaceIdAndRoomNameAndRoomType(account.getId(), workspaceId, roomName, roomType))
 					.map(entityTuples -> 
@@ -493,12 +642,12 @@ public class RoomHandler {
 				
 				if(roomName.isBlank()) {
 					return roomFavoritesRepository.findAllJoinRoomByAccountIdAndWorkspaceId(account.getId(), workspaceId, pageRequest)
-						.flatMap(e-> {
+						/*.flatMap(e-> {
 							if( ! e.getRoomType().equals(RoomType.MESSENGER)) {
 								return Mono.just(e);
 							}
 							return roomInAccountRepository.findGroupMessengerRoomName(e.getRoomId(), account.getId()).map(messengerRoomName->e.withRoomName(messengerRoomName));
-						})
+						})*/
 						.collectList()
 						.zipWith(roomFavoritesRepository.countJoinRoomByAccountIdAndWorkspaceId(account.getId(), workspaceId))
 						.map(entityTuples -> 
@@ -508,12 +657,12 @@ public class RoomHandler {
 				}
 				
 				return roomFavoritesRepository.findAllJoinRoomByAccountIdAndWorkspaceIdAndRoomName(account.getId(), workspaceId, roomName, pageRequest)
-					.flatMap(e-> {
+					/*.flatMap(e-> {
 						if( ! e.getRoomType().equals(RoomType.MESSENGER)) {
 							return Mono.just(e);
 						}
 						return roomInAccountRepository.findGroupMessengerRoomName(e.getRoomId(), account.getId()).map(messengerRoomName->e.withRoomName(messengerRoomName));
-					})
+					})*/
 					.collectList()
 					.zipWith(roomFavoritesRepository.countJoinRoomByAccountIdAndWorkspaceIdAndRoomName(account.getId(), workspaceId, roomName))
 					.map(entityTuples -> 
@@ -539,6 +688,23 @@ public class RoomHandler {
 			.flatMap(e-> response(Result._0, e.withCreateBy(null)))
 		, ResponseWrapper.class)
 		;
+		/*return accountService.convertRequestToAccount(request).flatMap(account ->
+			ok()
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(
+				roomRepository.findById(roomId)
+				.flatMap(e->{
+					if(e.getRoomType().equals(RoomType.MESSENGER)) {
+						return roomInAccountRepository.findGroupMessengerRoomName(roomId, account.getId())
+								.map(roomName -> e.withRoomName(roomName));
+					}else {
+						return Mono.just(e);
+					}
+				})
+				.flatMap(e-> response(Result._0, e.withCreateBy(null)))
+			, ResponseWrapper.class)
+		)
+		;*/
 	}
 	
 	public Mono<ServerResponse> searchRoomJoinedAccountList(ServerRequest request){

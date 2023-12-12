@@ -58,7 +58,7 @@ public class NoticeBoardHandler {
 	@Autowired
 	private AccountService accountService;
 	@Autowired
-	private WorkspaceBroker workspaceBorker;
+	private WorkspaceBroker workspaceBroker;
 	@Autowired
 	private NoticeBoardDetailRepository noticeBoardDetailRepository;
 
@@ -101,7 +101,7 @@ public class NoticeBoardHandler {
 					}
 					return save.doOnSuccess(result->{
 						result.setAccountId(null);
-						workspaceBorker.send(
+						workspaceBroker.send(
 							new ServerSentStreamTemplate<NoticeBoardInheritsTable>(
 								result.getWorkspaceId(),
 								result.getRoomId(),
@@ -154,7 +154,7 @@ public class NoticeBoardHandler {
 
 					return save.doOnSuccess(result->{
 						result.setAccountId(null);
-						workspaceBorker.send(
+						workspaceBroker.send(
 							new ServerSentStreamTemplate<NoticeBoardInheritsTable>(
 								result.getWorkspaceId(),
 								result.getRoomId(),
@@ -183,7 +183,7 @@ public class NoticeBoardHandler {
 					}
 					noticeBoardGroupRepository.deleteById(noticeBoardGroup.getGroupId()).doOnSuccess(result->{
 						noticeBoardGroup.setAccountId(null);
-						workspaceBorker.send(
+						workspaceBroker.send(
 							new ServerSentStreamTemplate<NoticeBoardInheritsTable>(
 								noticeBoardGroup.getWorkspaceId(),
 								noticeBoardGroup.getRoomId(),
@@ -212,7 +212,7 @@ public class NoticeBoardHandler {
 					}
 					noticeBoardRepository.deleteById(noticeBoard.getId()).doOnSuccess(result->{
 						noticeBoard.setAccountId(null);
-						workspaceBorker.send(
+						workspaceBroker.send(
 							new ServerSentStreamTemplate<NoticeBoardInheritsTable>(
 								noticeBoard.getWorkspaceId(),
 								noticeBoard.getRoomId(),
@@ -288,7 +288,7 @@ public class NoticeBoardHandler {
 				})
 			)
 			.doOnNext(e->{
-				workspaceBorker.send(
+				workspaceBroker.send(
 					new ServerSentStreamTemplate<NoticeBoardInheritsTable>(
 						e.getWorkspaceId(),
 						e.getRoomId(),
@@ -336,7 +336,7 @@ public class NoticeBoardHandler {
 					);
 				}
 				return save.doOnSuccess(result -> {
-					workspaceBorker.send(
+					workspaceBroker.send(
 						new ServerSentStreamTemplate<NoticeBoardDetailEntity>(
 							result.getWorkspaceId(),
 							result.getRoomId(),
@@ -380,7 +380,7 @@ public class NoticeBoardHandler {
 				})
 			)
 			.doOnNext(e->{
-				workspaceBorker.send(
+				workspaceBroker.send(
 					new ServerSentStreamTemplate<NoticeBoardDetailEntity>(
 						e.getWorkspaceId(),
 						e.getRoomId(),

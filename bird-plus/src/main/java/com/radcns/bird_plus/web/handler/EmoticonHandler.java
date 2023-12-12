@@ -49,7 +49,7 @@ public class EmoticonHandler {
 	private ChattingReactionCountRepository chattingReactionCountRepository;
 	
 	@Autowired
-	private WorkspaceBroker workspaceBorker;
+	private WorkspaceBroker workspaceBroker;
 	
 	public Mono<ServerResponse> createEmoticonReaction(ServerRequest request){
 		var createResult = accountService.convertRequestToAccount(request)
@@ -134,7 +134,7 @@ public class EmoticonHandler {
 									e.add(ChattingReactionCountResponse.builder().fullName(account.getFullName()).build());
 								}
 								result.doOnSuccess(s->{
-									EmitResult emitResult = workspaceBorker.send(
+									EmitResult emitResult = workspaceBroker.send(
 										new ServerSentStreamTemplate<ChattingReactionResponse>(
 											emoticon.getWorkspaceId(),
 											emoticon.getRoomId(),

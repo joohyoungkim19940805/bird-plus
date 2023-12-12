@@ -20,7 +20,7 @@ import reactor.core.publisher.Mono;
 @Component
 public class EventStreamHandler {
 	@Autowired
-	private WorkspaceBroker workspaceBorker;
+	private WorkspaceBroker workspaceBroker;
 	@Autowired
 	private AccountService accountService;
 	
@@ -32,7 +32,7 @@ public class EventStreamHandler {
 		
 		return ok().contentType(MediaType.TEXT_EVENT_STREAM)
 			.body(
-				workspaceBorker.getManager(workspaceId).getWorkspaceSinks().asFlux()
+				workspaceBroker.getManager(workspaceId).getWorkspaceSinks().asFlux()
 				//.filter(serverSentTemplate -> serverSentTemplate.getWorkspaceId().equals(workspaceId) && serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.CHTTING_ACCEPT))
 				.flatMap(serverSentTemplate -> {
 					return accountService.convertRequestToAccount(request)

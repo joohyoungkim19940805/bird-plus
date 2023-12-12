@@ -31,6 +31,9 @@ import org.springframework.data.relational.core.mapping.Table;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ChattingEntity {
+	public static String INVITE_ROOM_IN_ACCOUNT_NOTIFICATION = """
+[{"data": {"is_line": "", "placeholder": ""}, "name": "HTMLDivElement", "type": 1, "childs": [{"data": {"font_size": "12px"}, "name": "FontSize", "type": 1, "childs": [{"data": {}, "name": "Strong", "type": 1, "childs": [{"name": "Text", "text": "%s", "type": 3}], "tagName": "free-will-editor-strong"}, {"data": {"rgba": "149,149,149,1"}, "name": "Color", "type": 1, "childs": [{"name": "Text", "text": "님이", "type": 3}], "tagName": "free-will-editor-color"}], "tagName": "free-will-editor-font-size"}], "tagName": "div"}, {"data": {"is_line": ""}, "name": "HTMLDivElement", "type": 1, "childs": [{"data": {"font_size": "12px"}, "name": "FontSize", "type": 1, "childs": [{"data": {}, "name": "Strong", "type": 1, "childs": [{"name": "Text", "text": "%s", "type": 3}], "tagName": "free-will-editor-strong"}, {"data": {"rgba": "149,149,149,1"}, "name": "Color", "type": 1, "childs": [{"name": "Text", "text": "님을 초대하였습니다.", "type": 3}], "tagName": "free-will-editor-color", "cursor_type": "3", "cursor_index": "0", "cursor_offset": "11", "cursor_scroll_x": null, "cursor_scroll_y": "0"}], "tagName": "free-will-editor-font-size"}], "tagName": "div"}]
+	""";
     @Id
     @Column("id")
     private Long id;
@@ -193,4 +196,5 @@ public class ChattingEntity {
             }
         }
     }
+
 }

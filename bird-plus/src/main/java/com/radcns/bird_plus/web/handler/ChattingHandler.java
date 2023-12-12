@@ -57,7 +57,7 @@ public class ChattingHandler {
 	private AccountService accountService;
 	
 	@Autowired
-	private WorkspaceBroker workspaceBorker;
+	private WorkspaceBroker workspaceBroker;
 	
 	@Autowired
 	private RoomInAccountRepository roomInAccountRepository;
@@ -106,7 +106,7 @@ public class ChattingHandler {
 					return save;
 				})
 				.doOnSuccess(e->{/*
-					EmitResult result = workspaceBorker.sendChatting(
+					EmitResult result = workspaceBroker.sendChatting(
 						ChattingResponse.builder()
 							.id(e.getId())
 							.roomId(e.getRoomId())
@@ -118,7 +118,7 @@ public class ChattingHandler {
 							.accountName(account.getAccountName())
 						.build()
 					);*/
-					EmitResult result = workspaceBorker.send(
+					EmitResult result = workspaceBroker.send(
 						new ServerSentStreamTemplate<ChattingResponse>(
 							e.getWorkspaceId(),
 							e.getRoomId(),
