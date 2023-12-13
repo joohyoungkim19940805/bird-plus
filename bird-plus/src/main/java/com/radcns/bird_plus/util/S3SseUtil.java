@@ -98,8 +98,12 @@ public class S3SseUtil {
 		private String contentType;
 		private String customerProvidedKey;
 		private UploadType uploadType;
+		private FileType fileType;
 		public enum UploadType{
 			CHATTING, NOTICE
+		}
+		public enum FileType{
+			IMAGE, VIDEO, FILE
 		}
 
 		public boolean initVerify(PublicKey publicKey) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {

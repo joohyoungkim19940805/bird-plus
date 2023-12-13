@@ -30,7 +30,7 @@ import org.springframework.data.relational.core.mapping.Table;
 @ToString
 @Builder(toBuilder = true)
 @Setter
-public class ChattingReplyEntity {
+public class ChattingCommentEntity {
     public void setCreateAt(LocalDateTime createAt) {
         this.createAt = createAt;
         this.createMils = createAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();

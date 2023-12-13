@@ -107,10 +107,11 @@ public class S3Handler {
 				}
 				PutObjectRequest putObjectReuqest = PutObjectRequest.builder()
 					.bucket(s3Properties.getBucket())
-					.key("%s/%s/%s/%s".formatted(
+					.key("%s/%s/%s/%s/%s".formatted(
 						fileAuthRecord.sseCustomerKeyRequest.getRoomId(),
 						fileAuthRecord.sseCustomerKeyRequest.getWorkspaceId(),
 						fileAuthRecord.sseCustomerKeyRequest.getUploadType(),
+						fileAuthRecord.sseCustomerKeyRequest.getFileType(),
 						fileName
 					))
 					.sseCustomerAlgorithm(ServerSideEncryption.AES256.toString())
@@ -158,10 +159,11 @@ public class S3Handler {
 
 				GetObjectRequest getObjectReuqest = GetObjectRequest.builder()
 					.bucket(s3Properties.getBucket())
-					.key("%s/%s/%s/%s".formatted(
+					.key("%s/%s/%s/%s/%s".formatted(
 						fileAuthRecord.sseCustomerKeyRequest.getRoomId(),
 						fileAuthRecord.sseCustomerKeyRequest.getWorkspaceId(),
 						fileAuthRecord.sseCustomerKeyRequest.getUploadType(),
+						fileAuthRecord.sseCustomerKeyRequest.getFileType(),
 						fileAuthRecord.sseCustomerKeyRequest.getFileName()
 					))
 					.sseCustomerAlgorithm(ServerSideEncryption.AES256.toString())

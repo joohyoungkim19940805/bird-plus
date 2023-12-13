@@ -116,7 +116,7 @@ public class NoticeBoardHandler {
 		, ResponseWrapper.class)
 		;
 	}
-	//
+	
 	public Mono<ServerResponse> createNoticeBoard(ServerRequest request){
 		return ok()
 		.contentType(MediaType.APPLICATION_JSON)
@@ -147,7 +147,20 @@ public class NoticeBoardHandler {
 							noticeBoardRepository.findById(noticeBoard.getId()).flatMap((e) -> {
 								e.setTitle(noticeBoard.getTitle());
 								//e.setOrderSort(maxOrderSort + 1);
-								return noticeBoardRepository.save(e);
+								return noticeBoardRepository.save(e)
+									.doOnSuccess(s->{
+										noticeBoardDetailRepository.saveAll(
+											Flux.range(1,20).flatMap(orderSort -> 
+												Mono.just(NoticeBoardDetailEntity.builder()
+													.orderSort((long)orderSort)
+													.roomId(s.getRoomId())
+													.workspaceId(s.getWorkspaceId())
+													.noticeBoardId(s.getId())
+												.build())
+											)
+										);
+									})
+								;
 							})
 						);
 					}
@@ -425,5 +438,9 @@ public class NoticeBoardHandler {
 			, NoticeBoardDetailEntity.class)
 			;
 	}
-	
+	public static void main(String a[]) {
+		Flux.range(1, 20).doOnNext(e->{
+			System.out.println(e);
+		}).subscribe();
+	}
 }
