@@ -46,6 +46,7 @@ import com.radcns.bird_plus.util.stream.ServerSentStreamTemplate.ServerSentStrea
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
+import reactor.core.scheduler.Schedulers;
 
 @Component
 public class NoticeBoardHandler {
@@ -141,26 +142,27 @@ public class NoticeBoardHandler {
 					if(noticeBoard.getId() == null) {
 						noticeBoard.setAccountId(account.getId());
 						noticeBoard.setFullName(account.getFullName());
-						save = maxOrderSortMono.flatMap(maxOrderSort -> noticeBoardRepository.save(noticeBoard.withOrderSort(maxOrderSort + 1)));
+						save = maxOrderSortMono.flatMap(maxOrderSort -> 
+							noticeBoardRepository.save(noticeBoard.withOrderSort(maxOrderSort + 1)).doOnSuccess(s->{
+								noticeBoardDetailRepository.saveAll(
+										Flux.range(1,20).flatMap(orderSort -> 
+											Mono.just(NoticeBoardDetailEntity.builder()
+												.orderSort((long)orderSort)
+												.roomId(s.getRoomId())
+												.workspaceId(s.getWorkspaceId())
+												.noticeBoardId(s.getId())
+											.build())
+										)
+									)
+									.subscribe();
+								})
+						);
 					}else {
 						save = maxOrderSortMono.flatMap(maxOrderSort -> 
 							noticeBoardRepository.findById(noticeBoard.getId()).flatMap((e) -> {
 								e.setTitle(noticeBoard.getTitle());
 								//e.setOrderSort(maxOrderSort + 1);
-								return noticeBoardRepository.save(e)
-									.doOnSuccess(s->{
-										noticeBoardDetailRepository.saveAll(
-											Flux.range(1,20).flatMap(orderSort -> 
-												Mono.just(NoticeBoardDetailEntity.builder()
-													.orderSort((long)orderSort)
-													.roomId(s.getRoomId())
-													.workspaceId(s.getWorkspaceId())
-													.noticeBoardId(s.getId())
-												.build())
-											)
-										);
-									})
-								;
+								return noticeBoardRepository.save(e);
 							})
 						);
 					}

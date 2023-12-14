@@ -54,7 +54,6 @@ public class EventStreamService {
 		
 		return roomRepository.findById(roomInAccountEntity.getRoomId())
 			.map(roomEntity -> {
-				System.out.println("kjh test 44444 ::::: !!!!! " + roomEntity.getRoomName());
 				return new ServerSentStreamTemplate<MyJoinedRoomListResponse>(
 					roomInAccountEntity.getWorkspaceId(),
 					roomInAccountEntity.getRoomId(),

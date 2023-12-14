@@ -139,7 +139,7 @@ public class RoomHandler {
 				.flatMap(bol -> {
 					if(bol) {
 						return roomRepository.findByCreateByAndWorkspaceIdAndRoomType(account.getId(), workspaceId, RoomType.SELF)
-							.map(roomEntity -> {
+							.flatMap(roomEntity -> {
 								if( ! roomEntity.getRoomName().equals( account.getFullName() )) {
 									return roomRepository.save(roomEntity.withRoomName(account.getFullName()))
 											.doOnSuccess(e->{
@@ -157,7 +157,7 @@ public class RoomHandler {
 												.subscribe();
 											});
 								}else {
-									return roomEntity;
+									return Mono.just(roomEntity);
 								}
 							});
 					}else {
