@@ -575,6 +575,8 @@ const getStart = new class GetStart{
 				isClick = false;
 
 				alert(result.message);
+				
+				this.showForgotPasswordSendEmailEndPage();
 			}).catch(err => {
 				isClick = false;
 
