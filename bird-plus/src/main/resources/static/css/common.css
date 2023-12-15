@@ -157,14 +157,14 @@ p {
 }
 
 .loading_rotate{
-	border: 12px solid #f3f3f3;
-	border-radius: 50%;
-	border-top: 12px solid #3498db;
-	width: 20vmax;
-	height: 20vmax;
-	margin: 0 auto;
-	-webkit-animation: spin 2s linear infinite; /* Safari */
-	animation: spin 2s linear infinite;
+    border: 0.8vmax solid #f3f3f3;
+    border-radius: 50%;
+    border-top: 0.8vmax solid #3498db;
+    width: 4vmax;
+    height: 4vmax;
+    margin: 0 auto;
+    -webkit-animation: spin 2s linear infinite;
+    animation: spin 2s linear infinite;
 }
 /* Safari */
 @-webkit-keyframes spin {

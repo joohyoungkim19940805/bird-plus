@@ -54,8 +54,8 @@ import static org.springframework.web.reactive.function.server.ServerResponse.ok
 @Component
 public class S3Handler {
 
-	@Autowired
-	private S3AsyncClientBuilder s3AsyncClientBuilder;
+	//@Autowired
+	//private S3AsyncClientBuilder s3AsyncClientBuilder;
 	
 	@Autowired
 	private S3Properties s3Properties;
