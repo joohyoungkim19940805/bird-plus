@@ -1027,7 +1027,7 @@ const getStart = new class GetStart{
 			//window.location.href = 'http://naver.com';
 			if(confirm('do you want download app?')){
 				let a = document.createElement('a');
-				a.href = `https://bird-plus-s3-public.s3.ap-northeast-2.amazonaws.com/update/greased-lightning-chat+Setup+0.1.3.exe`
+				a.href = `https://bird-plus-s3-public.s3.ap-northeast-2.amazonaws.com/update/greased-lightning-chat+Setup+0.1.4.exe`
 				a.download = `greased-lightning-chat-Setup.exe`
 				a.click();
 				//alert('아직 빌드 파일을 생성하지 못하였기 때문에 다운로드 할 수 없습니다..')
