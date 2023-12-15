@@ -38,6 +38,7 @@ footer .footer_info_wrapper ruby{
 	font-weight: 600;
 	border-left: ridge;
 	padding-left: 4px;
+	display: inline;
 }
 
 footer .footer_info_wrapper rt{
