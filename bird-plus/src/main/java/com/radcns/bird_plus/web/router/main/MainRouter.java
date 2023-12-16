@@ -87,7 +87,7 @@ public class MainRouter implements IndexRouterSwagger{
 	@Bean
 	public RouterFunction<ServerResponse> apiEventStream(EventStreamHandler eventStreamHandler){
 		return route().nest(path("/api/event-stream"), builder -> builder
-					.GET("/workspace/{workspaceId}/{auth}", eventStreamHandler::emissionStream)
+					.GET("/workspace/{workspaceId}", eventStreamHandler::emissionStream)
 				).build();
 	}
 	
