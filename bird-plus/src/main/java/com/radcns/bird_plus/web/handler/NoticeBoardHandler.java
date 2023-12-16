@@ -260,7 +260,7 @@ public class NoticeBoardHandler {
 				if(parentGroupIdObject != null) {
 					parentGroupId = Long.valueOf(parentGroupIdObject);
 				}
-				Sinks.Many<NoticeBoardEntity> sinks = Sinks.many().multicast().onBackpressureBuffer();
+				Sinks.Many<NoticeBoardEntity> sinks = Sinks.many().multicast().directAllOrNothing();
 				
 				noticeBoardRepository.findAllByWorkspaceIdAndRoomIdAndParentGroupId(workspaceId, roomId, parentGroupId)
 				.doOnNext(e-> {
@@ -424,7 +424,7 @@ public class NoticeBoardHandler {
 				.filterWhen(account -> roomInAccountRepository.existsByAccountIdAndWorkspaceIdAndRoomId(account.getId(), workspaceId, roomId))
 				.switchIfEmpty(Mono.error(new RoomException(Result._301)))
 				.flatMapMany(account -> {
-					Sinks.Many<NoticeBoardDetailEntity> sinks = Sinks.many().multicast().onBackpressureBuffer();
+					Sinks.Many<NoticeBoardDetailEntity> sinks = Sinks.many().multicast().directAllOrNothing();
 					noticeBoardDetailRepository.findAllByNoticeBoardId(noticeBoardId)
 					.doOnNext(e-> {
 						sinks.tryEmitNext(e);
