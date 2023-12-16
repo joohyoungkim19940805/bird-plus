@@ -315,7 +315,7 @@ public class WorkspaceHandler {
 		.filterWhen(e-> workspaceInAccountRepository.existsByWorkspaceIdAndAccountIdAndIsEnabled(workspaceId, e.getId(), true))
 		.switchIfEmpty(Mono.error(new WorkspaceException(Result._201)))
 		.flatMap(account -> {
-			Sinks.Many<WokrspaceInAccountPermitListResponse> sinks = Sinks.many().multicast().directAllOrNothing();
+			Sinks.Many<WokrspaceInAccountPermitListResponse> sinks = Sinks.many().unicast().onBackpressureBuffer();
 			
 			workspaceInAccountRepository.findAllPermitList(workspaceId)
 			.doOnNext(e->{
