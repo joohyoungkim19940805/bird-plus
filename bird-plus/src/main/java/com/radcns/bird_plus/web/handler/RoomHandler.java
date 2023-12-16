@@ -312,7 +312,7 @@ public class RoomHandler {
 		.body(
 			accountService.convertRequestToAccount(request)
 			.flatMap(account -> {
-				//Sinks.Many<RoomInAccountDomain.RoomJoinedAccountResponse> sinks = Sinks.many().unicast().onBackpressureBuffer();
+				//Sinks.Many<RoomInAccountDomain.RoomJoinedAccountResponse> sinks = Sinks.many().multicast().onBackpressureBuffer();
 				var save = roomInAccountRepository.saveAll(
 					request.bodyToFlux(RoomInAccountDomain.CreateRoomInAccountRequest.class)
 					.flatMap(createRoomInAccount -> {
@@ -721,7 +721,7 @@ public class RoomHandler {
 			.filterWhen(acc -> roomInAccountRepository.existsByAccountIdAndRoomId(acc.getId(), roomId))
 			.switchIfEmpty(Mono.error(new RoomException(Result._301)))
 			.flatMapMany(account -> {
-				Sinks.Many<RoomInAccountDomain.RoomJoinedAccountResponse> sinks = Sinks.many().unicast().onBackpressureBuffer();
+				Sinks.Many<RoomInAccountDomain.RoomJoinedAccountResponse> sinks = Sinks.many().multicast().onBackpressureBuffer();
 				
 				roomInAccountRepository.findAllByRoomId(roomId)
 				//.cache(Duration.ofDays(1))

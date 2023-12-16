@@ -12,7 +12,7 @@ public class WorkspaceManager {
 	private Sinks.Many<ServerSentStreamTemplate<? extends Object>> workspaceSinks = Sinks.many().multicast().directAllOrNothing();
 
 	public int size() {
-		workspaceSinks.asFlux();
+		//workspaceSinks.asFlux();
 		return this.workspaceSinks.currentSubscriberCount();
 	}
 }
