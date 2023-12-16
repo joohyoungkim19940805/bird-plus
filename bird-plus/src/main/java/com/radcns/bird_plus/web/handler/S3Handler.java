@@ -32,9 +32,9 @@ import com.radcns.bird_plus.service.AccountService;
 import com.radcns.bird_plus.util.CreateRandomCodeUtil;
 import com.radcns.bird_plus.util.KeyPairUtil;
 import com.radcns.bird_plus.util.ResponseWrapper;
-import com.radcns.bird_plus.util.S3SseUtil;
-import com.radcns.bird_plus.util.S3SseUtil.SSE_CustomerKeyRequest;
-import com.radcns.bird_plus.util.S3SseUtil.SSE_CustomerKeyResponse;
+import com.radcns.bird_plus.util.S3Util;
+import com.radcns.bird_plus.util.S3Util.SSE_CustomerKeyRequest;
+import com.radcns.bird_plus.util.S3Util.SSE_CustomerKeyResponse;
 import com.radcns.bird_plus.util.exception.BirdPlusException.Result;
 import com.radcns.bird_plus.util.exception.RoomException;
 import com.radcns.bird_plus.util.exception.S3ApiException;
@@ -219,8 +219,8 @@ public class S3Handler {
 		SecretKey key;
 		byte[] mdDigestHash;
 		try {
-			key = S3SseUtil.generateKey(keyString, "{\"account_name\":\"%s\",\"slat\":\"%s\"}".formatted(sseCustomerKeyRequest.getAccountName(), s3SseCSlat));
-			mdDigestHash = S3SseUtil.getMd5Digest(key.getEncoded());
+			key = S3Util.generateKey(keyString, "{\"account_name\":\"%s\",\"slat\":\"%s\"}".formatted(sseCustomerKeyRequest.getAccountName(), s3SseCSlat));
+			mdDigestHash = S3Util.getMd5Digest(key.getEncoded());
 		} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
 			return Mono.error(new S3ApiException(Result._501));
 		}

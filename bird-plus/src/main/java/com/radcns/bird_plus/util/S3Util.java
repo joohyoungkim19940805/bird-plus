@@ -39,7 +39,7 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.With;
 
-public class S3SseUtil {
+public class S3Util {
 	
 	private static SecureRandom random = new SecureRandom();
 	
