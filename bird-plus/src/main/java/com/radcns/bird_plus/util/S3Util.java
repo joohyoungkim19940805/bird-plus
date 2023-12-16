@@ -128,6 +128,7 @@ public class S3Util {
 			return isVerify;
 		}
 	}
+	
 	@Getter
 	@Setter
 	@Builder(toBuilder = true)
@@ -140,5 +141,6 @@ public class S3Util {
 		private URL presignedUrl;
 		private String newFileName;
 	}
+	
 	
 }
