@@ -90,7 +90,7 @@ public class ChattingHandler {
 					if(chattingEntity.getId() != null) {
 						save = chattingRepository.findById(chattingEntity.getId()).flatMap(e->{
 							e.setUpdateBy(account.getId());
-							e.setUpdateAt(LocalDateTime.now());
+							//e.setUpdateAt(LocalDateTime.now());
 							e.setChatting(chattingEntity.getChatting());
 							return chattingRepository.save(e);
 						});
@@ -132,8 +132,8 @@ public class ChattingHandler {
 								.workspaceId(e.getWorkspaceId())
 								.chatting(Json.of(e.getChatting()))
 								.pageSequence(e.getPageSequence())
-								.createAt(LocalDateTime.now())
-								.updateAt(LocalDateTime.now())
+								.createAt(e.getCreateAt())
+								.updateAt(e.getUpdateAt())
 								.fullName(account.getFullName())
 								.accountName(account.getAccountName())
 							.build(),
@@ -173,7 +173,7 @@ public class ChattingHandler {
 				Long startNo = size * page + 1;
 				startNo = maxPageSequence - (startNo == 1 ? 0 : startNo);
 				
-				return chattingRepository.findAllJoinAccountByWorkspaceIdAndRoomId(workspaceId, roomId, startNo, endNo)
+				return chattingRepository.findAllJoinAccountByWorkspaceIdAndRoomId(workspaceId, roomId, account.getId(), startNo, endNo)
 				.collectList()
 				.zipWith(chattingRepository.countByWorkspaceIdAndRoomId(workspaceId, roomId))
 				.map(entityTuples -> 

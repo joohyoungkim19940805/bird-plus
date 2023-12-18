@@ -35,6 +35,7 @@ public interface ChattingRepository extends ReactiveCrudRepository<ChattingEntit
     	cc.page_sequence,
     	aa.full_name,
     	aa.account_name,
+    	(aa.id = :#{[2]})as is_my_chatting,
     	(
     		SELECT 
     			json_agg(json_build_object(
@@ -82,9 +83,9 @@ public interface ChattingRepository extends ReactiveCrudRepository<ChattingEntit
     AND
     	cc.room_id = :#{[1]}
     AND
-    	cc.page_sequence  <= :#{[2]}
+    	cc.page_sequence  <= :#{[3]}
     AND
-    	cc.page_sequence  >= :#{[3]}
+    	cc.page_sequence  >= :#{[4]}
     ORDER BY
     	cc.create_at
     DESC
@@ -94,7 +95,7 @@ public interface ChattingRepository extends ReactiveCrudRepository<ChattingEntit
 	:#{[2].offset}
 	LIMIT
 	:#{[2].pageSize}*/
-    Flux<ChattingDomain.ChattingResponse> findAllJoinAccountByWorkspaceIdAndRoomId(Long workspaceId, Long roomId, Long startNo, Long endNo);
+    Flux<ChattingDomain.ChattingResponse> findAllJoinAccountByWorkspaceIdAndRoomId(Long workspaceId, Long roomId, Long accountId, Long startNo, Long endNo);
 
     /*@Query("""
 	    SELECT
