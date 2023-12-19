@@ -202,6 +202,24 @@ public class ChattingEntity {
             	return this.reaction.asString();
             }
         }
+        
+        @Getter
+        @Setter
+        public static class ChattingDeleteReqeust{
+        	private Long chattingId;
+        	private Long workspaceId;
+        	private Long roomId;
+        }
+        
+        /**
+         * 추후 "삭제된 메시지 입니다." 표기 개발할지 고려 중이므로 domain class 사용
+         */
+        @Getter
+        @Setter
+        public static class ChattingDeleteResponse{
+        	private Long chattingId;
+        }
+        
     }
 
 }

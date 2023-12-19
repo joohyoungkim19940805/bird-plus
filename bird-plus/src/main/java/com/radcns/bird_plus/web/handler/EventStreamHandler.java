@@ -53,6 +53,8 @@ public class EventStreamHandler {
 									serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.WORKSPACE_PERMIT_RESULT_ACCEPT)
 							) {
 								return eventStreamService.workspacePermitRequestStream(serverSentTemplate, account);
+							}else if(serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.CHATTING_DELETE_ACCEPT_CAST_CLASS)){
+								return Mono.just(serverSentTemplate);
 							}
 							else {
 								return Mono.just(serverSentTemplate);

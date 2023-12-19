@@ -262,4 +262,25 @@ public interface RoomInAccountRepository extends ReactiveCrudRepository<RoomInAc
     	rria.account_id != :#{[1]}
     """)
     Mono<String> findGroupMessengerRoomName(Long roomId, Long accountId);
+    
+    @Query("""
+		SELECT
+    		rria.room_id
+		FROM 
+    		ro_room_in_account rria 
+		INNER JOIN 
+    		ro_room rr 
+		ON 
+    		rria.room_id = rr.id 
+		AND
+    		rr.room_type = :roomType
+		AND	
+    		rr.workspace_id = :workspaceId
+		WHERE 
+    		rria.account_id in(:accountList)
+		GROUP BY 
+    		rria.room_id having count(1) = :count;
+    """)
+    Mono<Long> findRoomIdWithExistsInviteAccount(RoomType roomType, Long workspaceId, List<Long> accountList, Integer count);
+    
 }

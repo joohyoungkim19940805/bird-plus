@@ -35,7 +35,7 @@ public interface ChattingRepository extends ReactiveCrudRepository<ChattingEntit
     	cc.page_sequence,
     	aa.full_name,
     	aa.account_name,
-    	(aa.id = :#{[2]})as is_my_chatting,
+    	(aa.id = :#{[2]}) as is_my_chatting,
     	(
     		SELECT 
     			json_agg(json_build_object(
@@ -125,5 +125,70 @@ public interface ChattingRepository extends ReactiveCrudRepository<ChattingEntit
     AND	
     	cc.room_id = :#{[1]}
     """)
+    
     Mono<Long> findMaxByWorkspaceIdAndRoomId(Long workspaceId, Long roomId);
+	
+    @Query("""
+	 SELECT
+    	cc.id,
+    	cc.room_id,
+    	cc.workspace_id,
+    	cc.chatting,
+    	cc.create_at,
+    	cc.update_at,
+    	cc.page_sequence,
+    	aa.full_name,
+    	aa.account_name,
+    	(aa.id = :#{[2]}) as is_my_chatting,
+    	(
+    		SELECT 
+    			json_agg(json_build_object(
+    				'emoticon', sedp.emoticon,
+    				'emoticonType', sedp.emoticon_type,
+    				'description', sedp.description,
+    				'groupTitle', sedp.group_title ,
+    				'subgroupTitle', sedp.subgroup_title,
+    				'reactionId', ccr.id,
+    				'createAt', ccr.create_at,
+    				'reactionList', (
+						SELECT
+							json_agg( json_build_object( 
+								'fullName', aa2.full_name 
+							) )
+						FROM 
+							ch_chatting_reaction_count ccrc 
+						INNER JOIN
+							ac_account aa2
+						ON
+							ccrc.account_id = aa2.id 
+						WHERE 
+							ccrc.reaction_id = ccr.id
+					)
+    			))
+    		FROM 
+    			ch_chatting_reaction ccr
+    		INNER JOIN
+    			sy_emoticon_duplication_processing sedp 
+    		ON
+    			ccr.emoticon_id = sedp.id
+    		WHERE
+    			ccr.chatting_id = cc.id
+    		GROUP BY
+    			ccr.chatting_id
+    	) AS reaction
+    FROM
+    	ch_chatting cc
+    INNER JOIN
+    	ac_account aa
+    ON
+    	cc.account_id = aa.id
+    WHERE
+    	cc.workspace_id = :#{[0]}
+    AND
+    	cc.room_id = :#{[1]}
+    AND 
+		cc.chatting_id = :#{[2]}
+    ;
+    """)
+    Mono<ChattingDomain.ChattingResponse> findIdWithChattingResponse(Long workspaceId, Long roomId, Long chattingId);
 }

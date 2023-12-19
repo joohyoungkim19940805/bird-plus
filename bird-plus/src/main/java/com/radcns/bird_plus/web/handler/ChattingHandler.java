@@ -10,6 +10,7 @@ import org.springframework.web.server.handler.FilteringWebHandler;
 import com.radcns.bird_plus.config.security.JwtVerifyHandler;
 import com.radcns.bird_plus.entity.chatting.ChattingEntity;
 import com.radcns.bird_plus.entity.chatting.ChattingEntity.ChattingDomain;
+import com.radcns.bird_plus.entity.chatting.ChattingEntity.ChattingDomain.ChattingDeleteReqeust;
 import com.radcns.bird_plus.entity.chatting.ChattingEntity.ChattingDomain.ChattingResponse;
 import com.radcns.bird_plus.repository.account.AccountRepository;
 import com.radcns.bird_plus.repository.chatting.ChattingRepository;
@@ -87,11 +88,14 @@ public class ChattingHandler {
 				.switchIfEmpty(Mono.error(new RoomException(Result._301)))
 				.flatMap(chattingEntity -> {
 					Mono<ChattingEntity> save;
-					if(chattingEntity.getId() != null) {
+					boolean isUpdate = chattingEntity.getId() != null;
+					if(isUpdate) {
 						save = chattingRepository.findById(chattingEntity.getId()).flatMap(e->{
 							e.setUpdateBy(account.getId());
 							//e.setUpdateAt(LocalDateTime.now());
+							//if(chattingEntity.getChatting() != null) {
 							e.setChatting(chattingEntity.getChatting());
+							//}
 							return chattingRepository.save(e);
 						});
 					}else{
@@ -101,55 +105,84 @@ public class ChattingHandler {
 								chattingEntity
 								.withPageSequence(maxSequence + 1)
 								.withAccountId(account.getId())
+								.withCreateAt(LocalDateTime.now())
 								.withCreateBy(account.getId())
 								.withUpdateBy(account.getId())
 							))
 						;
 					}
 					
-					return save;
-				})
-				.doOnSuccess(e->{/*
-					EmitResult result = workspaceBroker.sendChatting(
-						ChattingResponse.builder()
-							.id(e.getId())
-							.roomId(e.getRoomId())
-							.workspaceId(e.getWorkspaceId())
-							.chatting(Json.of(e.getChatting()))
-							.createAt(LocalDateTime.now())
-							.updateAt(LocalDateTime.now())
-							.fullName(account.getFullName())
-							.accountName(account.getAccountName())
-						.build()
-					);*/
-					EmitResult result = workspaceBroker.send(
-						new ServerSentStreamTemplate<ChattingResponse>(
-							e.getWorkspaceId(),
-							e.getRoomId(),
+					return save.doOnSuccess(e->{/*
+						EmitResult result = workspaceBroker.sendChatting(
 							ChattingResponse.builder()
 								.id(e.getId())
 								.roomId(e.getRoomId())
 								.workspaceId(e.getWorkspaceId())
 								.chatting(Json.of(e.getChatting()))
-								.pageSequence(e.getPageSequence())
-								.createAt(e.getCreateAt())
-								.updateAt(e.getUpdateAt())
+								.createAt(LocalDateTime.now())
+								.updateAt(LocalDateTime.now())
 								.fullName(account.getFullName())
 								.accountName(account.getAccountName())
-							.build(),
-							ServerSentStreamType.CHATTING_ACCEPT
-						) {}
-					);
-					if (result.isFailure()) {
-						// do something here, since emission failed
-					}
+							.build()
+						);*/
+						if(isUpdate) {
+							chattingRepository.findIdWithChattingResponse(chattingEntity.getWorkspaceId(), chattingEntity.getRoomId(), chattingEntity.getId())
+							.doOnNext(chatting->{
+								EmitResult result = workspaceBroker.send(
+									new ServerSentStreamTemplate<ChattingResponse>(
+										e.getWorkspaceId(),
+										e.getRoomId(),
+										chatting,
+										ServerSentStreamType.CHATTING_ACCEPT
+									) {}
+								);
+								if (result.isFailure()) {
+									// do something here, since emission failed
+								}
+							})
+							.subscribe();
+						}else {
+							EmitResult result = workspaceBroker.send(
+								new ServerSentStreamTemplate<ChattingResponse>(
+									e.getWorkspaceId(),
+									e.getRoomId(),
+									ChattingResponse.builder()
+										.id(e.getId())
+										.roomId(e.getRoomId())
+										.workspaceId(e.getWorkspaceId())
+										.chatting(Json.of(e.getChatting()))
+										.pageSequence(e.getPageSequence())
+										.createAt(e.getCreateAt())
+										.updateAt(e.getUpdateAt())
+										.fullName(account.getFullName())
+										.accountName(account.getAccountName())
+										.isMyChatting(true)
+									.build(),
+									ServerSentStreamType.CHATTING_ACCEPT
+								) {}
+							);
+							if (result.isFailure()) {
+								// do something here, since emission failed
+							}
+						}
+						
+					});
 				})
+				
 				;
 			})
 			.flatMap(e-> response(Result._0, e))
 		, ResponseWrapper.class);
 	}
-
+	public Mono<ServerResponse> deleteChatting(ServerRequest request){
+		accountService.convertRequestToAccount(request)
+		.flatMap(account -> {
+			return request.bodyToMono(ChattingDeleteReqeust.class)
+			.filterWhen(deleteRequest -> roomInAccountRepository.existsByAccountIdAndWorkspaceIdAndRoomId(account.getId(), deleteRequest.getWorkspaceId(), deleteRequest.getRoomId()))
+			.switchIfEmpty(Mono.error(new RoomException(Result._301)));
+		});
+		return null;
+	}
 	public Mono<ServerResponse> searchChattingList(ServerRequest request){
 		Long workspaceId = Long.valueOf(request.pathVariable("workspaceId"));
 		Long roomId = Long.valueOf(request.pathVariable("roomId"));

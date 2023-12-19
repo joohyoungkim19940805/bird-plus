@@ -5,7 +5,10 @@ import static org.springframework.web.reactive.function.server.ServerResponse.ok
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageImpl;
@@ -18,6 +21,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import com.radcns.bird_plus.entity.chatting.ChattingEntity;
 import com.radcns.bird_plus.entity.chatting.ChattingEntity.ChattingDomain.ChattingResponse;
 import com.radcns.bird_plus.entity.room.RoomEntity;
+import com.radcns.bird_plus.entity.room.RoomEntity.RoomDomain.CreateRoomRequest;
 import com.radcns.bird_plus.entity.room.RoomFavoritesEntity;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity.RoomInAccountDomain;
@@ -70,15 +74,33 @@ public class RoomHandler {
 	public Mono<ServerResponse> createRoom(ServerRequest request){
 		return accountService.convertRequestToAccount(request)
 		.flatMap(account -> 
-			request.bodyToMono(RoomEntity.class)
+			request.bodyToMono(CreateRoomRequest.class)
 			.filterWhen(e-> workspaceInAccountRepository.existsByWorkspaceIdAndAccountIdAndIsEnabled(e.getWorkspaceId(), account.getId(), true))
 			.switchIfEmpty(Mono.error(new WorkspaceException(Result._201)))
-			.flatMap(room ->{
-				room.setCreateBy(account.getId());
-				return roomRepository.save(room)
-				.doOnSuccess(e->e.withCreateBy(null));
+			.flatMap(createRoomRequest->{
+				RoomEntity roomEntity = RoomEntity.builder()
+					.roomName(createRoomRequest.getRoomName())
+					.workspaceId(createRoomRequest.getWorkspaceId())
+					.roomType(createRoomRequest.getRoomType())
+				.build();
+				if(roomEntity.getRoomType().equals(RoomType.MESSENGER)) {
+					return Flux.fromIterable(createRoomRequest.getInviteAccountList())
+						.flatMap(e->accountRepository.findByAccountName(e))
+						.map(inviteAccount -> inviteAccount.getId())
+						.collectList()
+						.flatMap(idList->{
+							idList.add(account.getId());
+							return roomInAccountRepository.findRoomIdWithExistsInviteAccount(createRoomRequest.getRoomType(), createRoomRequest.getWorkspaceId(), idList, idList.size())
+								.flatMap(roomRepository::findById);
+						})
+						.defaultIfEmpty(roomEntity.withCreateBy(account.getId()))
+						.flatMap(e->roomRepository.save(e))
+						;
+				}
+				return roomRepository.save(roomEntity.withCreateBy(account.getId()));
 			})
 			.doOnSuccess(e-> {
+				e.setCreateBy(null);
 				List<RoomType> roomType;
 				if(e.getRoomType().equals(RoomType.ROOM_PUBLIC) || e.getRoomType().equals(RoomType.ROOM_PRIVATE)) {
 					roomType = List.of(RoomType.ROOM_PRIVATE, RoomType.ROOM_PUBLIC);
@@ -126,6 +148,7 @@ public class RoomHandler {
 		)
 		;
 	}
+
 	public Mono<ServerResponse> createMySelfRoom(ServerRequest request){
 		Long workspaceId = Long.valueOf(request.pathVariable("workspaceId"));
 		return ok()
@@ -212,6 +235,9 @@ public class RoomHandler {
 				accountRepository.findByAccountName(createRoomInAccount.getAccountName())
 				.filterWhen(e -> 
 					workspaceInAccountRepository.existsByWorkspaceIdAndAccountIdAndIsEnabled(createRoomInAccount.getWorkspaceId(), e.getId(), true)
+				)
+				.filterWhen(e->
+					roomInAccountRepository.existsByAccountIdAndRoomId(e.getId(), createRoomInAccount.getRoomId()).map(bol->!bol)
 				)
 				.flatMap(inviteAccount -> {
 					RoomInAccountEntity roomInAccountEntity = RoomInAccountEntity.builder()
@@ -770,4 +796,5 @@ public class RoomHandler {
 			.flatMap(e-> response(Result._0, e))
 		, ResponseWrapper.class);
 	}
+
 }

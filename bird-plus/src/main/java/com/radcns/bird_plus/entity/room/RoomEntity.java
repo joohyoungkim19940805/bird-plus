@@ -131,4 +131,15 @@ public class RoomEntity implements TokenTemplate {
         // TODO Auto-generated method stub
         return List.of(Role.ROLE_BOT);
     }
+    
+    public static class RoomDomain{
+    	@Getter
+    	@Setter
+    	public static class CreateRoomRequest{
+    		private String roomName;
+    		private Long workspaceId;
+    		private RoomType roomType;
+    		private List<String> inviteAccountList;
+    	}
+    }
 }

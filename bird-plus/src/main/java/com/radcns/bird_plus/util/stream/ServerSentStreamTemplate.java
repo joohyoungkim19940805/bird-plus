@@ -1,5 +1,6 @@
 package com.radcns.bird_plus.util.stream;
 
+import com.radcns.bird_plus.entity.chatting.ChattingEntity.ChattingDomain.ChattingDeleteResponse;
 import com.radcns.bird_plus.entity.chatting.ChattingEntity.ChattingDomain.ChattingResponse;
 import com.radcns.bird_plus.entity.chatting.ChattingReactionEntity.ChattingReactionDomain.ChattingReactionResponse;
 import com.radcns.bird_plus.entity.notice.NoticeBoardDetailEntity;
@@ -45,6 +46,8 @@ public class ServerSentStreamTemplate<T> {
 	public enum ServerSentStreamType{
 		CHATTING_ACCEPT, 
 		CHATTING_REACTION_ACCEPT,
+		CHATTING_DELETE_ACCEPT,
+		
 		
 		ROOM_ACCEPT, 
 		ROOM_IN_ACCOUNT_ACCEPT, 
@@ -58,6 +61,7 @@ public class ServerSentStreamTemplate<T> {
 		;
 		public final static Class<ChattingResponse> CHATTING_ACCEPT_CAST_CLASS = ChattingResponse.class;
 		public final static Class<ChattingReactionResponse> CHATTING_REACTION_ACCEPT_CAST_CLASS = ChattingReactionResponse.class;
+		public final static Class<ChattingDeleteResponse> CHATTING_DELETE_ACCEPT_CAST_CLASS = ChattingDeleteResponse.class;
 		
 		public final static Class<RoomInAccountEntity> ROOM_ACCEPT_CAST_CLASS = RoomInAccountEntity.class;
 		public final static Class<RoomJoinedAccountResponse> ROOM_IN_ACCOUNT_ACCEPT_CAST_CLASS = RoomJoinedAccountResponse.class;

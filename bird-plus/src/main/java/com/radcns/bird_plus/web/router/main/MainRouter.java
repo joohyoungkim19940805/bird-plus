@@ -78,6 +78,9 @@ public class MainRouter implements IndexRouterSwagger{
 				.nest(path("/create"), createPathBuilder -> createPathBuilder
 							.POST("/send-chatting", accept(MediaType.APPLICATION_JSON), chattingHandler::sendStream)
 						.build())
+				.nest(path("/delete"), deletePathBuilder -> deletePathBuilder
+							.POST("/", accept(MediaType.APPLICATION_JSON), chattingHandler::deleteChatting)
+						.build())
 				.nest(path("/search"), searchPathBuilder -> searchPathBuilder
 							.GET("/chatting-list/{workspaceId}/{roomId}", accept(MediaType.APPLICATION_JSON), chattingHandler::searchChattingList)
 						.build())
