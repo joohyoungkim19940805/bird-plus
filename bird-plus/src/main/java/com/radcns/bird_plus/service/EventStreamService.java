@@ -92,9 +92,19 @@ public class EventStreamService {
 			}
 		});
 	}
-	public Mono<ServerSentStreamTemplate<?>> workspacePermitRequestStream(ServerSentStreamTemplate<?> serverSentTemplate, AccountEntity account){
+	public Mono<ServerSentStreamTemplate<?>> workspacePermitRequestEmissionStream(ServerSentStreamTemplate<?> serverSentTemplate, AccountEntity account){
 		return workspaceInAccountRepository.existsByWorkspaceIdAndAccountIdAndIsAdmin(serverSentTemplate.getWorkspaceId(), account.getId(), true)
 		.flatMap(bol -> {
+			if(bol) {
+				return Mono.just(serverSentTemplate);
+			}else {
+				return Mono.empty();
+			}
+		});
+	}
+	public Mono<ServerSentStreamTemplate<?>> chattingDeleteEmissionStream(ServerSentStreamTemplate<?> serverSentTemplate, AccountEntity account){
+		return roomInAccountRepository.existsByAccountIdAndWorkspaceIdAndRoomId(account.getId(), serverSentTemplate.getWorkspaceId(), serverSentTemplate.getRoomId())
+		.flatMap(bol ->{
 			if(bol) {
 				return Mono.just(serverSentTemplate);
 			}else {

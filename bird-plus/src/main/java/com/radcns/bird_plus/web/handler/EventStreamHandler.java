@@ -52,9 +52,9 @@ public class EventStreamHandler {
 							}else if(serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.WORKSPACE_PERMIT_REQUEST_ACCEPT) ||
 									serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.WORKSPACE_PERMIT_RESULT_ACCEPT)
 							) {
-								return eventStreamService.workspacePermitRequestStream(serverSentTemplate, account);
-							}else if(serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.CHATTING_DELETE_ACCEPT_CAST_CLASS)){
-								return Mono.just(serverSentTemplate);
+								return eventStreamService.workspacePermitRequestEmissionStream(serverSentTemplate, account);
+							}else if(serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.CHATTING_DELETE_ACCEPT)){
+								return eventStreamService.chattingDeleteEmissionStream(serverSentTemplate, account);
 							}
 							else {
 								return Mono.just(serverSentTemplate);

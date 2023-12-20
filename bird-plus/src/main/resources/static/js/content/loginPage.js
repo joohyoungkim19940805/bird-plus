@@ -1010,6 +1010,18 @@ const getStart = new class GetStart{
 				workspaceListUl.replaceChildren(...allWorkspaceItemList);
 				if(allWorkspaceItemList.length != 0){
 					lastItemObserver.observe(allWorkspaceItemList[allWorkspaceItemList.length - 1])
+				}else{
+					let li = Object.assign(document.createElement('li'), {
+						innerHTML : `
+							<div class="workspace_list_container">
+								<div>
+									<button><b>Joining Workspace Now</b></button>
+								</div>
+							</div>
+						`
+					});
+					li.querySelector('button').onclick = this.showSearchWorkspacePage();
+					workspaceListUl.append(li)
 				}
 				return totalPages;
 			});

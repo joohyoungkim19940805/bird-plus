@@ -216,8 +216,11 @@ public class ChattingEntity {
          */
         @Getter
         @Setter
+        @Builder(toBuilder = true)
         public static class ChattingDeleteResponse{
         	private Long chattingId;
+        	private Long workspaceId;
+        	private Long roomId;
         }
         
     }

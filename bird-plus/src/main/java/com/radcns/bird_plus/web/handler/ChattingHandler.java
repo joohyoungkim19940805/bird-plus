@@ -11,6 +11,7 @@ import com.radcns.bird_plus.config.security.JwtVerifyHandler;
 import com.radcns.bird_plus.entity.chatting.ChattingEntity;
 import com.radcns.bird_plus.entity.chatting.ChattingEntity.ChattingDomain;
 import com.radcns.bird_plus.entity.chatting.ChattingEntity.ChattingDomain.ChattingDeleteReqeust;
+import com.radcns.bird_plus.entity.chatting.ChattingEntity.ChattingDomain.ChattingDeleteResponse;
 import com.radcns.bird_plus.entity.chatting.ChattingEntity.ChattingDomain.ChattingResponse;
 import com.radcns.bird_plus.repository.account.AccountRepository;
 import com.radcns.bird_plus.repository.chatting.ChattingRepository;
@@ -175,13 +176,37 @@ public class ChattingHandler {
 		, ResponseWrapper.class);
 	}
 	public Mono<ServerResponse> deleteChatting(ServerRequest request){
-		accountService.convertRequestToAccount(request)
+		return accountService.convertRequestToAccount(request)
 		.flatMap(account -> {
 			return request.bodyToMono(ChattingDeleteReqeust.class)
 			.filterWhen(deleteRequest -> roomInAccountRepository.existsByAccountIdAndWorkspaceIdAndRoomId(account.getId(), deleteRequest.getWorkspaceId(), deleteRequest.getRoomId()))
-			.switchIfEmpty(Mono.error(new RoomException(Result._301)));
-		});
-		return null;
+			.switchIfEmpty(Mono.error(new RoomException(Result._301)))
+			.flatMap(e->{
+				
+				return chattingRepository.deleteById(e.getChattingId())
+						.doOnSuccess(s->{
+							EmitResult result = workspaceBroker.send(
+								new ServerSentStreamTemplate<ChattingDeleteResponse>(
+									e.getWorkspaceId(),
+									e.getRoomId(),
+									ChattingDeleteResponse.builder()
+										.chattingId(e.getChattingId())
+										.workspaceId(e.getWorkspaceId())
+										.roomId(e.getRoomId())
+									.build(),
+									ServerSentStreamType.CHATTING_DELETE_ACCEPT
+								 ) {}
+							);
+							if (result.isFailure()) {
+								// do something here, since emission failed
+							}
+						});
+			});
+		}).flatMap(e->
+			ok()
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(response(Result._0), ResponseWrapper.class)
+		);
 	}
 	public Mono<ServerResponse> searchChattingList(ServerRequest request){
 		Long workspaceId = Long.valueOf(request.pathVariable("workspaceId"));
