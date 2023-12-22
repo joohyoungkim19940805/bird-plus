@@ -11,8 +11,9 @@ header{
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-	padding: 1rem 1.5rem 1rem 1.5rem;
-	height: 8vh;
+    padding: 1rem 1.5rem 1rem 1.5rem;
+    height: fit-content;
+    font-size: 1.2vmax;
 }
 header nav{
 	font-family: Pontano Sans;
@@ -31,12 +32,12 @@ header h1, header h2, header h3, header h4{
 }
 header #header_title{
 	display: flex;
-    flex-direction: column;
-    position: absolute;
-    top: 0;
-    align-items: center;
-    left: 50%;
-    right: 50%;
+	flex-direction: column;
+	position: absolute;
+	top: 0vw;
+	align-items: center;
+	left: 50%;
+	right: 50%;
 }
 
 header #header_title rt{
@@ -44,9 +45,10 @@ header #header_title rt{
 }
 
 header #header_title > *{
-	width: max-content;	
+	width: max-content;
 }
 
 header > *:not(#header_title){
 	padding-top:1rem;
+	font-size: 1.2vmax;
 }

@@ -327,6 +327,7 @@ const getStart = new class GetStart{
 			widthTransitionEndResolve();
 			this.getStartContainer.style.maxHeight = ''
 			this.getStartContainer.style.height = '100vh';
+			this.getStartContainer.style.maxHeight = 'fit-content';
 		}
 
 		let intersectionObserver = new IntersectionObserver((entries, observer) => {
@@ -341,7 +342,7 @@ const getStart = new class GetStart{
 									setTimeout(()=>{
 										e.style.visibility = 'visible';
 										e.style.opacity = '1';
-										resolve()
+										resolve(e)
 									}, i * delay)
 								}))
 							})
@@ -385,14 +386,20 @@ const getStart = new class GetStart{
 						return new Promise(res=>{
 							setTimeout(()=>{
 								e.style.color = 'rgb(240 248 255 / 0.95)';
-								res();
+								res(e);
 							}, i * delay)
 						});
 					}));
 				});
 				return Promise.all(colorChangePromiseList);
 			});
-		}).then(() => {
+		}).then((textList) => {
+			//console.log(textList);
+			setTimeout(()=>{
+				this.contentContainer.classList.add('opening_end');
+				intersectionObserver.disconnect();
+			},1000)
+			//this.getStartContainer.style.transition = '';
 			this.createRoomContainer.classList.add('start');
 			this.getStartContainer.classList.add('startEnd');
 		});
