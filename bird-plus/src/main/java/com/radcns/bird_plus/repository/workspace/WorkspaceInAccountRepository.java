@@ -17,6 +17,8 @@ public interface WorkspaceInAccountRepository extends ReactiveCrudRepository<Wor
 
     Mono<Boolean> existsByWorkspaceIdAndAccountIdAndIsAdmin(Long workspaceId, Long accountId, Boolean isAdmin);
     
+    Mono<Long> countByWorkspaceId(Long workspaceId);
+    
     @Query("""
     SELECT
     	wwia.workspace_id,

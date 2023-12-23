@@ -1,0 +1,276 @@
+
+/* chatting head [S]*/
+#chatting_head_wrapper .chatting_head_container{
+    flex-flow: wrap;
+    align-content: flex-start;
+}
+#chatting_head_wrapper .chatting_head_container *:not(h3) {
+    font-size: 1.1rem;
+}
+#chatting_head_wrapper .chatting_head_container .chatting_head_info_wrapper{
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    white-space: nowrap;
+}
+    /* chatting head info container [S]*/
+#chatting_head_wrapper .chatting_head_container .chatting_head_info_wrapper .chatting_head_info_container{
+    display: flex;
+    padding: 0 1% 0 1%;
+    justify-content: flex-start;
+    gap: 1vw;
+    width: 100%;
+    align-items: baseline;
+}
+
+#chatting_head_wrapper .chatting_head_container .chatting_head_info_wrapper .chatting_head_info_container > *{
+    margin: 0;
+}
+
+#chatting_head_wrapper .chatting_head_container .chatting_head_info_wrapper .chatting_head_info_container .chatting_head_title{
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+}
+
+#chatting_head_wrapper .chatting_head_container .chatting_head_info_wrapper .chatting_head_info_container .chatting_head_joined_count{
+    color: #c0cbaa;
+}
+    /* chatting head info container [E]*/
+
+    /* chatting head_button container [S]*/
+#chatting_head_wrapper .chatting_head_container .chatting_head_info_wrapper .chatting_head_button_container{
+    display: flex;
+    padding: 0 1% 0 1%;
+    justify-content: flex-end;
+    gap: 1.3vw;
+    width: 100%;
+    align-items: baseline;
+    inline-size: auto;
+}
+#chatting_head_wrapper .chatting_head_container .chatting_head_info_wrapper .chatting_head_button_container .favorites_add_button{
+    border: none;
+    outline: none;
+    color: #ed7b7b;
+    border-radius: 40%;
+    font-size: 1.5rem;
+    background: none;
+}
+/*#chatting_head_wrapper .chatting_head_container .chatting_head_info_wrapper .chatting_head_button_container .favorites_button.apply{
+
+}*/
+
+#chatting_head_wrapper .chatting_head_container .chatting_head_info_wrapper .chatting_head_button_container .member_add_button{
+    border: none;
+    outline: none;
+    background: none;
+    border-radius: 40%;
+    font-size: 1.4rem;
+    font-weight: bold;
+}
+#chatting_head_wrapper .chatting_head_container .chatting_head_info_wrapper .chatting_head_button_container .member_add_button:active{
+    background: #cbcbcb;
+    box-shadow: inset 0px 2px 4px 0px #00000029;
+}
+
+#chatting_head_wrapper .chatting_head_container .chatting_head_info_wrapper .chatting_head_info_search_container .chatting_head_search_members{
+    border: none;
+    background: none;
+    border-bottom: solid 1px #edd4ff;
+    border-left: solid 1px #d3d3d3;
+}
+    /* chatting head_button container [E]*/
+
+#chatting_head_wrapper .chatting_head_container .chatting_head_joined_members{
+    display: flex;
+    white-space: nowrap;
+    gap: 1%;
+    min-inline-size: 100%;
+    align-items: flex-start;
+    height: fit-content;
+}
+#chatting_head_wrapper .chatting_head_container .chatting_head_joined_members li{
+    padding-bottom: 0.7%;
+}
+#chatting_head_wrapper .chatting_head_container .chatting_head_joined_members li > *{
+    border-right: double 3px #cdb1b1;
+}
+#chatting_head_wrapper .chatting_head_container .chatting_head_joined_members.list_scroll.list_scroll-x:hover::-webkit-scrollbar{
+    height: 7px;
+}
+
+#chatting_head_wrapper .chatting_head_menu_wrapper{
+    display: flex;
+    padding: 0 1% 0.5% 1%;
+    gap: 1vw;
+}
+
+/* chatting head [E]*/
+
+/* chatting info(body) [S]*/
+#chatting_info_wrapper{
+    /*-webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;*/
+}
+#chatting_info_wrapper .chatting_info_container{
+    justify-content: flex-end;
+}
+#chatting_info_wrapper .chatting_content_list {
+    display: flex;
+    flex-direction: column-reverse;
+    overflow-y: auto;
+    height: inherit;
+}
+#chatting_info_wrapper .chatting_content_list > li{
+    padding-bottom: 0.35%;
+    white-space: nowrap;
+    /*border-top: solid 2px #00000012;*/
+}
+
+#chatting_info_wrapper .chatting_content_list > li .time_grouping{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    background-color: white;
+    border-top: solid 2px #00000012;
+    margin-top: 1vh;
+    margin-bottom: 1vh;
+}
+
+#chatting_info_wrapper .chatting_content_list > li .time_grouping .time_grouping_text{
+    position: absolute;
+    background-color: inherit;
+    border: solid 1px #00000012;
+    border-radius: 19%;
+    padding: 0.2%;
+    font-size: 0.7rem;
+}
+
+#chatting_info_wrapper .chatting_content_list > li .chatting_content_description_wrapper{
+    display: flex;
+    gap: 0.7vw;
+    position: relative;
+}
+#chatting_info_wrapper .chatting_content_list > li .chatting_content_description_wrapper .chatting_container{
+    width: 100%;
+}
+#chatting_info_wrapper .chatting_content_list > li .chatting_content_description_wrapper .chatting_content_description_profile{
+    margin-left: 5px;
+}
+#chatting_info_wrapper .chatting_content_list > li .chatting_content_description_wrapper .chatting_content_description_profile img{
+    width: 1.5rem;
+}
+#chatting_info_wrapper .chatting_content_list > li .chatting_content_description_wrapper .chatting_content_description_name_wrapper{
+    display: flex;
+    justify-content: space-between;
+}
+#chatting_info_wrapper .chatting_content_list > li .chatting_content_description_wrapper .chatting_content_description_name_wrapper .chatting_content_description_name_container{
+    display: flex;
+    gap: 1vw; 
+}
+#chatting_info_wrapper .chatting_content_list > li .chatting_content_description_wrapper .chatting_content_description_name_wrapper .chatting_content_description_option_container{
+
+}
+
+#chatting_info_wrapper .chatting_content_list > li .chatting_content_description_wrapper .chatting_content_description_name_wrapper .chatting_content_description_name{
+    font-weight: bold;
+}
+#chatting_info_wrapper .chatting_content_list > li .chatting_content_description_wrapper .chatting_content_description_time{
+    color: #c5c5c5;
+}
+#chatting_info_wrapper .chatting_content_list > li .chatting_content_description_wrapper chatting-info-line{
+    padding-top: 0;
+    margin-top: 0;
+}
+#chatting_info_wrapper .chatting_content_list > li .chatting_content_description_wrapper .chatting_container .chatting_reaction_list{
+    overflow-wrap: anywhere;
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 1%;
+}
+#chatting_info_wrapper .chatting_content_list > li .chatting_content_description_wrapper .chatting_container .chatting_reaction_list .chatting_reaction_item{
+    border-radius: 16px;
+    background-color: #e9e9e9;
+    display: flex;
+    align-items: center;
+    padding: 0.1vh 0.5vw 0.3vh 0vw;
+    margin-right: 0.2%;
+    margin-bottom: 0.3%;
+    transition: background-color 0.7s;
+}
+#chatting_info_wrapper .chatting_content_list > li .chatting_content_description_wrapper .chatting_container .chatting_reaction_list .chatting_reaction_item:hover{
+    background-color: #cbb7cd;
+}
+#chatting_info_wrapper .chatting_content_list > li .chatting_content_description_wrapper .chatting_container .chatting_reaction_list .chatting_reaction_button{
+}
+#chatting_info_wrapper .chatting_content_list > li .chatting_content_description_wrapper .chatting_container .chatting_reaction_list .chatting_reaction_emoticon{
+    font-size: 0.9rem;
+}
+#chatting_info_wrapper .chatting_content_list > li .chatting_content_description_wrapper .chatting_container .chatting_reaction_list .chatting_reaction_count{
+    font-size: 0.7rem;
+}
+    /* chatting info menu layer [S] */
+    #chatting_info_wrapper .chatting_content_list > li .chatting_hover_wrapper{
+        position: absolute;
+        display: flex;
+        top: -1.6rem;
+        /* left: 2.2rem; */
+        right: 0.3rem;
+        box-shadow: 0px 0px 13px #999;
+        border-radius: 11px;
+        background-color: white;
+        z-index: 20;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.1rem;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+    #chatting_info_wrapper .chatting_content_list > li .chatting_hover_wrapper .chatting_hover_recommend_emoticon_container{
+        border-right: ridge 3px #a095df;
+        padding-right: 1vw;
+    }
+    #chatting_info_wrapper .chatting_content_list > li .chatting_hover_wrapper .chatting_hover_recommend_emoticon_container button{
+        font-size: 1rem;
+    }
+    #chatting_info_wrapper .chatting_content_list > li .chatting_hover_wrapper .chatting_hover_recommend_emoticon_container button:hover{
+        zoom:125%;
+    }
+    #chatting_info_wrapper .chatting_content_list > li .chatting_hover_wrapper .chatting_hover_button_container button:hover{
+        background-color: #c7c7c7;
+        border-radius: 40%;
+    }
+    #chatting_info_wrapper .chatting_content_list > li .chatting_hover_wrapper .chatting_hover_button_container{
+        padding-left:1vw;
+    }
+    #chatting_info_wrapper .chatting_content_list > li .chatting_hover_wrapper .chatting_hover_recommend_emoticon_container,
+    #chatting_info_wrapper .chatting_content_list > li .chatting_hover_wrapper .chatting_hover_button_container{
+        display: flex;
+        align-items: center;
+    }
+    #chatting_info_wrapper .chatting_content_list > li .chatting_hover_wrapper .chatting_hover_button_container .chatting_hover_another_emoticon{
+        position: relative;
+    }
+    #chatting_info_wrapper .chatting_content_list > li .chatting_hover_wrapper .chatting_hover_button_container > button{
+        display: flex;
+    }
+    #chatting_info_wrapper .chatting_content_list > li .chatting_hover_wrapper .chatting_hover_button_container .chatting_hover_another_emoticon .css-gg-add{
+        position: absolute;
+        bottom: 0;
+        right: 0;
+    }
+
+    /* chatting info menu layer [E] */
+
+/* chatting info(body) [E]*/
+
+/* chatting regist [S] */
+#chatting_regist_wrapper .chatting_regist_container{
+    display: flex;
+    flex-direction: column;
+}
+/* chatting regist [E] */

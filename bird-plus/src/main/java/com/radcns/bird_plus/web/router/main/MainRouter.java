@@ -54,6 +54,11 @@ public class MainRouter implements IndexRouterSwagger{
 				.and(route( POST("/forgot-password-send-email").and(accept(MediaType.APPLICATION_JSON)), mainHandler::forgotPassword ))
 				.and(route( GET("/change-password-page/{token}").and(accept(MediaType.TEXT_HTML)), mainHandler::changePasswordPage ))
 				.and(route( POST("/change-password").and(accept(MediaType.APPLICATION_JSON)), mainHandler::changePassword ))
+				.and(route( GET("/mobile").and(accept(MediaType.TEXT_HTML)), mainHandler::mobile ))
+				.and(route( GET("/mobile/main").and(accept(MediaType.TEXT_HTML)), mainHandler::mobileMain))
+				//.and(route( GET("/mobile/multiple-chatting").and(accept(MediaType.TEXT_HTML)), mainHandler::mobileMultipleChatting))
+				//.and(route( GET("/mobile/multiple-notice-board").and(accept(MediaType.TEXT_HTML)), mainHandler::mobileMultipleNoticeBoard))
+				.and(route( GET("/mobile/create-sub-window/{pageName}").and(accept(MediaType.TEXT_HTML)), mainHandler::createSubWindow ))
 				;
 	}
 
@@ -113,6 +118,7 @@ public class MainRouter implements IndexRouterSwagger{
 						.GET("/detail/{workspaceId}", accept(MediaType.APPLICATION_JSON), workspaceHandler::getWorkspaceDetail)
 						.GET("/permit-request-list/{workspaceId}", accept(MediaType.TEXT_EVENT_STREAM), workspaceHandler::searchPermitRequestList)
 						.GET("/is-admin/{workspaceId}", accept(MediaType.APPLICATION_JSON), workspaceHandler::getIsAdmin)
+						.GET("count/{workspaceId}", accept(MediaType.APPLICATION_JSON), workspaceHandler::getWorkspaceInAccountCount)
 					.build())
 				).build();
 		/*
@@ -198,6 +204,7 @@ public class MainRouter implements IndexRouterSwagger{
 						.build())
 				).build();
 	}
+
 	/*
 	public Mono<ServerResponse> admin(ServerRequest request){
 

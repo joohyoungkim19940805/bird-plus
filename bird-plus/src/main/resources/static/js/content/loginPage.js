@@ -154,8 +154,8 @@ const getStart = new class GetStart{
 				</div>
 				<div>
 					<div>
-						<label for="workspace_filter">access email filter <p style="margin:0">(if nothing is selected anyone can access)</p></label>
-						<p style="color:red;" class="description_validation"></p>
+						<label for="workspace_filter">access email filter <span style="margin:0">(if nothing selected, anyone can access)</span></label>
+						<div style="color:red;" class="description_validation"></div>
 					</div>
 					<input type="email" name="validation_email" hidden value="email" data-default_value="email"/>
 					<div class="space_between">
@@ -678,7 +678,7 @@ const getStart = new class GetStart{
 					});
 					let containerDiv = li.querySelector('div');
 					let joinedButton = Object.assign(document.createElement('button'),{
-						textContent: 'joined',
+						textContent: 'join request',
 						type: 'button'
 					});
 					containerDiv.append(joinedButton);
@@ -697,8 +697,8 @@ const getStart = new class GetStart{
 						}).then(result => {
 							console.log(result);
 							if(result.code == 0){
-								if(result.data.isEnabled){
-									alert('승인 받은 사용자만 접속 가능합니다. 관리자에게 최종 승인을 요청하십시오.')
+								if( ! result.data.isEnabled){
+									alert('승인 받은 사용자만 접속 가능합니다. 참여 요청이 전송되었으며, 관리자의 최종 승인을 기다리십시오.')
 								}else{
 									this.#goToWorkspace(id);
 								}
@@ -808,19 +808,22 @@ const getStart = new class GetStart{
 			clone.value = clone.value.substring(clone.value.indexOf('@'))
 			workspaceFilter.value = '';
 			let originRect = workspaceFilter.getBoundingClientRect();
+			let formRect = form.getBoundingClientRect();
+			//console.log(formRect, originRect)
 			Object.assign(clone.style,{
 				position: 'fixed',
 				width: originRect.width + 'px', height: originRect.height + 'px',
-				top: originRect.top + 'px', bottom: originRect.bottom + 'px',
-				left: originRect.left + 'px', right: originRect.right + 'px',
+				top: (originRect.top - formRect.top) + 'px',
+				left: (originRect.left - formRect.left) + 'px',
 				transition: 'all 0.5s'
 			});
 			workspaceFilter.parentElement.append(clone);
+			//document.body.append(clone);	
 			let intervar = setInterval(()=>{
 				if( ! clone.isConnected){
 					return;
 				}
-				clone.style.top = workspaceFilterHistory.getBoundingClientRect().top + 'px';
+				clone.style.top = (workspaceFilterHistory.getBoundingClientRect().top - formRect.top) + 'px';
 				clone.ontransitionend = () => {
 					let option = Object.assign(document.createElement('option'),{
 						value: clone.value 

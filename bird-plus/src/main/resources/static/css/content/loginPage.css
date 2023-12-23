@@ -54,9 +54,9 @@
 	display:flex;
 	flex-wrap: wrap;
 	overflow-wrap: anywhere;
-	align-items: center;
 	overflow-y: auto;
 	overflow-x: clip;
+	align-items: center;
 }
 .content_wrapper .get_start_wrapper .get_start_container.startEnd{
 	transition: none;
@@ -80,7 +80,7 @@
 	justify-content: center;
 	flex-wrap: wrap;
 	overflow-wrap: anywhere;
-	position: relative;
+	/*position: relative;*/
 	height: 60vh;
 	align-items: center;
 }
@@ -95,6 +95,7 @@
 	overflow: hidden;
 	overflow-wrap: normal;
 	transform: translate(100%, 0);
+	font-size: 2vh;
 }
 
 .content_wrapper .create_room_wrapper .create_room_container.start{
@@ -117,8 +118,9 @@
 	height: 100%;
 	justify-items: center;
 	flex-direction: column;
-	gap: 2rem;
+	gap: 3vh;
 	align-items: center;
+	justify-content: center;
 }
 .create_room_container input, .create_room_container button, .create_room_container select{
 	background-color: dimgray;
@@ -146,8 +148,6 @@
 .create_room_container .find_wrapper{
     display: flex;
     justify-content: space-around;
-    margin-top: 3%;
-    margin-bottom: 3%;
 }
 .create_room_container .find_wrapper a{
     color: hsl(206,100%,52%);
@@ -212,4 +212,7 @@
 	100% {
 	    background-position: -3500px 0;
 	}
+}
+#create_workspace_form, #sign_up_form{
+	/*transform: translate(0, -2.5vmax);*/
 }

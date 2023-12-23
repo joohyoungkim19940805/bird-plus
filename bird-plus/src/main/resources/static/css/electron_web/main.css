@@ -1,0 +1,136 @@
+/*
+background: linear-gradient(to right, #EAEAEA -274%, #2B2B2B 96%);
+*/
+
+/*
+div[is="content-block"]{
+    height:100%;
+	min-width: 100%;
+}
+*/
+.content{
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+}
+/*content wrapper 크기 조절*/
+.content_wrapper{
+	position: relative;
+	display: flex;
+}
+
+/* chating_wrapper 크기 조절*/
+.chating_block{
+    display: inline-flex;
+    height: 100%;
+    flex-direction: column;
+    justify-content: space-between;
+	overflow-y: clip;
+	overflow-wrap: revert-layer;
+	width: 100%;
+}
+
+.chating_block .chating_content{
+	display: flex;
+    flex-direction: column;
+}
+
+/* 채팅 영역 시작 [S] */
+
+.toolbar{
+	background-color: #d7d7d7cf;
+    padding-left: 1%;
+    padding-right: 1%;
+    /*border-top: ridge 2px;*/
+    border-color: #dbdbdb;
+    overflow-wrap: anywhere;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.toolbar button{
+	background: none;
+	border: none;
+	outline: none;
+	font-family: revert;
+    font-weight: 900;
+	color: #7c7c7cd1;
+    padding-bottom: 3.675px;
+    padding-top: 5.125px;
+	border-bottom: groove 1px #ffffff40;
+	transition: background-color 0.7s;
+    min-height: 22px;
+    display: flex;
+    align-self: center;
+}
+
+.toolbar > button:hover{
+	background-color: #c7c7c7;
+}
+
+[data-tool_status="active"], [data-tool_status="connected"]{
+    color: #d94c4c !important;
+}
+
+/* 채팅 영역 종료 [E] */
+
+.upload_loading{
+    position: absolute;
+    left: 0;
+    background: #b7cdb917;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 11;
+    color: #ababab7a;
+    font-weight: bold;
+}
+.upload_loading .upload_loading_container{
+    position: relative;
+}
+.upload_loading .upload_loading_container .status_text_elipsis{
+    display: inline;
+}
+.upload_loading .upload_loading_container .status_text_elipsis::after{
+    position: absolute;
+}
+
+.file_preview{
+    position: absolute;
+    left: 0;
+    background: #b7cdb917;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 11;
+    color: #f5f5f57a;
+    font-weight: bold;
+    top: 0;
+    cursor: initial;
+}
+
+.file_preview .file_preview_container{
+    background-color: #595959db;
+    padding: 0.9%;
+    display: inline-flex;
+    flex-wrap: wrap;
+    word-break: break-all;
+    max-width: inherit;
+    white-space: break-spaces;
+    flex-direction: column;
+    align-items: center;
+}
+
+.file_preview .file_preview_container .file_preview_button{
+    padding: 1%;
+    border: solid 2px #898989;
+    background-color: #b3dcff82;
+    font-weight: bold;
+    margin-top: 1%;
+    pointer-events: initial;
+}

@@ -51,61 +51,6 @@ public class MainHandler {
 	
 	@Autowired
 	private JwtVerifyHandler jwtVerifyHandler;
-/*
-	public Mono<ServerResponse> test(ServerRequest request){
-		Flux<RoomInAccountEntity> flux1 = Flux.just(
-				RoomInAccountEntity.builder()
-				.id(Long.valueOf("1"))
-				.accountId(Long.valueOf("1"))
-				.roomId(Long.valueOf("1"))
-				.accountId(Long.valueOf("1"))
-				.build()
-				,
-				RoomInAccountEntity.builder()
-				.id(Long.valueOf("3"))
-				.accountId(Long.valueOf("3"))
-				.roomId(Long.valueOf("3"))
-				.accountId(Long.valueOf("3"))
-				.build()
-				,
-				RoomInAccountEntity.builder()
-				.id(Long.valueOf("2"))
-				.accountId(Long.valueOf("2"))
-				.roomId(Long.valueOf("2"))
-				.accountId(Long.valueOf("2"))
-				.build()
-				);
-		Flux<AccountEntity> flux2 = Flux.just(
-				AccountEntity.builder()
-				.id(Long.valueOf("1"))
-				.email("test@naver.com")
-				.fullName("kim")
-				.accountName("test1")
-				.build()
-				,
-				AccountEntity.builder()
-				.id(Long.valueOf("2"))
-				.email("aaaaa@naver.com")
-				.fullName("min")
-				.accountName("aaaa1")
-				.build()
-				,
-				AccountEntity.builder()
-				.id(Long.valueOf("3"))
-				.email("grrggrgr@naver.com")
-				.fullName("grgrgrg")
-				.accountName("grgrgrgrg1")
-				.build()
-				);
-		flux1.zipWith(flux2);
-		return ok().contentType(MediaType.APPLICATION_JSON)
-				.body(
-						//flux1.zipWith(flux2)
-						Flux.mergeSequential(flux1, flux2)
-						, Object.class
-						);
-	}
-*/
 	
 	public Mono<ServerResponse> index(ServerRequest request){
 		return ok().contentType(MediaType.TEXT_HTML).render("/index.html");
@@ -346,31 +291,41 @@ public class MainHandler {
 			;
 	}
 	
-	/*
-    public  login(@RequestBody UserLoginDto dto) {
-        return accountService.authenticate(dto.getAccountName(), dto.getPassword())
-                .flatMap(tokenInfo -> Mono.just(ResponseEntity.ok(AuthResultDto.builder()
-                        .userId(tokenInfo.getUserId())
-                        .token(tokenInfo.getToken())
-                        .issuedAt(tokenInfo.getIssuedAt())
-                        .expiresAt(tokenInfo.getExpiresAt())
-                        .build())));
-    }
-    */
-	/*
-	public Mono<ServerResponse> admin(ServerRequest request){
-
-		return ok().contentType(MediaType.parseMediaType("text/html;charset=UTF-8")).render("content/mainPage", ofEntries(
-				entry("userInfo", userService.getUserInfo())
-			));
-	}
-	*/
-	/*
-	public Mono<ServerResponse> searchCorpName(ServerRequest request){
+	public Mono<ServerResponse> mobile(ServerRequest request){
 		return ok()
-				.contentType(MediaType.APPLICATION_JSON)
-				.body( stockInfoService.searchCorpName(request.bodyToMono(String.class)), Object.class);
+				.contentType(MediaType.parseMediaType("text/html;charset=UTF-8"))
+				.render("electron_web/workspace3DPage.html");
+	}
+	public Mono<ServerResponse> mobileMain(ServerRequest request){
+		//Long workspaceId = Long.valueOf(request.pathVariable("workspaceId"));
+		
+		return ok()
+				.contentType(MediaType.parseMediaType("text/html;charset=UTF-8"))
+				.render("electron_web/main.html");//, Map.of("workspaceId", workspaceId));
+	}
+	/*
+	public Mono<ServerResponse> mobileMultipleChatting(ServerRequest request){
+		//Long workspaceId = Long.valueOf(request.pathVariable("workspaceId"));
+		//Long roomId = Long.valueOf(request.pathVariable("roomId"));
+		return ok()
+				.contentType(MediaType.parseMediaType("text/html;charset=UTF-8"))
+				.render("electron_web/multipleChattingView.html");//, Map.of("workspaceId", workspaceId, "roomId", roomId));
+	}
+	public Mono<ServerResponse> mobileMultipleNoticeBoard(ServerRequest request){
+		//Long workspaceId = Long.valueOf(request.pathVariable("workspaceId"));
+		//Long roomId = Long.valueOf(request.pathVariable("roomId"));
+		return ok()
+				.contentType(MediaType.parseMediaType("text/html;charset=UTF-8"))
+				.render("electron_web/multipleNoticeBoard.html");//, Map.of("workspaceId", workspaceId, "roomId", roomId));
 	}
 	*/
+	public Mono<ServerResponse> createSubWindow(ServerRequest request){
+		//Long workspaceId = Long.valueOf(request.pathVariable("workspaceId"));
+		//Long roomId = Long.valueOf(request.pathVariable("roomId"));
+		String pageName = request.pathVariable("pageName");
+		return ok()
+				.contentType(MediaType.parseMediaType("text/html;charset=UTF-8"))
+				.render("electron_web/"+pageName+".html");//, Map.of("workspaceId", workspaceId, "roomId", roomId));
+	}
 	
 }

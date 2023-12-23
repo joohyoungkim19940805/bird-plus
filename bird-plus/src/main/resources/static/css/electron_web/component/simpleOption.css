@@ -1,0 +1,94 @@
+.simple_option{
+    position: fixed;
+    background-color: #343434;
+    width: 20vw;
+    height: 20vh;
+    min-width: max-content;
+    z-index: 200;
+    color: white;
+}
+.simple_option .simple_option_container{
+    text-align: center;
+}
+.simple_option .simple_option_container > li{
+    position: relative;
+}
+.simple_option .simple_option_container > li:hover{
+    background-color: #ffffff26;
+}
+.simple_option .component_option_container,
+.simple_option .attend_request_container,
+.simple_option #simple_profile_container{
+    position: absolute;
+    right: 100%;
+    top: 0;
+    background-color: #343434;
+    width: 100%;
+    min-width: max-content;
+    border-right: solid 1px black;
+}
+
+.simple_option .component_option_container > div:hover{
+    background-color: #ffffff26;
+}
+
+.simple_option .component_option_container label,
+.simple_option #simple_profile_container *{
+    color: white
+}
+
+.simple_option [name="component_option"]{
+    width: 0.6rem;
+    height: 0.6rem;
+    margin-left: 0;
+}
+
+.simple_option .attend_request_container .attend_request_item{
+    border-bottom: solid 1px black;
+    display: flex;
+}
+.simple_option .attend_request_container .attend_request_item .attend_request_item_emain{
+    display: flex;
+    justify-content: flex-start;
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+
+.simple_option .attend_request_container .attend_request_item .attend_request_item_name{
+    display: flex;
+    justify-content: flex-start;
+    opacity: 0.7;
+}
+
+.simple_option .attend_request_container .attend_request_item .attend_request_item_position{
+    display: flex;
+    justify-content: space-between;
+    opacity: 0.5;
+}
+.simple_option .attend_request_container .attend_request_item .attend_request_item_button_wrapper{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    padding-left: 1vw;
+}
+.simple_option .attend_request_container .attend_request_item .attend_request_item_permit,
+.simple_option .attend_request_container .attend_request_item .attend_request_tiem_reject{
+    background: none;
+    border: revert;
+    color: #b9b9b9;
+    border-color: #464646;
+    font-size: 1.1rem;
+}
+.simple_option #simple_profile_container{
+    padding: 5.1%
+}
+.simple_option #simple_profile_container .simple_profile_input_container{
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+}
+.simple_option #simple_profile_container .simple_profile_button_container{
+    display: flex;
+    justify-content: space-around;
+    padding-bottom: 1vh;
+}

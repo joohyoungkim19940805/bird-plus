@@ -192,7 +192,16 @@ public class WorkspaceHandler {
 		, ResponseWrapper.class)
 		;
 	}
-	
+	public Mono<ServerResponse> getWorkspaceInAccountCount(ServerRequest request){
+		Long workspaceId = Long.valueOf(request.pathVariable("workspaceId"));
+		return ok()
+		.contentType(MediaType.APPLICATION_JSON)
+		.body(
+			workspaceInAccountRepository.countByWorkspaceId(workspaceId)
+			.flatMap(e-> response(Result._0, e))
+		, ResponseWrapper.class)
+		;
+	}
 	public Mono<ServerResponse> createJoinedWorkspace(ServerRequest request) {
 		
 		return accountService.convertRequestToAccount(request)
@@ -204,8 +213,11 @@ public class WorkspaceHandler {
 				.filterWhen(workspaceEntity -> workspaceInAccountRepository.existsByWorkspaceIdAndAccountId(workspaceEntity.getId(), account.getId()).map(e->! e))
 				.switchIfEmpty(Mono.error(new WorkspaceException(Result._206)))
 				.filterWhen(workspaceEntity -> {
+					System.out.println("kjh test ?????");
+					System.out.println(workspaceEntity.getAccessFilter());
+					System.out.println(workspaceEntity.getAccessFilter().size());
 					if(workspaceEntity.getAccessFilter().size() == 0) {
-						return Mono.just(Boolean.TRUE);
+						return Mono.just(true);
 					}					
 					String joinedEmail = account.getEmail().substring( account.getEmail().indexOf("@") );
 					

@@ -1,0 +1,87 @@
+#room_wrapper{
+    background-color: #fdffff;
+}
+#room_wrapper .content{
+    /*display: inline-flex;*/
+    display: flex;
+    overflow: auto;
+    overflow-wrap: revert-layer;
+}
+
+#room_wrapper .room_container{
+	position: relative;
+}
+#room_wrapper .room_container .room_content_list{
+	width: 100%;
+    min-width: 10vw;
+	white-space: nowrap;
+}
+#room_wrapper .room_container .room_content_list > .room_container_item{
+    margin-left: 8px;
+    margin-right: 8px;
+    margin-bottom: 0.3vh;
+}
+#room_wrapper .room_container .room_content_list > .room_container_item > .room_container_item_container{
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+#room_wrapper .room_container .room_sticky{
+    position: sticky;
+    top: 0;
+    background-color: #fdfffc;
+    box-shadow: inset 0 0 6px #ffd7d7b8;
+    z-index: 10;
+}
+#room_wrapper .room_container .room_sticky:hover{
+    /*box-shadow: inset 0 0 6px 20px #f3ffd736;*/
+}
+#room_wrapper .room_container .room_sticky .room_functions{
+	box-shadow: 0px 9px 10px -8px #00000029;
+}
+#room_wrapper .room_container .room_sticky .custom_details_summary{
+    width: 100%;
+    display: flex;
+    align-content: center;
+    justify-content: space-between;
+    align-items: stretch;
+}
+#room_wrapper .room_container .room_sticky .custom_details_summary .custom_details_wrapper{
+    display: flex;
+}
+#room_wrapper .room_container .room_sticky .custom_details_summary .custom_details_wrapper .custom_details{
+    font-size: 0.6rem;
+}
+#room_wrapper .room_container .room_sticky .custom_details_summary .custom_details_wrapper .custom_details_title{
+    width: 100%;
+    min-width: fit-content;
+}
+#room_wrapper .room_container .room_sticky .custom_details_summary .add_button_wrapper .add_button{
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    font-size: 0.5rem;
+    height: 100%;
+}
+#room_wrapper .room_container .room_sticky .custom_details_summary .add_button:hover{
+    background: #e3e3e38c;
+}
+
+#room_wrapper .room_container .search_name{
+    width: 100%;
+    background-color: inherit;
+    border: none;
+    border-bottom: solid 2px #cbcbcbbd;
+    border-left: solid 2px #cbcbcbbd;
+    font-size: 0.8rem;
+}
+
+#room_wrapper .room_container .room_content_list_scroll .room_scrollbar{
+	position: absolute;
+	width: 10%;
+	top:0;
+	right: 0;
+	background-color: aliceblue;
+	display:none;
+}
