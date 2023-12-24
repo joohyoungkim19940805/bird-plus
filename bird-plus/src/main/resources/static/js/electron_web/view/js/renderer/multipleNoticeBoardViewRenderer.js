@@ -1,3 +1,8 @@
+/**
+ * web용
+ */
+import { ipcRenderer, myAPI } from "./../../../browser/preload/preload"
+window.myAPI = myAPI;
 
 import noticeBoardHandler from "@handler/notice_board/NoticeBoardHandler"
 
