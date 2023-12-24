@@ -290,7 +290,11 @@ public class MainHandler {
 			)
 			;
 	}
-	
+	public Mono<ServerResponse> mobile3DIfream(ServerRequest request){
+		return ok()
+				.contentType(MediaType.parseMediaType("text/html;charset=UTF-8"))
+				.render("electron_web/ifreamWorkspace3DPage.html");
+	}
 	public Mono<ServerResponse> mobile(ServerRequest request){
 		return ok()
 				.contentType(MediaType.parseMediaType("text/html;charset=UTF-8"))

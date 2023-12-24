@@ -157,7 +157,6 @@ public class ChattingHandler {
 										.updateAt(e.getUpdateAt())
 										.fullName(account.getFullName())
 										.accountName(account.getAccountName())
-										.isMyChatting(true)
 									.build(),
 									ServerSentStreamType.CHATTING_ACCEPT
 								) {}

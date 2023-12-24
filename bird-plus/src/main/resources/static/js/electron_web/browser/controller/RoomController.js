@@ -1,9 +1,10 @@
-import { windowUtil } from "../window/WindowUtil"; 
+import { windowUtil, __serverApi } from "../window/WindowUtil"; 
 import axios from 'axios';
 const log = console;
 class RoomController {
 	constructor() {
     }
+
 	createRoom(param = {}){
 		return windowUtil.isLogin( result => {
 			if(result.isLogin){
@@ -314,7 +315,7 @@ class RoomController {
 						headers: {
 							'Authorization' : axios.defaults.headers.common['Authorization'],
 						},
-						withCredentials : ! process.env.MY_SERVER_PROFILES == 'local'
+						withCredentials : ! top.__isLocal
 					});
 					source.onmessage = (event) => {
 						//console.log('test message :::: ',event);

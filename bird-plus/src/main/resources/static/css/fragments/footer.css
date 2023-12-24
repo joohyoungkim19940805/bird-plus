@@ -62,7 +62,7 @@ footer .footer_info_wrapper a{
 
 footer .footer_info_wrapper a.btn_inquiry:after{
     content: '';
-    background: url(../../images/ico_footer_01.png) no-repeat;
+    background: url(../../image/ico_footer_01.png) no-repeat;
     width: 2rem;
     height: 2rem;
     position: absolute;
@@ -72,7 +72,7 @@ footer .footer_info_wrapper a.btn_inquiry:after{
 
 footer .footer_info_wrapper a.btn_intro:after{
     content: '';
-    background: url(../../images/ico_footer_02.png) no-repeat;
+    background: url(../../image/ico_footer_02.png) no-repeat;
     width: 2rem;
     height: 2rem;
     position: absolute;

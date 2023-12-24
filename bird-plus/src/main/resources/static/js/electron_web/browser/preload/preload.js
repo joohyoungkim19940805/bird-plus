@@ -14,31 +14,36 @@ import { windowUtil } from "./../window/WindowUtil";
  * @description 기본적으로 사용 할 preload 정의
  */
 
+let permission;
+
+window.addEventListener('load', () => {
+	Notification.requestPermission().then(result => {
+		console.log(result);
+		permission = result;
+	})
+	if(globalHandler.loadInitRoomId){
+		ipcRenderer.webEventSend('roomChange', {roomId:globalHandler.loadInitRoomId});
+	}
+	if(globalHandler.loadInitNoticeBoardId){
+		ipcRenderer.webEventSend('noticeBoardChange', {noticeBoardId:globalHandler.loadInitNoticeBoardId});
+	}
+})
+
 export const globalHandler = new class GlobalHandler{
-	#workspaceId
-	#option;
+	#workspaceId;
+	loadInitRoomId;
+	loadInitNoticeBoardId;
+	#option = {};
 	constructor(){
 		//n : name, v : value, c : create_at, u : update_at
-		
-		this.#option = JSON.parse(localStorage.getItem('o')).reduce((t,e)=>{
-			let firstChar = e.OPTION_VALUE.charAt(0);
-			let lastChar = e.OPTION_VALUE.charAt(e.OPTION_VALUE.length - 1);
-			let obj = {
-				['OPTION_NAME'] : e.n,
-				['OPTION_CREATE_AT'] : e.c,
-				['OPTION_UPDATE_AT'] : e.u
-			};
-			if( 
-				(firstChar == '{' && lastChar == '}') || 
-				(firstChar == '[' && lastChar == ']')
-			){
-				obj['OPTION_VALUE'] = JSON.parse(e.v)
-			}else {
-				obj['OPTION_VALUE'] = e.v;
-			}
-			t[e.n] = obj;
+		let queryString = new URLSearchParams(location.search);
+		this.#workspaceId = queryString.get('workspaceId');
+		this.loadInitRoomId = queryString.get('roomId');
+		this.loadInitNoticeBoardId = queryString.get('noticeBoardId');
+		this.#option = JSON.parse(localStorage.getItem('o'))?.reduce((t,e)=>{
+			t[e.OPTION_NAME] = e;
 			return t;
-		}, {});
+		}, {}) || {};
 
 	}
 
@@ -56,11 +61,22 @@ export const globalHandler = new class GlobalHandler{
 	}
 
 	setOption({name, value}){
-		this.#option[name]['OPTION_VALUE'] = value;
+		if( ! this.#option[name]) {
+			this.#option[name] = {
+				OPTION_NAME : name,
+				OPTION_VALUE : value,
+				CREATE_AT : new Date().getTime(),
+				UPDATE_AT : new Date().getTime(),
+			};
+		}else{
+			this.#option[name].OPTION_VALUE = value,
+			this.#option[name].UPDATE_AT = new Date().getTime();
+		}
 		localStorage.setItem('o', JSON.stringify( Object.values(this.#option)) );
 	}
 
 	getOption(name){
+		//console.log(this.#option, name);
 		return this.#option[name];
 	}
 }
@@ -70,6 +86,7 @@ export const ipcRenderer = new class IpcRendererWeb{
 	#invoke = {};
 	#connection = {};
 	constructor(){
+
 		[
 			accountController, apiS3Controller, 
 			chattingController, emoticonController, 
@@ -77,24 +94,24 @@ export const ipcRenderer = new class IpcRendererWeb{
 			roomController, workspaceController
 		].flatMap(e=>{
 			return Object.getOwnPropertyNames(Object.getPrototypeOf(e)).filter(e=> e != 'constructor').map(name=>{
-				return { [name] : e }
+				return [name, e]
 			});
-		}).forEach( ({name, e})=>{
-			this.#send[name] = e[name] 
-			this.#invoke[name] = e[name] 
+		}).forEach( ([name, clazz])=>{
+			this.#send[name] = clazz[name] 
+			this.#invoke[name] = clazz[name] 
 		})
 	}
 	send(name, param){
 		if( ! this.#send[name] || ! this.#send[name] instanceof Function){
 			return;
 		}
-		this.#send[name](param,ipcRenderer);
+		this.#send[name](param, undefined, ipcRenderer);
 	}
 	invoke(name, param){
 		if( ! this.#invoke[name] || ! this.#invoke[name] instanceof Function){
 			return;
 		}
-		return this.#invoke[name](param);
+		return this.#invoke[name](param, undefined, ipcRenderer);
 	}
 	webEventSend(eventName, data){
 		if( ! this.#connection[eventName] || ! this.#connection[eventName] instanceof Function){
@@ -216,12 +233,27 @@ export const myAPI = {
 	 * event.electronEventTrigger은 일렉트론 + 웹이 함께써야 하는 부분이 있어 예외입니다.
 	 */
 
-	getProjectPath : async () => `${location.protocol}//${location.host}${location.pathname}/`,
+	getProjectPath : async () => `${location.origin}/`,
 
 	createSubWindow : async (param) => {
 		//open(url?: string | URL, target?: string, features?: string): WindowProxy | null;
-		window.open(`/mobile/create-sub-window/${param.pageName}`, param.pageId)
+		let queryString = Object.entries(param)
+			.filter(([k,v]) => v != undefined && v != '' && k != 'pageName' && k != 'pageId')
+			.map(([k,v]) => `${k}=${v}`).join('&')
+		window.open(`/mobile/create-sub-window/${param.pageName}?${queryString}`, param.pageId)
 	},
+
+	closeRequest : async (param) => {},
+	
+	maximizeRequest : async () => {},
+
+	unmaximizeRequest : async () => {},
+	
+	minimizeRequest : async () => {},
+	
+	restoreRequest : async () => {},
+	
+	isMaximize : async () => false,
 
 	resetWorkspaceId: async () => {
 		globalHandler.resetWorkspace();
@@ -231,7 +263,48 @@ export const myAPI = {
 		return globalHandler.workspaceId;
 	},
 
-	notifications: async (param) => ipcRenderer.send('notifications', param),
+	notifications: async (param) => {
+		let content = param.content.join('\n');
+		content = content.substring(0,200) + (content.length > 200 ? '...' : '');
+		if(permission == 'granted'){
+			myAPI.getProjectPath().then(path=>{
+				let noti = new Notification(param.fullName, { body: content, icon: path+'image/icon.icon' });
+				noti.onclick = () => {
+					if(globalHandler.workspaceId != param.workspaceId){
+						ipcRenderer.webEventSend('workspaceChange', {workspaceId : param.workspaceId});
+					}
+					ipcRenderer.webEventSend('roomChange', {roomId : param.roomId});
+				}
+				setTimeout(() => {
+					noti.close()
+				}, 4000);
+			})
+		}else{
+			let html = Object.assign(document.createElement('div'), {
+				innerHTML : `
+					<h1>${param.fullName}</h1>
+					<div>${param.content}</div>
+				`
+			})
+			Object.assign(html.style, {
+				position: 'fixed', right: '2vw', bottom: '2vh', borderRadius : '15px',
+				background: '#e1e1e1cf', width: '40%', height: 'auto',
+				zIndex: 9999, whiteSpace: 'break-spaces', overflowWrap: 'anywhere', 
+				display: 'flex', flexDirection: 'column', alignItems: 'center',
+				justifyContent: 'flex-start', fontSize: '13px', paddingBottom: '5vh'
+			})
+			html.onclick = () => {
+				if(globalHandler.workspaceId != param.workspaceId){
+					ipcRenderer.webEventSend('workspaceChange', {workspaceId : param.workspaceId});
+				}
+				ipcRenderer.webEventSend('roomChange', {roomId : param.roomId});
+			}
+			document.body.append(html);
+			setTimeout(() => {
+				html.remove();
+			}, 4000);
+		}
+	},
 
 	getOption: async (optionName) => globalHandler.getOption(optionName),
 	setOption: async (param) => globalHandler.setOption(param),
@@ -245,9 +318,9 @@ export const myAPI = {
 	getServerUrl : async () => `${location.origin}${location.pathname}`,
 
 	pageChange : {
-		changeLoginPage : async () => ipcRenderer.send('changeLoginPage'),
-		changeWokrspacePage : async () => ipcRenderer.send('changeWokrspacePage'),
-		changeMainPage : async (workspaceId) => ipcRenderer.send('changeMainPage', workspaceId),
+		changeLoginPage : async () => top.location.href = '/mobile',
+		changeWokrspacePage : async () => top.location.href = '/mobile',
+		changeMainPage : async (param) => top.location.href = `/mobile/main?workspaceId=${param.workspaceId}`,
 	},
 	
 	event : {
@@ -324,4 +397,4 @@ export const myAPI = {
 }
 window.myAPI = myAPI;
 console.log('????????????????');
-console.log(window.myAPI, myAPI)
+console.log(window.myAPI)

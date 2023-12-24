@@ -146,8 +146,6 @@ public class ChattingEntity {
             
             private Long pageSequence;
             
-            private Boolean isMyChatting;
-            
             @Transient
             private Long createMils;
 

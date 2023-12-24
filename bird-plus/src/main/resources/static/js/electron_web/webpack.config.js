@@ -14,8 +14,7 @@ module.exports = {
 		mainPageRenderer: "./view/js/renderer/mainPageRenderer.js",
 		multipleChattingViewRenderer: "./view/js/renderer/multipleChattingViewRenderer.js",
 		multipleNoticeBoardViewRenderer: "./view/js/renderer/multipleNoticeBoardViewRenderer.js",
-		workspace3DPageRenderer : "./view/js/renderer/workspace3DPageRenderer.ts",
-		preload: "./browser/preload/preload.js"
+		workspace3DPageRenderer : "./view/js/renderer/workspace3DPageRenderer.ts"
 	},
 	output: {
 		filename: "[name].js",

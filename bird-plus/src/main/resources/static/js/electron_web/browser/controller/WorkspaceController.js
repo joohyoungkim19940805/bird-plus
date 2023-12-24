@@ -1,11 +1,10 @@
-import { windowUtil } from "../window/WindowUtil"; 
+import { windowUtil, __serverApi } from "../window/WindowUtil"; 
 import axios from 'axios';
 const log = console;
 
 class WorkspaceController {
 	constructor() {
 	}
-
 	searchWorkspaceMyJoined(param = {}){
 		return windowUtil.isLogin((result) => {
 			if(result.isLogin){
@@ -224,7 +223,7 @@ class WorkspaceController {
 						headers: {
 							'Authorization' : axios.defaults.headers.common['Authorization'],
 						},
-						withCredentials : ! process.env.MY_SERVER_PROFILES == 'local'
+						withCredentials : ! top.__isLocal
 					});
 					source.onmessage = (event) => {
 						//console.log('test message :::: ',event);
@@ -266,7 +265,7 @@ class WorkspaceController {
 				.then(response => {
 					return response.data
 				}).catch(err=>{
-					log.error('IPC searchWorkspaceInAccount error : ', JSON.stringify(err));
+					log.error('IPC getIsAdmin error : ', JSON.stringify(err));
 					//axios.defaults.headers.common['Authorization'] = '';
 					if(err.response){
 						return err.response.data;

@@ -134,7 +134,7 @@ public class AccountService  {
 						});
 						*/
 	    				return Mono.error(new AccountException(Result._101));
-	    			}else if(!passwordEncoder.encode(accountInfo.getPassword()).equals(account.getPassword())) {
+	    			}else if(accountInfo.getPassword() == null || ! passwordEncoder.encode(accountInfo.getPassword()).equals(account.getPassword())) {
 	    				return Mono.error(new AccountException(Result._102));
 	             	}else {
 	             		AccountLogEntity accountLogEntity = AccountLogEntity.builder()

@@ -9,13 +9,40 @@
 		<link rel="stylesheet" type="text/css" th:href="@{/css/electron_web/header.css}">
 		<link rel="stylesheet" type="text/css" th:href="@{/css/electron_web/workspacePage.css}">
 		<link rel="stylesheet" type="text/css" th:href="@{/css/electron_web/component/simpleOption.css}">	
+		<style type="text/css">
+		/* 가로 모드 강제 적용 */
+		@media( orientation: portrait ){
+			html{
+				transform: rotate(-90deg);
+				transform-origin: top left;
+				position: absolute;
+				top: 100%;
+				left: 0;
+			    width: 100vh;
+			    height: 100vw;
+			}
+			body, #container, iframe{
+			    width: 100vh;
+    			height: 100vw;
+			}
+		}
+		@media screen and (orientation: landscape) {
+			html{
+			    width: 100vw;
+			    height: 100vh;
+			}
+			body, #container, iframe{
+			    width: 100vw;
+    			height: 100vh;
+			}
+		}
+
+		</style>
 		<title>Greased Lightning Messenger</title>
 	</head>
 	<body>
-		<header-default data-is_no_menu="" data-is_no_search=""></header-default>
 		<div id="container">
-			<canvas id="renderCanvas"></canvas>
+			<iframe src="/mobile"></iframe>
 		</div>
 	</body>
-	<script type="module" th:src="@{/js/electron_web/view/js/dist/workspace3DPageRenderer.js?v=2}" defer="defer"></script>
 </html>

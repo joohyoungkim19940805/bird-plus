@@ -1,4 +1,4 @@
-import { windowUtil } from "../window/WindowUtil"; 
+import { windowUtil, __serverApi } from "../window/WindowUtil"; 
 import axios from 'axios';
 const log = console;
 
@@ -10,8 +10,9 @@ class EventStreamController {
 
     }
 
-    initWorkspaceStream(workspaceId, EventSource, eventSendObj){
-        
+	initWorkspaceStream(param, EventSource, eventSendObj){
+        let {workspaceId} = param;
+        console.log(top.EventSource);
         if( ! EventSource) EventSource = top?.EventSource;
 		if(this.prevWorkspaceId == workspaceId && (this.source?.readyState == 1 || this.source?.readyState == 0)){
             return;
@@ -25,7 +26,7 @@ class EventStreamController {
             headers: {
                 'Authorization' : axios.defaults.headers.common['Authorization'],
             },
-            withCredentials : ! process.env.MY_SERVER_PROFILES == 'local'
+            withCredentials : ! top.__isLocal
         });
 
         this.source.onmessage = (event) => {
@@ -103,6 +104,6 @@ class EventStreamController {
         */
         //}
 	}
-    
+
 }
 export const eventStreamController = new EventStreamController();

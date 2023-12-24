@@ -1,6 +1,9 @@
 
 import axios from 'axios';
 const log = console; 
+export const __serverApi = '';
+export const __isLocal = window.location.host == 'localhost';
+top.__isLocal = __isLocal;
 class WindowUtil{
     constructor(){
 

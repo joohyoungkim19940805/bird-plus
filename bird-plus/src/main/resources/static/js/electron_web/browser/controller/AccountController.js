@@ -1,4 +1,4 @@
-import { windowUtil } from "../window/WindowUtil"; 
+import { windowUtil, __serverApi } from "../window/WindowUtil"; 
 import axios from 'axios';
 const log = console;
 
@@ -20,6 +20,12 @@ class AccountController {
 			}
 		})
 		.then(response=>{
+			console.log(response);
+			console.log(windowUtil.responseIsOk(response));
+			console.log(top.constructor.name)
+			if(windowUtil.responseIsOk(response) && top.constructor.name == 'Window'){
+				return response.data;
+			}
 			return response;	
 		}).catch(err=>{
 			log.error('loginProcessing error : ', err.message);

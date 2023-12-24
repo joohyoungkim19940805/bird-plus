@@ -12,6 +12,7 @@ import com.radcns.bird_plus.entity.workspace.WorkspaceInAccountEntity.WorkspaceM
 import com.radcns.bird_plus.entity.workspace.WorkspaceInAccountEntity.WorkspaceMembersDomain.WorkspaceInAccountPermitRequest;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 
 @ToString
@@ -24,7 +25,7 @@ public class ServerSentStreamTemplate<T> {
 	private final Long roomId;
 	
 	@Getter
-	private final T content;
+	private T content;
 	
 	@Getter
 	private final ServerSentStreamType serverSentStreamType;

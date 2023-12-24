@@ -668,7 +668,7 @@ const getStart = new class GetStart{
 					let li = Object.assign(document.createElement('li'), {
 						innerHTML : `
 							<div class="workspace_list_container">
-								<img src="/images/user.png">
+								<img src="/image/user.png">
 								<div>
 									<div><b>${workspaceName}</b></div>
 									<div>${joinedCount} members</div>
@@ -996,7 +996,7 @@ const getStart = new class GetStart{
 					let li = Object.assign(document.createElement('li'), {
 						innerHTML : `
 							<div class="workspace_list_container">
-								<img src="/images/user.png">
+								<img src="/image/user.png">
 								<div>
 									<div><b>${workspaceName}</b></div>
 									<div>${joinedCount} members</div>
