@@ -2483,12 +2483,11 @@ class NoticeBoardLine extends _handler_editor_FreeWillEditor__WEBPACK_IMPORTED_M
 
                 let listObserver = new MutationObserver( (mutationList, observer) => {
                     mutationList.forEach((mutation) => {
-                        if( ! isEventStream) return;
                         let {addedNodes, removedNodes} = mutation;
                         let isAddedActiveTarget = [...addedNodes].some(e=> e == lastTarget.parentLi)
                         if(isAddedActiveTarget){
                             //setTimeout(()=>{
-                                //lastTarget.contentEditable = true;
+                                lastTarget.contentEditable = true;
                                 let cursorTarget = lastTarget.hasAttribute('is_cursor') ? lastTarget : lastTarget.querySelector('[is_cursor]');
                                 if( ! cursorTarget) return;
                                 let {'cursor_offset': offset, 'cursor_type': type, 'cursor_index': index, 'cursor_scroll_x': x, 'cursor_scroll_y': y} = cursorTarget.attributes;
@@ -2602,6 +2601,7 @@ class NoticeBoardLine extends _handler_editor_FreeWillEditor__WEBPACK_IMPORTED_M
                     li.removeAttribute('data-content');
                     
                     editor.parseLowDoseJSON(content).then(() => {
+                        editor.contentEditable = false;
                         li.append(editor);
                         let appendAwait = setInterval(()=>{
                             if( ! editor.isConnected) return;
@@ -2612,7 +2612,6 @@ class NoticeBoardLine extends _handler_editor_FreeWillEditor__WEBPACK_IMPORTED_M
                                 editor.remove();
                                 li.prepend(addButton);
                             }
-                            editor.contentEditable = false;
                         },50)
                     })
                 })
