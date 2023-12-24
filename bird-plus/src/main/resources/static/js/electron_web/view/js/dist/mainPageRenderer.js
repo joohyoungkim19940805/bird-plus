@@ -2039,7 +2039,7 @@ const myAPI = {
 		})
 	},
 
-	getServerUrl : async () => `${location.origin}${location.pathname}`,
+	getServerUrl : async () => `${location.origin}/login-page`,
 
 	pageChange : {
 		changeLoginPage : async () => top.location.href = '/mobile',
