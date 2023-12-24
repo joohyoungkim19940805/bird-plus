@@ -5,10 +5,14 @@ export const __serverApi = '';
 export const __isLocal = window.location.host == 'localhost';
 top.__isLocal = __isLocal;
 class WindowUtil{
+    #loginRemeber;
     constructor(){
 
     }
     async isLogin(callBack = () => {}){
+        if(this.#loginRemeber){
+            return Promise.resolve(callBack(this.#loginRemeber));
+        }
         return axios.get(__serverApi + '/api/account/search/is-login', {
             headers:{
                 'Content-Type': 'application/json'
@@ -35,6 +39,11 @@ class WindowUtil{
 
                 if(! response.isLogin){
                     axios.defaults.headers.common['Authorization'] = '';
+                }else{
+                    this.#loginRemeber = response;
+                    setTimeout(()=>{
+                        this.#loginRemeber = undefined;
+                    }, 1000 * 60)
                 }
                 return callBack(response);
             }

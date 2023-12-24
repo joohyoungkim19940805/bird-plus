@@ -670,6 +670,7 @@ new class Workspace3DPageRenderer{
 		searchInput.top = '15px', searchInput.fontWeight = '14px'
 		searchInput.width = 0.23, searchInput.maxWidth = 0.23, searchInput.height = '30px';
 		searchInput.onKeyboardEventProcessedObservable.add((ev) => {
+			
 			if(ev.key == 'Enter' || (ev.ctrlKey && ev.key == 'Backspace')){
 				componentList.flatMap(e=>[e.workspaceName, e.workspaceJoinedCount, e.itemPanel]).forEach(e=>{
 					texture.removeControl(e);
@@ -681,6 +682,7 @@ new class Workspace3DPageRenderer{
 			if(searchInput.text == '') return;
 
 			if(ev.key == 'Enter'){
+				page = 0;
 				(window as any).myAPI.workspace.searchNameSpecificList({page, size, workspaceName: searchInput.text}).then((result : any = {}) => {
 					console.log(result);
 					totalElementsCount = result.data.totalElements;
@@ -690,6 +692,7 @@ new class Workspace3DPageRenderer{
 					);
 				});
 				if( ! this.isMobile) searchInput.focus();
+				return;
 			}else if(ev.ctrlKey && ev.key == 'Backspace'){
 				searchInput.text = '';
 			}
@@ -698,9 +701,10 @@ new class Workspace3DPageRenderer{
 			//if(input == pwInput) input.text = '';
 			this.camera.detachControl();
 		});
-		searchInput.onBlurObservable.add(() => {
+		searchInput.onBlurObservable.add((ev) => {
 			this.camera.attachControl(this.canvas, true);
-			if(searchInput.text == '') return;
+			if(searchInput.text == '' || ! this.isMobile) return;
+			page = 0;
 			componentList.flatMap(e=>[e.workspaceName, e.workspaceJoinedCount, e.itemPanel]).forEach(e=>{
 				texture.removeControl(e);
 				e.dispose();
