@@ -18,8 +18,7 @@ export default class Video extends FreedomInterface {
 
     static #selectedFile = Object.assign(document.createElement('input'), {
         type: 'file',
-        accept: 'video/*',
-        capture: 'camera',
+        accept: 'video/*'
     });
 
     static get selectedFile(){

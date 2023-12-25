@@ -13448,8 +13448,7 @@ class Image extends FreedomInterface {
 
     static #selectedFile = Object.assign(document.createElement('input'), {
         type: 'file',
-        accept: 'image/*',
-        capture: 'camera',
+        accept: 'image/*'
     });
 
     static get selectedFile(){
@@ -14271,8 +14270,7 @@ class Video extends FreedomInterface {
 
     static #selectedFile = Object.assign(document.createElement('input'), {
         type: 'file',
-        accept: 'video/*',
-        capture: 'camera',
+        accept: 'video/*'
     });
 
     static get selectedFile(){
