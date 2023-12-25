@@ -12,7 +12,9 @@ header-default #header_content{
     align-items: center;
     padding-left: 1vw;
     padding-right: 0;
-    min-height: 40px;
+	min-height: 5.9vh;
+    max-height: fit-content;
+    height: 5.9vh
 }
 
 header-default #left_wrapper img{

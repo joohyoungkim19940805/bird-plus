@@ -51132,6 +51132,9 @@ window.addEventListener("DOMContentLoaded", (event) => {
 		
 		window.myAPI.stream.initWorkspaceStream({workspaceId});
 	})
+	window.addEventListener('focus', () => {
+		window.myAPI.stream.initWorkspaceStream({workspaceId : WorkspaceHandler.workspaceId});
+	})
 });
 
 /******/ })()
