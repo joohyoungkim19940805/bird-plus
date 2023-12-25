@@ -17,6 +17,7 @@ class FlexLayout extends HTMLElement {
 				width: 100%;
 				overflow: auto;
 				overflow-wrap: revert-layer;
+				flex-wrap: wrap;
 				-ms-overflow-style: none;
 				scrollbar-width: none;
 			}
