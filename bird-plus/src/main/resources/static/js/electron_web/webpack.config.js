@@ -8,8 +8,8 @@ const path = require('path');
  * devtool 제거
  */
 module.exports = {
-	mode: 'development',
-	devtool: 'cheap-module-source-map',
+	mode: 'production',
+	devtool: 'source-map',
 	entry: {
 		mainPageRenderer: "./view/js/renderer/mainPageRenderer.js",
 		multipleChattingViewRenderer: "./view/js/renderer/multipleChattingViewRenderer.js",
@@ -45,5 +45,11 @@ module.exports = {
 			'@handler' : path.resolve(__dirname, './view/js/handler/'),
 			'@root' : path.resolve(__dirname, './view')
 		}
+	},
+	performance: {
+		hints: false
+	},
+	optimization:{
+		minimize:false
 	}
 }
