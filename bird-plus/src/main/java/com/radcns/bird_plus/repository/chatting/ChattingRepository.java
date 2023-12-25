@@ -35,7 +35,6 @@ public interface ChattingRepository extends ReactiveCrudRepository<ChattingEntit
     	cc.page_sequence,
     	aa.full_name,
     	aa.account_name,
-    	(aa.id = :#{[2]}) as is_my_chatting,
     	(
     		SELECT 
     			json_agg(json_build_object(
@@ -139,7 +138,6 @@ public interface ChattingRepository extends ReactiveCrudRepository<ChattingEntit
     	cc.page_sequence,
     	aa.full_name,
     	aa.account_name,
-    	(aa.id = :#{[2]}) as is_my_chatting,
     	(
     		SELECT 
     			json_agg(json_build_object(
@@ -187,7 +185,7 @@ public interface ChattingRepository extends ReactiveCrudRepository<ChattingEntit
     AND
     	cc.room_id = :#{[1]}
     AND 
-		cc.chatting_id = :#{[2]}
+		cc.id = :#{[2]}
     ;
     """)
     Mono<ChattingDomain.ChattingResponse> findIdWithChattingResponse(Long workspaceId, Long roomId, Long chattingId);

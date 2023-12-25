@@ -204,7 +204,7 @@ public class ChattingEntity {
         @Getter
         @Setter
         public static class ChattingDeleteReqeust{
-        	private Long chattingId;
+        	private Long id;
         	private Long workspaceId;
         	private Long roomId;
         }

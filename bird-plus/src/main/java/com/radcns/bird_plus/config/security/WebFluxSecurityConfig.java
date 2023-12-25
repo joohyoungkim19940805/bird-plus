@@ -75,9 +75,17 @@ public class WebFluxSecurityConfig {
                 
                 
                 .headers(headersSpec -> headersSpec
-                		//.contentSecurityPolicy(contentSecuritySpec->contentSecuritySpec
-                				//.policyDirectives("default-src 'self'; frame-src 'self' data:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://storage.googleapis.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:")
-                		//)
+                		.contentSecurityPolicy(contentSecuritySpec->contentSecuritySpec
+                			.policyDirectives(
+                				"object-src 'self' blob: data: gap: https://bird-plus-s3.s3.ap-northeast-2.amazonaws.com 'unsafe-eval'; " +
+                				"default-src 'self' data: gap: https://immersive-web.github.io https://bird-plus-s3.s3.ap-northeast-2.amazonaws.com 'unsafe-eval'; " +
+                				"frame-src 'self' blob: data: gap: https://bird-plus-s3.s3.ap-northeast-2.amazonaws.com 'unsafe-eval'; " +
+                				"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://storage.googleapis.com; " + 
+                				"style-src 'self' 'unsafe-inline'; " +
+                				"img-src 'self' https: blob: data:; " + 
+                				"font-src 'self' data:;"
+                			)
+                		)
 	                	.referrerPolicy(referrerSpec -> referrerSpec
 	                			.policy(ReferrerPolicyServerHttpHeadersWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
 	                	.permissionsPolicy(permissionsSpec -> permissionsSpec
@@ -113,10 +121,10 @@ public class WebFluxSecurityConfig {
 	                authSpec.pathMatchers(HttpMethod.OPTIONS).permitAll()
 	                		.pathMatchers("/api/**").authenticated()
 			                .pathMatchers("/mobile/main/**").authenticated()
-			                .pathMatchers("/files/**","/css/**","/js/**","/images/**","/**.ico", "/model/**", "/manifest.json").permitAll() // resources/static)
-			                .pathMatchers("/*", "/account-verify/*").permitAll() // auth 검사 안 할 url path
+			                .pathMatchers("/files/**","/css/**","/js/**","/images/**","/**.ico", "/model/**", "/manifest.json", "/Ads.txt").permitAll() // resources/static)
+			                .pathMatchers("/", "/*", "/account-verify/*").permitAll() // auth 검사 안 할 url path
 			                .pathMatchers("/v3/webjars/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll() // api doc
-			                .pathMatchers("/api/generate-presigned-url/test/").permitAll()
+			                //.pathMatchers("/api/generate-presigned-url/test/").permitAll()
 			                .anyExchange().authenticated()
                 )
                 

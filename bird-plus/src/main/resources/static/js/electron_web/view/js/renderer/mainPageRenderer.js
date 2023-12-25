@@ -2,7 +2,7 @@
  * web용
  */
 import { ipcRenderer, myAPI } from "./../../../browser/preload/preload"
-
+window.myAPI = myAPI;
 
 import roomContainer from "@component/room/RoomContainer"
 import chattingContainer from "@component/chatting/ChattingContainer"

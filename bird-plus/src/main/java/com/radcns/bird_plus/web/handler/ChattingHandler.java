@@ -182,14 +182,14 @@ public class ChattingHandler {
 			.switchIfEmpty(Mono.error(new RoomException(Result._301)))
 			.flatMap(e->{
 				
-				return chattingRepository.deleteById(e.getChattingId())
+				return chattingRepository.deleteById(e.getId())
 						.doOnSuccess(s->{
 							EmitResult result = workspaceBroker.send(
 								new ServerSentStreamTemplate<ChattingDeleteResponse>(
 									e.getWorkspaceId(),
 									e.getRoomId(),
 									ChattingDeleteResponse.builder()
-										.chattingId(e.getChattingId())
+										.chattingId(e.getId())
 										.workspaceId(e.getWorkspaceId())
 										.roomId(e.getRoomId())
 									.build(),

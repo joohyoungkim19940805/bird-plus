@@ -7,23 +7,9 @@
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS}[%-5level] : %msg%n</pattern>
         </encoder>
     </appender>
-   	<appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
-	    <file>./usr/local/myApp/glchat/log/error/error.log</file>
-	    <encoder>
-	        <pattern>%d{yyyyMMdd HH:mm:ss.SSS} [%thread] %-5level [%logger{0}:%line] - %msg %n</pattern>
-	    </encoder>
-	    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-	        <fileNamePattern>error_%d{yyyy_MM_dd}.log</fileNamePattern>
-	        <maxFileSize>10MB</maxFileSize>
-	        <maxHistory>10</maxHistory>
-	        <totalSizeCap>100MB</totalSizeCap>
-	    </rollingPolicy>
-	</appender>
+
     <root level="debug">
         <appender-ref ref="STDOUT"/>
     </root>
-	<root level="error">
-	    <appender-ref ref="file" />
-	</root>
     
 </configuration>
