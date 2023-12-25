@@ -10779,6 +10779,7 @@ class FreeWillEditor extends _module_FreeWiilHandler__WEBPACK_IMPORTED_MODULE_1_
 						Object.assign(node.dataset, jsonNode.data);
 					}else{
 						//node = document.createElement(jsonNode.name.replaceAll(/HTML|Element/g, '').toLowerCase());
+						console.log('!!!!!!!!!!!!!!!!!!!', jsonNode, jsonNode.tagName);
 						node = document.createElement(jsonNode.tagName);
 						Object.assign(node.dataset, jsonNode.data);
 					}
@@ -15372,6 +15373,7 @@ class FreedomInterface extends HTMLElement {
 							}
 							return e;
 						});
+
 						//if(lastItemIndex){
 						//	resultList[lastItemIndex].line.lookAtMe();
 						//}
@@ -15419,9 +15421,12 @@ class FreedomInterface extends HTMLElement {
 		})
 
 		if( ! this.constructor.toolHandler.isInline){
-			/*FreedomInterface.globalKeydownEventListener(this, ({oldEvent, newEvent}) => {
-				//console.log(newEvent);
-			})*/
+			FreedomInterface.globalKeydownEventListener(this, ({oldEvent, newEvent}) => {
+				if(this.isCursor() && newEvent.key == 'ArrowDown' && ! this.parentLine.nextElementSibling){
+					let nextLine = this.parentEditor.createLine();
+					nextLine.line?.lookAtMe();
+				}
+			})
 		}
 	}
 	connectedCallback(){
@@ -15512,6 +15517,19 @@ class FreedomInterface extends HTMLElement {
 		}
         return this.innerText.length == 0 || (this.innerText.length == 1 && (this.innerText == '\n' || this.innerText == '\u200B'));
     }
+
+	isCursor(){
+		let selection = window.getSelection();
+		if(! document.activeElement.classList.contains('free-will-editor')){
+			return false;
+		}
+		if(selection.type == 'None'){
+			return false;
+		}
+
+		return selection.containsNode(this, true) || selection.containsNode(this, false)
+	}
+
 	/**
 	 * @param {Function}
 	 */
@@ -46118,6 +46136,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
 class Image extends _module_FreedomInterface__WEBPACK_IMPORTED_MODULE_0__["default"] {
 
 	static toolHandler = new _module_ToolHandler__WEBPACK_IMPORTED_MODULE_1__["default"](this);
@@ -46806,6 +46825,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _module_FreedomInterface__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../module/FreedomInterface */ "./view/js/handler/editor/module/FreedomInterface.js");
 /* harmony import */ var _module_ToolHandler__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../module/ToolHandler */ "./view/js/handler/editor/module/ToolHandler.js");
+
 
 
 
@@ -47691,6 +47711,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
 class Video extends _module_FreedomInterface__WEBPACK_IMPORTED_MODULE_0__["default"] {
 
 	static toolHandler = new _module_ToolHandler__WEBPACK_IMPORTED_MODULE_1__["default"](this);
@@ -47923,6 +47944,9 @@ class Video extends _module_FreedomInterface__WEBPACK_IMPORTED_MODULE_0__["defau
                 scrollTarget.scrollIntoView({ behavior: "instant", block: "end", inline: "nearest" });
                 */
                 this.video.play();
+                if(this.dataset.width){
+                    this.video.width = this.dataset.width;
+                }
             }
             this.video.onerror = () => {
                 //videoContanier.style.height = window.getComputedStyle(video).height;

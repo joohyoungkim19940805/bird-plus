@@ -83,6 +83,7 @@ public class WebFluxSecurityConfig {
                 				"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://storage.googleapis.com; " + 
                 				"style-src 'self' 'unsafe-inline'; " +
                 				"img-src 'self' https: blob: data:; " + 
+                				"media-src 'self' https: blob: data:; " +
                 				"font-src 'self' data:;"
                 			)
                 		)

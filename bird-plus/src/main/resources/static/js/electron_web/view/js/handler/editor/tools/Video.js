@@ -1,3 +1,4 @@
+
 import FreedomInterface from "../module/FreedomInterface"
 import ToolHandler from "../module/ToolHandler"
 import VideoBox from "../component/VideoBox"
@@ -233,6 +234,9 @@ export default class Video extends FreedomInterface {
                 scrollTarget.scrollIntoView({ behavior: "instant", block: "end", inline: "nearest" });
                 */
                 this.video.play();
+                if(this.dataset.width){
+                    this.video.width = this.dataset.width;
+                }
             }
             this.video.onerror = () => {
                 //videoContanier.style.height = window.getComputedStyle(video).height;
