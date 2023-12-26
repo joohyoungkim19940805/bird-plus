@@ -6617,13 +6617,23 @@ class Line {
 
 			let selection = window.getSelection()
 
-			if(tool.childNodes.length > 1){
-				let list = [...tool.childNodes];
-				let index = list.findIndex(e=> selection.containsNode(e, true) || selection.containsNode(e, false))
-				targetWrap = list[index]
-				leftList = list.slice(0, index);
-				rightList = list.slice(index + 1);
+			//if(tool.childNodes.length > 1){
+			let list = [...tool.childNodes];
+			if( ! TargetTool.toolHandler.isInline){
+				try{
+					this.lineElement.append(...list);
+				}catch(Ignore){
+					Line.getLine(tool).append(...list);
+				}
+				tool.remove();
+				resolve();
+				return
 			}
+			let index = list.findIndex(e=> selection.containsNode(e, true) || selection.containsNode(e, false))
+			targetWrap = list[index]
+			leftList = list.slice(0, index);
+			rightList = list.slice(index + 1);
+			//}
 			
 
 			if(startContainer.textContent.length != offset){
@@ -6848,7 +6858,7 @@ class Line {
 				TargetTool.toolHandler.toolButton.dataset.tool_status = 'connected'
 				resolve();
 			}else{
-				if(startContainer === endContainer && this.lineElement.innerText.length != range.toString().length){
+				if( ! TargetTool.toolHandler.isInline || (startContainer === endContainer && this.lineElement.innerText.length != range.toString().length ) ){
 					this.#cancelOnlyOneTool(range, tool, TargetTool).then(()=>{
 						console.log('cancelOnlyOneTool')
 						resolve();
@@ -6998,6 +7008,7 @@ class FreeWiilHandler extends HTMLElement{
             let {anchorNode, focusNode} = selection; 
             let startAndEndLineObject;
             if(anchorNode == this){
+                //console.log(111)
                 let allLine = [...this.children].filter(e=>e.classList.contains(`${Line.toolHandler.defaultClass}`))
                 startAndEndLineObject = {
                     startLine : allLine[0],
@@ -7010,15 +7021,20 @@ class FreeWiilHandler extends HTMLElement{
                 range.setEnd(endLineChildNodes, endLineChildNodes.nodeType == Node.TEXT_NODE ? endLineChildNodes.textContent.length : startAndEndLineObject.endLine.childNodes.length);
                 selection.addRange(range);
             }else{
+                //console.log(222)
                 let anchorNodeLine = Line.getLine(anchorNode);
                 let focusNodeLine = Line.getLine(focusNode);
                 if(anchorNodeLine == focusNodeLine){
+                    //console.log(333)
                     resolve({
                         startLine: anchorNodeLine,
                         endLine: focusNodeLine
                     })
+                    return;
                 }
-                startAndEndLineObject = [...this.querySelectorAll(`.${Line.toolHandler.defaultClass}`)].reduce((obj,item,index)=>{
+                //console.log(4444, anchorNodeLine , focusNodeLine);
+                startAndEndLineObject = {startLine : anchorNodeLine, endLine : focusNodeLine};
+                /*startAndEndLineObject = [...this.querySelectorAll(`.${Line.toolHandler.defaultClass}`)].reduce((obj,item,index)=>{
                     if(item == anchorNodeLine || item == focusNodeLine){
                         let key = 'startLine';
                         if(obj.hasOwnProperty(key)){
@@ -7028,7 +7044,7 @@ class FreeWiilHandler extends HTMLElement{
                         }
                     }
                     return obj;
-                },{})
+                },{})*/
             }
             resolve(startAndEndLineObject);
         })
@@ -9293,12 +9309,12 @@ class NumericPoint extends FreedomInterface {
 			.${this.toolHandler.defaultClass} {
 				display: block;
 				margin-inline: 1.3em;
-				list-style-type: none;
 			}
 			.${this.toolHandler.defaultClass} > * {
-				list-style-type: decimal;
-				display: list-item;
 				margin-inline: 1.3em;
+			}
+			.${this.toolHandler.defaultClass} > *:before{
+				content: attr(data-order)
 			}
 		`
 		let defaultStyle = document.querySelector(`#${this.#defaultStyle.id}`);
@@ -9329,6 +9345,12 @@ class NumericPoint extends FreedomInterface {
 	constructor(dataset){
 		super(NumericPoint, dataset, {deleteOption : FreedomInterface.DeleteOption.EMPTY_CONTENT_IS_NOT_DELETE});
 		super.connectedChildAfterCallback = (list) => {
+			new Promise(r=>{
+				[...this.children].forEach((e,i)=>{
+					e.dataset.order = (i + 1) + '. ';
+				});
+				r();
+			});
 			let lastItem = list.at(-1);
 			if(lastItem.nodeType == Node.ELEMENT_NODE){
 				let inter = setInterval(()=>{
@@ -9346,6 +9368,7 @@ class NumericPoint extends FreedomInterface {
 				}, 50);
 			}
 		}
+
 		/*
 		super.connectedAfterOnlyOneCallback = () => {
 			let nextLine = this.parentEditor.getNextLine(this.parentLine);
@@ -9712,10 +9735,6 @@ class FontSizeBox {
 
     #fontSizeBoxVw = 30;
 
-    #min
-    
-    #max
-
     #fontSizeBox = Object.assign(document.createElement('div'), {
         className: 'font-size-wrap',
     })
@@ -9725,7 +9744,7 @@ class FontSizeBox {
     
     #searchInputText = Object.assign(document.createElement('input'), {
         autocomplete: 'off',
-        placeholder: 'searching your font size',
+        placeholder: 'search your font size',
         type: 'number',
         name: 'font-size-search',
         className: 'font-size-search',
@@ -9747,13 +9766,10 @@ class FontSizeBox {
 
     #lastSelectionRange;
 
-    constructor({min, max}){
-        if( ! min || ! max){
-            throw new Error('font size is undefined');
-        }
-        this.#min = min;
-        this.#max = max;
+    #fontSizeObject;
 
+    constructor(fontSizeObject){
+        this.#fontSizeObject = fontSizeObject
         let style = document.querySelector(`#${this.#style.id}`);
         if(! style){
             document.head.append(this.createStyle());
@@ -9780,7 +9796,7 @@ class FontSizeBox {
                 this.#fontSizeBoxContainer.replaceChildren(...fontElementList);
             });
             return;
-        }else if(isNaN(number) || this.#min > number || this.#max < number){
+        }else if(isNaN(number) || this.#fontSizeObject.min > number || this.#fontSizeObject.max < number){
             this.#fontSizeBoxContainer.replaceChildren();
             return;
         }
@@ -9793,7 +9809,7 @@ class FontSizeBox {
         }else{
             li.textContent = this.#sampleText;
         }
-        li.style.fontSize = number + 'px';
+        li.style.fontSize = number + this.#fontSizeObject.unit;
         li.dataset.size = number;
         this.#addFontItemEvent(li);
         this.#fontSizeBoxContainer.replaceChildren(li);
@@ -9820,7 +9836,12 @@ class FontSizeBox {
     #createFontElementList(sampleText){
         return new Promise(resolve=> {
             let list = [];
-            for(let i = this.#min, len = this.#max + 1 ; i < len ; i += 1){
+            let fixedLength = String(this.#fontSizeObject.weight).replace('.', '').length;
+            for(let i = this.#fontSizeObject.min, len = this.#fontSizeObject.max + this.#fontSizeObject.weight ; 
+                i < len ;
+                i = parseFloat( (i + this.#fontSizeObject.weight).toFixed(fixedLength) )
+            ){
+                console.log(i);
                 let li = Object.assign(document.createElement('li'),{
                     className: 'font-size-item',
                 });
@@ -9829,7 +9850,7 @@ class FontSizeBox {
                 }else{
                     li.textContent = sampleText;
                 }
-                li.style.fontSize = i + 'px';
+                li.style.fontSize = i + this.#fontSizeObject.unit;
                 this.#addFontItemEvent(li);
                 list.push(li);
             }
@@ -9838,6 +9859,10 @@ class FontSizeBox {
     }
 
     async open(){
+        this.#searchInputText.step = this.#fontSizeObject.weight;
+        this.#searchInputText.min = this.#fontSizeObject.min;
+        this.#searchInputText.max = this.#fontSizeObject.max;
+        
         let selection = window.getSelection();
         if(selection.rangeCount != 0 && selection.isCollapsed == false){
             let range = selection.getRangeAt(0);
@@ -9916,6 +9941,8 @@ class FontSizeBox {
             .font-size-wrap .font-size-search-wrap [name="font-size-search"]{
                 outline: none;
                 -moz-appearance: textfield;
+                width: 100%;
+                color: white;
             }
             .font-size-wrap .font-size-search-wrap [name="font-size-search"]::-webkit-outer-spin-button,
             .font-size-wrap .font-size-search-wrap [name="font-size-search"]::-webkit-inner-spin-button{
@@ -9960,6 +9987,14 @@ class FontSize extends FreedomInterface {
 
     static fontSizeBox;
 
+	static unit = 'px';
+
+	static min = 1;
+
+	static max = 50;
+
+	static weight = 1;
+
     static{
         
 		this.toolHandler.extendsElement = '';
@@ -9971,7 +10006,7 @@ class FontSize extends FreedomInterface {
 			title: 'Font Size'
         });
 
-		this.fontSizeBox = new FontSizeBox({min:1, max:50});
+		this.fontSizeBox = new FontSizeBox(this);
 
 		this.toolHandler.toolButton.onclick = ()=>{
 			if(this.toolHandler.toolButton.dataset.tool_status == 'active' || this.toolHandler.toolButton.dataset.tool_status == 'connected'){
@@ -10258,18 +10293,17 @@ class ImageBox {
             }
         })
         
-        this.#imageBox.onwheel = (event) => {
+        this.#imageBox.addEventListener('wheel', (event) => {
             if(this.#imageBox.hasAttribute('data-is_shft')){
                 return;
             }
-            event.preventDefault();
+            //event.preventDefault();
             let {deltaY} = event;
             
             this.#imageBox.scrollTo(
                 this.#imageBox.scrollLeft + deltaY, undefined
             );
-        }
-       
+        }, {passive: true})
         let [width, height] = this.#imageBox.querySelectorAll('#image-box-resize-width, #image-box-resize-height');
         
         window.addEventListener('keyup', (event) => {
@@ -11079,17 +11113,17 @@ class VideoBox {
             }
         })
         
-        this.#videoBox.onwheel = (event) => {
+        this.#videoBox.addEventListener('wheel', (event) => {
             if(this.#videoBox.hasAttribute('data-is_shft')){
                 return;
             }
-            event.preventDefault();
+            //event.preventDefault();
             let {deltaY} = event;
             
             this.#videoBox.scrollTo(
                 this.#videoBox.scrollLeft + deltaY, undefined
             );
-        }
+        }, {passive: true});
         let [width, height] = this.#videoBox.querySelectorAll('#video-box-resize-width, #video-box-resize-height');
         
         window.addEventListener('keyup', (event) => {
@@ -12902,7 +12936,7 @@ class FreeWillEditor extends FreeWiilHandler {
 				// 동일한 동작이 수행되지 않도록 추가 2023 05 25
 			//	return;
 			//}
-			if(this.contentEditable == 'false'){
+			if(this.contentEditable == 'false' || (mutation.target.dataset.tool_status == 'connected' &&  mutation.oldValue == mutation.target.dataset.tool_status == 'connected')){
 				//observer.disconnect();
 				return;
 			}
@@ -13139,10 +13173,11 @@ class FreeWillEditor extends FreeWiilHandler {
 
 	#renderingTools(TargetTool){
 		let selection = window.getSelection();
-		//if( ! anchorNodeLine || ! focusNodeLine){
-		//	return;
-		//}
-		
+		let {isCollapsed, anchorNode, focusNode} = selection;
+		// 범위 선택 x인 경우 넘어가기
+		if(isCollapsed && TargetTool.toolHandler.isInline){
+			return;
+		}
 		super.getLineRange(selection)
 		.then(({startLine, endLine}) => { 
 			if( ! startLine){
@@ -13187,13 +13222,13 @@ class FreeWillEditor extends FreeWiilHandler {
 	#removerTools(TargetTool){
 		let selection = window.getSelection();
 		let {isCollapsed, anchorNode, focusNode} = selection;
-		/*
+		
 		// 범위 선택 x인 경우 넘어가기
-		if(isCollapsed){
+		if(isCollapsed && TargetTool.toolHandler.isInline){
 			return;
-		}*/
+		}
 		super.getLineRange(selection).then(({startLine, endLine})=> {
-			console.log(endLine);
+			//console.log(endLine);
 			if( ! startLine){
 				startLine = endLine
 			}
@@ -13203,17 +13238,22 @@ class FreeWillEditor extends FreeWiilHandler {
 			if( ! endLine.line){
 				new Line(endLine);
 			}
-			startLine.line.cancelTool(TargetTool, selection, endLine);
-		}).then(()=>{
-			this.#undoManager.addUndoRedo(true);
-			/*[...this.children]
-			.filter(e=>e.classList.contains(`${Line.toolHandler.defaultClass}`))
-			.forEach(lineElement=>{
-				if(lineElement.line.isLineEmpty()){
-					//lineElement.line = undefined;
-					//lineElement.remove();
+			startLine.line.cancelTool(TargetTool, selection, endLine)
+			.then(()=>{
+				if( ! this.#undoManager){
+					this.#undoManager = new UndoManager(this);
 				}
-			})*/
+				this.#undoManager.addUndoRedo(true);
+				window.getSelection().setPosition(startLine, startLine.childElementCount);
+				/*[...this.children]
+				.filter(e=>e.classList.contains(`${Line.toolHandler.defaultClass}`))
+				.forEach(lineElement=>{
+					if(lineElement.line.isLineEmpty()){
+						//lineElement.line = undefined;
+						//lineElement.remove();
+					}
+				})*/
+			});
 		})
 	}
 	
@@ -13978,7 +14018,7 @@ class NoticeBoardLine extends FreeWillEditor{
                 <ul class="notice_board_detail_content" data-bind_name="noticeBoardDetailList">
  
                 </ul>
-                <div class="toolbar" style="position: fixed;" data-bind_name="toolbar"></div>
+                <div class="toolbar" style="position: fixed; z-index: 2000;" data-bind_name="toolbar"></div>
             </div>
         `
     })
@@ -14156,12 +14196,16 @@ class NoticeBoardLine extends FreeWillEditor{
                         let appendAwait = setInterval(()=>{
                             if( ! editor.isConnected) return;
                             clearInterval(appendAwait);
-                            if( ! editor.isEmpty){
+                            if(editor.isEmpty){
+                                editor.remove();
+                                li.prepend(addButton);
+                            }
+                            /*if( ! editor.isEmpty){
                                 li.append(positionChangeIcon)
                             }else {
                                 editor.remove();
                                 li.prepend(addButton);
-                            }
+                            }*/
                         },50)
                     })
                 })
@@ -14175,11 +14219,17 @@ class NoticeBoardLine extends FreeWillEditor{
                     return;
                 }
                 li.draggable = false;
+                if( ! editor.isEmpty){
+                    li.append(positionChangeIcon)
+                }
             }
             li.onmouseleave = () => {
                 if(addButton.isConnected){
                     addButton.classList.remove('active');
                     return;
+                }
+                if(positionChangeIcon.isConnected){
+                    positionChangeIcon.remove();
                 }
             }
             //let isPositionChangeIconOver = false;
@@ -14936,8 +14986,18 @@ window.myAPI = myAPI;
 
 
 
+/*
+indexedDBHandler.open().then(()=>{
+	indexedDBHandler.addItem({
+		fileName:'test',
+		lastModified:'1111',
+		targetId: '1',
+		uploadType: 'abcd'
+	});
+})
+*/
+const oneDay = 1000 * 60 * 60 * 24;
 window.addEventListener('load', async () => {
-
 	const indexedDBHandler = new IndexedDBHandler({
 		dbName: 'fileDB-main-page',
 		storeName: `s3Memory-main-page`,
@@ -15023,7 +15083,7 @@ window.addEventListener('load', async () => {
 		})
 
 		if(isHasRememberFile.result){
-			let url = URL.createObjectURL(isHasRememberFile.result.fileData, targetTools.dataset.content_type)
+			let url = window.URL.createObjectURL(isHasRememberFile.result.fileData, targetTools.dataset.content_type)
 			targetTools.dataset.url = url;
 			if(targetTools.image){
 				targetTools.image.src = url;
@@ -15060,7 +15120,12 @@ window.addEventListener('load', async () => {
 					filePreview.querySelector('[data-file_preview_button]').className = 'file_preview_button'; 
 					filePreview.className = 'file_preview';
 				}
-
+				filePreview.style.display = 'none';
+				Resources.resourcesCallback = ({status, resources}) => {
+					if(status == 'error'){
+						filePreview.style.display = '';
+					}
+				}
 				filePreview.onclick = (event) => {
 					event.stopPropagation();
 				}
@@ -15150,13 +15215,12 @@ window.addEventListener('load', async () => {
 						);
 						/*
 						let newBlob = new Blob([buffer], { type: imageEditor.dataset.content_type });
-						let imgUrl = URL.createObjectURL(newBlob);
+						let imgUrl = window.URL.createObjectURL(newBlob);
 						*/
 					})
 					.then(stream => new Response(stream))
 					.then(res => res.blob())
 					.then(async blob => {
-						console.log(totalLen);
 						let newBlob = new Blob([blob], { type: targetTools.dataset.content_type });
 						return dbOpenPromise.then( async () => {
 							return indexedDBHandler.addItem({
@@ -15168,7 +15232,7 @@ window.addEventListener('load', async () => {
 								roomId: RoomHandler.roomId,
 								workspaceId: WorkspaceHandler.workspaceId
 							}).then(()=>{
-								return URL.createObjectURL(newBlob)
+								return window.URL.createObjectURL(newBlob)
 							})
 						})
 					})
@@ -15200,7 +15264,7 @@ window.addEventListener('load', async () => {
 		})
 		
 	}
-	
+
 	Image.customImageCallback = (imageEditor) => imageOrVideoCallback(imageEditor)
 	Video.customVideoCallback = (videoEditor) => imageOrVideoCallback(videoEditor)
 	Resources.customResourcesCallback = (resourcesEditor) => imageOrVideoCallback(resourcesEditor)

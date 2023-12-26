@@ -78,7 +78,7 @@ public class WebFluxSecurityConfig {
                 		.contentSecurityPolicy(contentSecuritySpec->contentSecuritySpec
                 			.policyDirectives(
                 				"object-src 'self' blob: data: gap: https://bird-plus-s3.s3.ap-northeast-2.amazonaws.com 'unsafe-eval'; " +
-                				"default-src 'self' data: gap: https://immersive-web.github.io https://bird-plus-s3.s3.ap-northeast-2.amazonaws.com 'unsafe-eval'; " +
+                				"default-src 'self' blob: data: gap: https://immersive-web.github.io https://bird-plus-s3.s3.ap-northeast-2.amazonaws.com 'unsafe-eval'; " +
                 				"frame-src 'self' blob: data: gap: https://bird-plus-s3.s3.ap-northeast-2.amazonaws.com 'unsafe-eval'; " +
                 				"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://storage.googleapis.com; " + 
                 				"style-src 'self' 'unsafe-inline'; " +

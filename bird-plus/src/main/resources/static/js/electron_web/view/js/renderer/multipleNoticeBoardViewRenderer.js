@@ -22,8 +22,18 @@ import IndexedDBHandler from "@handler/IndexedDBHandler"
 
 import common from "@root/js/common";
 
+/*
+indexedDBHandler.open().then(()=>{
+	indexedDBHandler.addItem({
+		fileName:'test',
+		lastModified:'1111',
+		targetId: '1',
+		uploadType: 'abcd'
+	});
+})
+*/
+const oneDay = 1000 * 60 * 60 * 24;
 window.addEventListener('load', async () => {
-
 	const indexedDBHandler = new IndexedDBHandler({
 		dbName: 'fileDB-main-page',
 		storeName: `s3Memory-main-page`,
@@ -109,7 +119,7 @@ window.addEventListener('load', async () => {
 		})
 
 		if(isHasRememberFile.result){
-			let url = URL.createObjectURL(isHasRememberFile.result.fileData, targetTools.dataset.content_type)
+			let url = window.URL.createObjectURL(isHasRememberFile.result.fileData, targetTools.dataset.content_type)
 			targetTools.dataset.url = url;
 			if(targetTools.image){
 				targetTools.image.src = url;
@@ -146,7 +156,12 @@ window.addEventListener('load', async () => {
 					filePreview.querySelector('[data-file_preview_button]').className = 'file_preview_button'; 
 					filePreview.className = 'file_preview';
 				}
-
+				filePreview.style.display = 'none';
+				Resources.resourcesCallback = ({status, resources}) => {
+					if(status == 'error'){
+						filePreview.style.display = '';
+					}
+				}
 				filePreview.onclick = (event) => {
 					event.stopPropagation();
 				}
@@ -236,13 +251,12 @@ window.addEventListener('load', async () => {
 						);
 						/*
 						let newBlob = new Blob([buffer], { type: imageEditor.dataset.content_type });
-						let imgUrl = URL.createObjectURL(newBlob);
+						let imgUrl = window.URL.createObjectURL(newBlob);
 						*/
 					})
 					.then(stream => new Response(stream))
 					.then(res => res.blob())
 					.then(async blob => {
-						console.log(totalLen);
 						let newBlob = new Blob([blob], { type: targetTools.dataset.content_type });
 						return dbOpenPromise.then( async () => {
 							return indexedDBHandler.addItem({
@@ -254,7 +268,7 @@ window.addEventListener('load', async () => {
 								roomId: roomHandler.roomId,
 								workspaceId: workspaceHandler.workspaceId
 							}).then(()=>{
-								return URL.createObjectURL(newBlob)
+								return window.URL.createObjectURL(newBlob)
 							})
 						})
 					})
@@ -286,7 +300,7 @@ window.addEventListener('load', async () => {
 		})
 		
 	}
-	
+
 	Image.customImageCallback = (imageEditor) => imageOrVideoCallback(imageEditor)
 	Video.customVideoCallback = (videoEditor) => imageOrVideoCallback(videoEditor)
 	Resources.customResourcesCallback = (resourcesEditor) => imageOrVideoCallback(resourcesEditor)

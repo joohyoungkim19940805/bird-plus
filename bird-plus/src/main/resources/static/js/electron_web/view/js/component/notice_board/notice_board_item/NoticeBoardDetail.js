@@ -79,7 +79,7 @@ export default new class NoticeBoardDetail{
                 <ul class="notice_board_detail_content" data-bind_name="noticeBoardDetailList">
  
                 </ul>
-                <div class="toolbar" style="position: fixed;" data-bind_name="toolbar"></div>
+                <div class="toolbar" style="position: fixed; z-index: 2000;" data-bind_name="toolbar"></div>
             </div>
         `
     })
@@ -257,12 +257,16 @@ export default new class NoticeBoardDetail{
                         let appendAwait = setInterval(()=>{
                             if( ! editor.isConnected) return;
                             clearInterval(appendAwait);
-                            if( ! editor.isEmpty){
+                            if(editor.isEmpty){
+                                editor.remove();
+                                li.prepend(addButton);
+                            }
+                            /*if( ! editor.isEmpty){
                                 li.append(positionChangeIcon)
                             }else {
                                 editor.remove();
                                 li.prepend(addButton);
-                            }
+                            }*/
                         },50)
                     })
                 })
@@ -276,11 +280,17 @@ export default new class NoticeBoardDetail{
                     return;
                 }
                 li.draggable = false;
+                if( ! editor.isEmpty){
+                    li.append(positionChangeIcon)
+                }
             }
             li.onmouseleave = () => {
                 if(addButton.isConnected){
                     addButton.classList.remove('active');
                     return;
+                }
+                if(positionChangeIcon.isConnected){
+                    positionChangeIcon.remove();
                 }
             }
             //let isPositionChangeIconOver = false;
