@@ -116,7 +116,8 @@ window.addEventListener('load', async () => {
 			}else if(targetTools.video){
 				targetTools.video.src = url;
 			}else{
-				targetTools.resources.data = url;
+				//targetTools.resources.data = url;
+				targetTools.resourcesUrl = url;
 			}
 			return;
 		}
@@ -264,7 +265,8 @@ window.addEventListener('load', async () => {
 						}else if(targetTools.video){
 							targetTools.video.src = url;
 						}else{
-							targetTools.resources.data = url;
+							//targetTools.resources.data = url;
+							targetTools.resourcesUrl = url;
 						}
 
 						if(filePreview){
