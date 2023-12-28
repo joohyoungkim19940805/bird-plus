@@ -1023,14 +1023,14 @@ const getStart = new class GetStart{
 				}else{
 					let li = Object.assign(document.createElement('li'), {
 						innerHTML : `
-							<div class="workspace_list_container">
 								<div>
-									<button><b>Joining Workspace Now</b></button>
+									<a href="javascript:void(0);" style="color: hsl(206,100%,52%);text-decoration: underline;">
+										There are no participating workspaces. Click here to join now
+									</a>
 								</div>
-							</div>
 						`
 					});
-					li.querySelector('button').onclick = this.showSearchWorkspacePage();
+					li.querySelector('a').onclick = () => this.showSearchWorkspacePage();
 					workspaceListUl.append(li)
 				}
 				return totalPages;

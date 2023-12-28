@@ -4,12 +4,12 @@
 import { ipcRenderer, myAPI } from "./../../../browser/preload/preload"
 window.myAPI = myAPI;
 
-import roomContainer from "@component/room/RoomContainer"
-import chattingContainer from "@component/chatting/ChattingContainer"
-import noticeBoardContainer from "@component/notice_board/NoticeBoardContainer"
+import {roomContainer} from "@component/room/RoomContainer"
+import {chattingContainer} from "@component/chatting/ChattingContainer"
+import {noticeBoardContainer} from "@component/notice_board/NoticeBoardContainer"
 
-import roomHandler from "@handler/room/RoomHandler"
-import chattingHandler from "@handler/chatting/ChattingHandler"
+import {roomHandler} from "@handler/room/RoomHandler"
+import {chattingHandler} from "@handler/chatting/ChattingHandler"
 
 import Image from "@handler/editor/tools/Image"
 import Video from "@handler/editor/tools/Video"
@@ -18,7 +18,7 @@ import FontSize from "@handler/editor/tools/FontSize"
 
 import { accountHandler } from "@handler/account/AccountHandler"
 import { s3EncryptionUtil } from "@handler/S3EncryptionUtil"
-import workspaceHandler from "@handler/workspace/WorkspaceHandler"
+import {workspaceHandler} from "@handler/workspace/WorkspaceHandler"
 import IndexedDBHandler from "@handler/IndexedDBHandler"
 
 import HeaderDefault from "@component/header/HeaderDefault"

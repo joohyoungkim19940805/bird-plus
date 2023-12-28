@@ -4,13 +4,13 @@
 import { ipcRenderer, myAPI } from "./../../../browser/preload/preload"
 window.myAPI = myAPI;
 
-import noticeBoardHandler from "@handler/notice_board/NoticeBoardHandler"
+import {noticeBoardHandler} from "@handler/notice_board/NoticeBoardHandler"
 
-import noticeBoardDetail from "@component/notice_board/notice_board_item/NoticeBoardDetail"
+import {noticeBoardDetail} from "@component/notice_board/notice_board_item/NoticeBoardDetail"
 
-import roomHandler from "@handler/room/RoomHandler"
-import chattingHandler from "@handler/chatting/ChattingHandler"
-import workspaceHandler from "@handler/workspace/WorkspaceHandler"
+import {roomHandler} from "@handler/room/RoomHandler"
+import {chattingHandler} from "@handler/chatting/ChattingHandler"
+import {workspaceHandler} from "@handler/workspace/WorkspaceHandler"
 
 import Image from "@handler/editor/tools/Image"
 import Video from "@handler/editor/tools/Video"

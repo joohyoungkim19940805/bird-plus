@@ -98,6 +98,7 @@ public class RoomHandler {
 						;
 				}
 				return roomRepository.save(roomEntity.withCreateBy(account.getId()));
+
 			})
 			.doOnSuccess(e-> {
 				e.setCreateBy(null);

@@ -1,5 +1,5 @@
-import workspaceHandler from "@handler/workspace/WorkspaceHandler";
-import roomHandler from "@handler/room/RoomHandler";
+import {workspaceHandler} from "@handler/workspace/WorkspaceHandler";
+import {roomHandler} from "@handler/room/RoomHandler";
 import PositionChanger from "@handler/PositionChangeer";
 
 import { accountHandler } from "@handler/account/AccountHandler"
@@ -237,7 +237,7 @@ export default new class RoomFavoritesList{
 				}
 				roomName = roomNameList.sort((a,b)=> a.localeCompare(b)).join(', ')
 			}else{ // ROOM_TYPE == SELF
-				roomName = '나';
+				roomName = `나(${accountHandler.accountInfo.fullName})`;
 			}
 			let li = Object.assign(document.createElement('li'), {
 				className: 'room_container_item pointer',

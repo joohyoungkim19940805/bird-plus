@@ -1,12 +1,12 @@
 package com.radcns.bird_plus.repository.chatting;
 import com.radcns.bird_plus.entity.chatting.ChattingEntity;
 import com.radcns.bird_plus.entity.chatting.ChattingEntity.ChattingDomain;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 public interface ChattingRepository extends ReactiveCrudRepository<ChattingEntity, Long> {
+	static String TEST = "abcd";
     /*
 	'createAt', ccr.create_at,
 	'reactionList', (
@@ -188,5 +188,5 @@ public interface ChattingRepository extends ReactiveCrudRepository<ChattingEntit
 		cc.id = :#{[2]}
     ;
     """)
-    Mono<ChattingDomain.ChattingResponse> findIdWithChattingResponse(Long workspaceId, Long roomId, Long chattingId);
+	Mono<ChattingDomain.ChattingResponse> findIdWithChattingResponse(Long workspaceId, Long roomId, Long chattingId);
 }

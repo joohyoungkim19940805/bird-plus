@@ -15,6 +15,8 @@ import com.radcns.bird_plus.entity.chatting.ChattingEntity.ChattingDomain.Chatti
 import com.radcns.bird_plus.entity.chatting.ChattingEntity.ChattingDomain.ChattingResponse;
 import com.radcns.bird_plus.repository.account.AccountRepository;
 import com.radcns.bird_plus.repository.chatting.ChattingRepository;
+import com.radcns.bird_plus.repository.chatting.client.ChattingDatabaseClient;
+import com.radcns.bird_plus.repository.chatting.client.ChattingDatabaseClient.SearchChattingRecord;
 import com.radcns.bird_plus.repository.room.RoomInAccountRepository;
 import com.radcns.bird_plus.service.AccountService;
 import com.radcns.bird_plus.util.ResponseWrapper;
@@ -48,6 +50,9 @@ public class ChattingHandler {
 	
 	@Autowired
 	private ChattingRepository chattingRepository;
+	
+	@Autowired
+	private ChattingDatabaseClient chattingDatabaseClient;
 	
 	@Autowired
 	private JwtVerifyHandler jwtVerifyHandler;
@@ -229,8 +234,10 @@ public class ChattingHandler {
 				Long endNo = ( maxPageSequence - size * ( page + 1 ) ) + 1;
 				Long startNo = size * page + 1;
 				startNo = maxPageSequence - (startNo == 1 ? 0 : startNo);
-				
-				return chattingRepository.findAllJoinAccountByWorkspaceIdAndRoomId(workspaceId, roomId, account.getId(), startNo, endNo)
+				//workspaceId, roomId, account.getId(), startNo, endNo)
+				return chattingDatabaseClient.searchChatting(new SearchChattingRecord(
+					workspaceId, roomId, null, null, startNo, endNo, null
+				))
 				.collectList()
 				.zipWith(chattingRepository.countByWorkspaceIdAndRoomId(workspaceId, roomId))
 				.map(entityTuples -> 
