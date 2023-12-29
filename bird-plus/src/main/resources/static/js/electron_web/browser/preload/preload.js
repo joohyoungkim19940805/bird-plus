@@ -240,7 +240,7 @@ export const myAPI = {
 		let queryString = Object.entries(param)
 			.filter(([k,v]) => v != undefined && v != '' && k != 'pageName' && k != 'pageId')
 			.map(([k,v]) => `${k}=${v}`).join('&')
-		window.open(`/mobile/create-sub-window/${param.pageName}?${queryString}`, param.pageId)
+		window.open(`/web/create-sub-window/${param.pageName}?${queryString}`, param.pageId)
 	},
 
 	closeRequest : async (param) => {},
@@ -318,9 +318,9 @@ export const myAPI = {
 	getServerUrl : async () => `${location.origin}/login-page`,
 
 	pageChange : {
-		changeLoginPage : async () => top.location.href = '/mobile',
-		changeWokrspacePage : async () => top.location.href = '/mobile',
-		changeMainPage : async (param) => top.location.href = `/mobile/main?workspaceId=${param.workspaceId}`,
+		changeLoginPage : async () => top.location.href = '/web',
+		changeWokrspacePage : async () => top.location.href = '/web',
+		changeMainPage : async (param) => top.location.href = `/web/main?workspaceId=${param.workspaceId}`,
 	},
 	
 	event : {

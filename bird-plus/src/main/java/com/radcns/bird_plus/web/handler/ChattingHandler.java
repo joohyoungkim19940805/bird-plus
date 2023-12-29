@@ -97,6 +97,9 @@ public class ChattingHandler {
 					boolean isUpdate = chattingEntity.getId() != null;
 					if(isUpdate) {
 						save = chattingRepository.findById(chattingEntity.getId()).flatMap(e->{
+							if( ! e.getAccountId().equals(account.getId())) {
+								return Mono.error(new RoomException(Result._999));
+							}
 							e.setUpdateBy(account.getId());
 							//e.setUpdateAt(LocalDateTime.now());
 							//if(chattingEntity.getChatting() != null) {

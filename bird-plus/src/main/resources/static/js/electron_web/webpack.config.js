@@ -1,4 +1,5 @@
 const path = require('path');
+const TerserPlugin = require('terser-webpack-plugin');
 
 /**
  * development
@@ -9,7 +10,6 @@ const path = require('path');
  */
 module.exports = {
 	mode: 'production',
-	devtool: 'source-map',
 	entry: {
 		mainPageRenderer: "./view/js/renderer/mainPageRenderer.js",
 		multipleChattingViewRenderer: "./view/js/renderer/multipleChattingViewRenderer.js",
@@ -46,10 +46,20 @@ module.exports = {
 			'@root' : path.resolve(__dirname, './view')
 		}
 	},
+	optimization: {
+		minimize: true,
+		minimizer: [
+			new TerserPlugin({
+			extractComments: false,
+			terserOptions: {
+				format: {
+					comments: false,
+				},
+			},
+			}),
+		],
+	},
 	performance: {
 		hints: false
-	},
-	optimization:{
-		minimize:false
 	}
 }

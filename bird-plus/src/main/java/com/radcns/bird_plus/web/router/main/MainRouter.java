@@ -54,12 +54,11 @@ public class MainRouter implements IndexRouterSwagger{
 				.and(route( POST("/forgot-password-send-email").and(accept(MediaType.APPLICATION_JSON)), mainHandler::forgotPassword ))
 				.and(route( GET("/change-password-page/{token}").and(accept(MediaType.TEXT_HTML)), mainHandler::changePasswordPage ))
 				.and(route( POST("/change-password").and(accept(MediaType.APPLICATION_JSON)), mainHandler::changePassword ))
-				.and(route( GET("/mobile-3d-ifream").and(accept(MediaType.TEXT_HTML)), mainHandler::mobile3DIfream))
-				.and(route( GET("/mobile").and(accept(MediaType.TEXT_HTML)), mainHandler::mobile ))
-				.and(route( GET("/mobile/main").and(accept(MediaType.TEXT_HTML)), mainHandler::mobileMain))
+				.and(route( GET("/web").and(accept(MediaType.TEXT_HTML)), mainHandler::web))
+				.and(route( GET("/web/main").and(accept(MediaType.TEXT_HTML)), mainHandler::webMain))
 				//.and(route( GET("/mobile/multiple-chatting").and(accept(MediaType.TEXT_HTML)), mainHandler::mobileMultipleChatting))
 				//.and(route( GET("/mobile/multiple-notice-board").and(accept(MediaType.TEXT_HTML)), mainHandler::mobileMultipleNoticeBoard))
-				.and(route( GET("/mobile/create-sub-window/{pageName}").and(accept(MediaType.TEXT_HTML)), mainHandler::createSubWindow ))
+				.and(route( GET("/web/create-sub-window/{pageName}").and(accept(MediaType.TEXT_HTML)), mainHandler::createSubWindow ))
 				;
 	}
 	//
