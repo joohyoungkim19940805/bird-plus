@@ -331,8 +331,6 @@ export const myAPI = {
 		initWorkspaceStream : async (param) => ipcRenderer.send('initWorkspaceStream', param),
 	},
 
-
-
 	account : {
 		loginProcessing : async (param) => ipcRenderer.invoke('loginProcessing', param),
 		getAccountInfo : async () => ipcRenderer.invoke('getAccountInfo'),
@@ -386,13 +384,15 @@ export const myAPI = {
 		searchNoticeBoardDetailList : async (param) => ipcRenderer.invoke('searchNoticeBoardDetailList', param),
 	},
 	s3: {
-		generatePutObjectPresignedUrl : async (param) => ipcRenderer.invoke('generatePutObjectPresignedUrl', param),
-		generateGetObjectPresignedUrl : async (param) => ipcRenderer.invoke('generateGetObjectPresignedUrl', param),
+		generateSecurityPutObjectPresignedUrl : async (param) => ipcRenderer.invoke('generateSecurityPutObjectPresignedUrl', param),
+		generateSecurityGetObjectPresignedUrl : async (param) => ipcRenderer.invoke('generateSecurityGetObjectPresignedUrl', param),
+		generateGetObjectPresignedUrl : async(param) => ipcRenderer.invoke('generateGetObjectPresignedUrl', param),
 	},
 	emoticon: {
 		createEmotionReaction : async (param) => ipcRenderer.invoke('createEmotionReaction', param),
 		getIsReaction : async (param) => ipcRenderer.invoke('getIsReaction', param)
 	}
+
 
 }
 window.myAPI = myAPI;

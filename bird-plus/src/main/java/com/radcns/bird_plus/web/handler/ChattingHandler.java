@@ -98,7 +98,8 @@ public class ChattingHandler {
 					if(isUpdate) {
 						save = chattingRepository.findById(chattingEntity.getId()).flatMap(e->{
 							if( ! e.getAccountId().equals(account.getId())) {
-								return Mono.error(new RoomException(Result._999));
+								return Mono.just(e);
+										//Mono.error(new RoomException(Result._999));
 							}
 							e.setUpdateBy(account.getId());
 							//e.setUpdateAt(LocalDateTime.now());
@@ -121,7 +122,11 @@ public class ChattingHandler {
 						;
 					}
 					
-					return save.doOnSuccess(e->{/*
+					return save.doOnSuccess(e->{
+						if(isUpdate && ! e.getAccountId().equals(account.getId())) {
+							return;
+						}
+						/*
 						EmitResult result = workspaceBroker.sendChatting(
 							ChattingResponse.builder()
 								.id(e.getId())
@@ -165,6 +170,7 @@ public class ChattingHandler {
 										.updateAt(e.getUpdateAt())
 										.fullName(account.getFullName())
 										.accountName(account.getAccountName())
+										.profileImage(account.getProfileImage())
 									.build(),
 									ServerSentStreamType.CHATTING_ACCEPT
 								) {}
@@ -189,25 +195,44 @@ public class ChattingHandler {
 			.filterWhen(deleteRequest -> roomInAccountRepository.existsByAccountIdAndWorkspaceIdAndRoomId(account.getId(), deleteRequest.getWorkspaceId(), deleteRequest.getRoomId()))
 			.switchIfEmpty(Mono.error(new RoomException(Result._301)))
 			.flatMap(e->{
-				
+				/*
 				return chattingRepository.deleteById(e.getId())
-						.doOnSuccess(s->{
-							EmitResult result = workspaceBroker.send(
-								new ServerSentStreamTemplate<ChattingDeleteResponse>(
-									e.getWorkspaceId(),
-									e.getRoomId(),
-									ChattingDeleteResponse.builder()
-										.chattingId(e.getId())
-										.workspaceId(e.getWorkspaceId())
-										.roomId(e.getRoomId())
-									.build(),
-									ServerSentStreamType.CHATTING_DELETE_ACCEPT
-								 ) {}
-							);
-							if (result.isFailure()) {
-								// do something here, since emission failed
-							}
-						});
+					.doOnSuccess(s->{
+						EmitResult result = workspaceBroker.send(
+							new ServerSentStreamTemplate<ChattingDeleteResponse>(
+								e.getWorkspaceId(),
+								e.getRoomId(),
+								ChattingDeleteResponse.builder()
+									.chattingId(e.getId())
+									.workspaceId(e.getWorkspaceId())
+									.roomId(e.getRoomId())
+								.build(),
+								ServerSentStreamType.CHATTING_DELETE_ACCEPT
+							 ) {}
+						);
+						if (result.isFailure()) {
+							// do something here, since emission failed
+						}
+					});
+				*/
+				return chattingRepository.findById(e.getId()).flatMap(c->chattingRepository.save(c.withIsDelete(true)))
+				.doOnSuccess(s->{
+					EmitResult result = workspaceBroker.send(
+						new ServerSentStreamTemplate<ChattingDeleteResponse>(
+							e.getWorkspaceId(),
+							e.getRoomId(),
+							ChattingDeleteResponse.builder()
+								.chattingId(e.getId())
+								.workspaceId(e.getWorkspaceId())
+								.roomId(e.getRoomId())
+							.build(),
+							ServerSentStreamType.CHATTING_DELETE_ACCEPT
+						 ) {}
+					);
+					if (result.isFailure()) {
+						// do something here, since emission failed
+					}
+				});
 			});
 		}).flatMap(e->
 			ok()
@@ -238,11 +263,11 @@ public class ChattingHandler {
 				Long startNo = size * page + 1;
 				startNo = maxPageSequence - (startNo == 1 ? 0 : startNo);
 				//workspaceId, roomId, account.getId(), startNo, endNo)
-				return chattingDatabaseClient.searchChatting(new SearchChattingRecord(
-					workspaceId, roomId, null, null, startNo, endNo, null
-				))
+				SearchChattingRecord searchChattingRecord = new SearchChattingRecord(
+					workspaceId, roomId, null, null, startNo, endNo, null);
+				return chattingDatabaseClient.searchChatting(searchChattingRecord)
 				.collectList()
-				.zipWith(chattingRepository.countByWorkspaceIdAndRoomId(workspaceId, roomId))
+				.zipWith(chattingDatabaseClient.searchChattingCount(searchChattingRecord))
 				.map(entityTuples -> 
 					new PageImpl<>(entityTuples.getT1(), pageRequest, entityTuples.getT2())
 				);

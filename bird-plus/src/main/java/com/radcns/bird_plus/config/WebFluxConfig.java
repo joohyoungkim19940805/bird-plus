@@ -201,13 +201,13 @@ public class WebFluxConfig implements ApplicationContextAware, WebFluxConfigurer
 		EnvironmentVariableCredentialsProvider.create();
 		var builder = S3AsyncClient.builder();
 		String profiles = System.getenv("MY_SERVER_PROFILES");
-		//if(profiles != null && ! profiles.equals("local")) {
-		//	builder.credentialsProvider(InstanceProfileCredentialsProvider.create());
-		//}else {
+		if(profiles != null && ! profiles.equals("local")) {
+			builder.credentialsProvider(InstanceProfileCredentialsProvider.create());
+		}else {
 			builder.credentialsProvider(() -> {
 				return AwsBasicCredentials.create(s3Properties.getAccessKey(), s3Properties.getSecurityKey());
 			});
-		//}
+		}
 		builder.httpClientBuilder(NettyNioAsyncHttpClient.builder()
 	        .connectionTimeout(Duration.ofMillis(5_000))
 	        .maxConcurrency(100)
@@ -230,13 +230,13 @@ public class WebFluxConfig implements ApplicationContextAware, WebFluxConfigurer
 	public S3Presigner.Builder s3PresignerBuilder(S3Properties s3Properties) {
 		String profiles = System.getenv("MY_SERVER_PROFILES");
 		var builder = S3Presigner.builder();
-		//if(profiles != null && ! profiles.equals("local")) {
-		//	builder.credentialsProvider(InstanceProfileCredentialsProvider.create());
-		//}else {
+		if(profiles != null && ! profiles.equals("local")) {
+			builder.credentialsProvider(InstanceProfileCredentialsProvider.create());
+		}else {
 			builder.credentialsProvider(() -> {
 				return AwsBasicCredentials.create(s3Properties.getAccessKey(), s3Properties.getSecurityKey());
 			});
-		//}
+		}
 		builder.region(Region.of(s3Properties.getRegion()));
 		/*.serviceConfiguration(
 			S3Configuration

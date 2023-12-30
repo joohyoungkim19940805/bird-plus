@@ -17,7 +17,7 @@ public abstract non-sealed class BirdPlusException extends RuntimeException impl
 		_1(1, "처리에 실패하였습니다.", "SERVER RESPONSE SOMETHING WRONG"),
 		_100(100, "다시 로그인을 시도해주십시오.", "TOKEN EXPIRED"),
 		_101(101, "비활성화 된 계정입니다.\n인증 메일을 전송하였으니, 인증 후 다시 시도해주십시오.", "ACCOUNT IS DISABLED STATUS"),
-		_102(102, "로그인 정보가 잘못되었습니다.", "INVALID ACCOUNT"), //"잘못된 비밀번호입니다.", "INVALID ACCOUNT PASSWORD"),
+		_102(103, "로그인 정보가 잘못되었습니다.", "INVALID ACCOUNT"), //102, "잘못된 비밀번호입니다.", "INVALID ACCOUNT PASSWORD"),
 		_103(103, "로그인 정보가 잘못되었습니다.", "INVALID ACCOUNT"),
 		_104(104, "비활성화 된 계정입니다.", "DISABLED ACCOUNT"),
 		_105(105, "로그인 정보가 잘못되었습니다. 다시 로그인을 시도해주십시오.", "NOT SUPPORTED TOKEN"),

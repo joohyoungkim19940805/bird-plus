@@ -142,6 +142,8 @@ public class ChattingEntity {
 
             private String accountName;
 
+            private String profileImage;
+            
             private Json reaction;
             
             private Long pageSequence;

@@ -51,6 +51,7 @@ public class ChattingDatabaseClient {
 		    	cc.page_sequence,
 		    	aa.full_name,
 		    	aa.account_name,
+		    	aa.profile_image,
 		    	(
 		    		SELECT 
 		    			json_agg(json_build_object(
@@ -101,6 +102,8 @@ public class ChattingDatabaseClient {
 			    	cc.workspace_id = :workspaceId
 			    AND
 			    	cc.room_id = :roomId
+			    AND 
+					cc.is_delete = false
 			    AND
 			    	cc.page_sequence  <= :startNo
 			    AND
@@ -130,6 +133,7 @@ public class ChattingDatabaseClient {
     			.workspaceId(row.get("workspace_id", Long.class))
     			.fullName(row.get("full_name", String.class))
     			.accountName(row.get("account_name", String.class))
+    			.profileImage(row.get("profile_image", String.class))
     			.chatting(row.get("chatting", Json.class))
     			.createAt(row.get("create_at", LocalDateTime.class))
     			.updateAt(row.get("update_at", LocalDateTime.class))
@@ -166,6 +170,8 @@ public class ChattingDatabaseClient {
 			    	cc.workspace_id = :workspaceId
 			    AND
 			    	cc.room_id = :roomId
+			    AND 
+					cc.is_delete = false
 			    %s
 			    %s
 			""".formatted(

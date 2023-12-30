@@ -29,6 +29,7 @@ import com.google.common.io.BaseEncoding;
 import com.radcns.bird_plus.config.security.Role;
 import com.radcns.bird_plus.entity.account.AccountEntity;
 import com.radcns.bird_plus.util.exception.S3ApiException;
+import com.radcns.bird_plus.util.S3Util.SSE_CustomerKeyRequest.UploadType;
 import com.radcns.bird_plus.util.exception.BirdPlusException.Result;
 
 import lombok.AllArgsConstructor;
@@ -100,7 +101,7 @@ public class S3Util {
 		private UploadType uploadType;
 		private FileType fileType;
 		public enum UploadType{
-			CHATTING, NOTICE
+			CHATTING, NOTICE, PROFILE
 		}
 		public enum FileType{
 			IMAGE, VIDEO, FILE
@@ -142,5 +143,10 @@ public class S3Util {
 		private String newFileName;
 	}
 	
-	
+	@Setter
+	@Getter
+	public static class PresigneUrlRequest{
+		private UploadType uploadType;
+		private String fileName;
+	}
 }

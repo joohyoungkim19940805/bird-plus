@@ -69,6 +69,9 @@ public class AccountEntity implements TokenTemplate {
     @Column("department")
     private String department;
 
+    @Column("profile_image")
+    private String profileImage;
+    
     @Column("create_at")
     @CreatedDate
     private LocalDateTime createAt;

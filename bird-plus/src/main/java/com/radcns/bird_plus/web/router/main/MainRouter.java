@@ -183,9 +183,10 @@ public class MainRouter implements IndexRouterSwagger{
 		return route().nest(path("/api/generate-presigned-url"), builder -> builder
 				.nest(path("/create"), createPathBuilder -> createPathBuilder
 						.POST("/", accept(MediaType.APPLICATION_JSON), s3Handler::generatePutObjectPresignedUrl)
+						.POST("/security", accept(MediaType.APPLICATION_JSON), s3Handler::generateSecurityPutObjectPresignedUrl)
 						.build())
 				.nest(path("/search"), searchPathBuilder -> searchPathBuilder
-						.POST("/", accept(MediaType.APPLICATION_JSON), s3Handler::generateGetObjectPresignedUrl)
+						.POST("/security", accept(MediaType.APPLICATION_JSON), s3Handler::generateSecurityGetObjectPresignedUrl)
 						.build())
 				).build();
 	}

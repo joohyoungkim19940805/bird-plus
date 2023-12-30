@@ -3,7 +3,6 @@
  */
 import { ipcRenderer, myAPI } from "./../../../browser/preload/preload"
 (window as any).myAPI = myAPI;
-
 //import * as BABYLON from '@babylonjs/core/Legacy/legacy';
 //import * as GUI from '@babylonjs/gui/legacy/legacy';
 import {
@@ -335,7 +334,7 @@ new class Workspace3DPageRenderer{
 		let isPwInputFocus = false;
 			
 		[idInput, pwInput].forEach((input, i)=>{
-			input.zIndex = 9999
+			input.zIndex = 9000
 			input.autoStretchWidth = true;
 			input.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
 			input.top = i == 0 ? '40px' : '110px', input.left = -30

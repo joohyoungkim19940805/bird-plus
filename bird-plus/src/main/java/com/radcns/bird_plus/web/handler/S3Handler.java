@@ -9,8 +9,6 @@ import java.security.spec.InvalidKeySpecException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.List;
-import java.util.Map;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -26,27 +24,27 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
 import com.google.common.io.BaseEncoding;
-import com.radcns.bird_plus.entity.account.AccountEntity;
 import com.radcns.bird_plus.repository.room.RoomInAccountRepository;
+import com.radcns.bird_plus.repository.workspace.WorkspaceInAccountRepository;
 import com.radcns.bird_plus.service.AccountService;
 import com.radcns.bird_plus.util.CreateRandomCodeUtil;
 import com.radcns.bird_plus.util.KeyPairUtil;
 import com.radcns.bird_plus.util.ResponseWrapper;
 import com.radcns.bird_plus.util.S3Util;
+import com.radcns.bird_plus.util.S3Util.PresigneUrlRequest;
 import com.radcns.bird_plus.util.S3Util.SSE_CustomerKeyRequest;
 import com.radcns.bird_plus.util.S3Util.SSE_CustomerKeyResponse;
 import com.radcns.bird_plus.util.exception.BirdPlusException.Result;
 import com.radcns.bird_plus.util.exception.RoomException;
 import com.radcns.bird_plus.util.exception.S3ApiException;
+import com.radcns.bird_plus.util.exception.WorkspaceException;
 import com.radcns.bird_plus.util.properties.S3Properties;
 
 import reactor.core.publisher.Mono;
-import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.ServerSideEncryption;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.s3.presigner.model.CreateMultipartUploadPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 import static com.radcns.bird_plus.util.ResponseWrapper.response;
@@ -69,6 +67,9 @@ public class S3Handler {
 	@Autowired
 	private RoomInAccountRepository roomInAccountRepository;
 	
+	@Autowired
+	private WorkspaceInAccountRepository workspaceInAccountRepository;
+	
     @Value("${s3.sse-c.key}")
 	private String s3SseCKey;
 	
@@ -78,7 +79,7 @@ public class S3Handler {
     @Autowired
     private CreateRandomCodeUtil createRandomCodeUtil;
     
-	public Mono<ServerResponse> generatePutObjectPresignedUrl(ServerRequest request){
+	public Mono<ServerResponse> generateSecurityPutObjectPresignedUrl(ServerRequest request){
 		//var s3Client = s3AsyncClientBuilder.build();
 
 		return accountService.convertRequestToAccount(request).flatMap(account -> 
@@ -108,9 +109,9 @@ public class S3Handler {
 				PutObjectRequest putObjectReuqest = PutObjectRequest.builder()
 					.bucket(s3Properties.getBucket())
 					.key("%s/%s/%s/%s/%s".formatted(
-						fileAuthRecord.sseCustomerKeyRequest.getRoomId(),
-						fileAuthRecord.sseCustomerKeyRequest.getWorkspaceId(),
 						fileAuthRecord.sseCustomerKeyRequest.getUploadType(),
+						fileAuthRecord.sseCustomerKeyRequest.getWorkspaceId(),
+						fileAuthRecord.sseCustomerKeyRequest.getRoomId(),
 						fileAuthRecord.sseCustomerKeyRequest.getFileType(),
 						fileName
 					))
@@ -137,7 +138,7 @@ public class S3Handler {
 			})
 		);
 	}
-	public Mono<ServerResponse> generateGetObjectPresignedUrl(ServerRequest request){
+	public Mono<ServerResponse> generateSecurityGetObjectPresignedUrl(ServerRequest request){
 		//var s3Client = s3AsyncClientBuilder.build();
 
 		return accountService.convertRequestToAccount(request).flatMap(account -> 
@@ -160,9 +161,9 @@ public class S3Handler {
 				GetObjectRequest getObjectReuqest = GetObjectRequest.builder()
 					.bucket(s3Properties.getBucket())
 					.key("%s/%s/%s/%s/%s".formatted(
-						fileAuthRecord.sseCustomerKeyRequest.getRoomId(),
-						fileAuthRecord.sseCustomerKeyRequest.getWorkspaceId(),
 						fileAuthRecord.sseCustomerKeyRequest.getUploadType(),
+						fileAuthRecord.sseCustomerKeyRequest.getWorkspaceId(),
+						fileAuthRecord.sseCustomerKeyRequest.getRoomId(),
 						fileAuthRecord.sseCustomerKeyRequest.getFileType(),
 						fileAuthRecord.sseCustomerKeyRequest.getFileName()
 					))
@@ -238,4 +239,39 @@ public class S3Handler {
 			new FileAuthRecord(base64Key, base64Md, encBase64Key, encBase64Md, sseCustomerKeyRequest)
 		);
 	}
+	
+	public Mono<ServerResponse> generatePutObjectPresignedUrl(ServerRequest request){
+		
+		return accountService.convertRequestToAccount(request).flatMap(account -> 
+			request.bodyToMono(PresigneUrlRequest.class)
+			/*.filterWhen(presigneUrlRequest -> 
+				workspaceInAccountRepository.existsByWorkspaceIdAndAccountIdAndIsEnabled(presigneUrlRequest.getWorkspaceId(), account.getId(), true)
+			)*/
+			.switchIfEmpty(Mono.error(new WorkspaceException(Result._206)))
+			.flatMap(presigneUrlRequest -> {
+				
+				String extension = presigneUrlRequest.getFileName().substring( presigneUrlRequest.getFileName().lastIndexOf(".") + 1 );
+				
+				String fileName = account.getAccountName() + "." + extension;
+					
+				PutObjectRequest putObjectReuqest = PutObjectRequest.builder()
+					.bucket(s3Properties.getBucketPublic())
+					.key("%s/%s/%s".formatted(presigneUrlRequest.getUploadType(), account.getAccountName(), fileName))
+				.build();
+				
+				PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
+					.putObjectRequest(putObjectReuqest)
+					.signatureDuration(Duration.ofMinutes(1))
+				.build();
+				URL presignedUrl = s3PresignerBuilder.build().presignPutObject(presignRequest).url();
+				
+				return ok()
+						.contentType(MediaType.APPLICATION_JSON)
+						.body(response(Result._0, presignedUrl), ResponseWrapper.class)
+						;
+			})
+		);
+		
+	}
+
 }

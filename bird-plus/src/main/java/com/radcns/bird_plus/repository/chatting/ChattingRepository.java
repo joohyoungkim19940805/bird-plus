@@ -123,6 +123,8 @@ public interface ChattingRepository extends ReactiveCrudRepository<ChattingEntit
     	cc.workspace_id = :#{[0]}
     AND	
     	cc.room_id = :#{[1]}
+    AND
+    	cc.is_delete = false
     """)
     
     Mono<Long> findMaxByWorkspaceIdAndRoomId(Long workspaceId, Long roomId);
