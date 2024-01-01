@@ -43,7 +43,7 @@ public interface RoomRepository extends ReactiveCrudRepository<RoomEntity, Long>
 
     @Query("""
     SELECT
-    	*
+    	count(1)
     FROM
     	ro_room rr
     INNER JOIN
@@ -100,7 +100,7 @@ public interface RoomRepository extends ReactiveCrudRepository<RoomEntity, Long>
 
     @Query("""
     SELECT
-    	*
+    	count(1)
     FROM
     	ro_room rr
     INNER JOIN

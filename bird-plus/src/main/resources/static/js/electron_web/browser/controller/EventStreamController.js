@@ -2,17 +2,15 @@ import { windowUtil, __serverApi } from "../window/WindowUtil";
 import axios from 'axios';
 const log = console;
 
+
 class EventStreamController {
-    #source;
-    #isConnectSource = false;
+    source;
 	prevWorkspaceId;
     constructor(){
-
     }
 
 	initWorkspaceStream(param, EventSource, eventSendObj){
         let {workspaceId} = param;
-        console.log(top.EventSource);
         if( ! EventSource) EventSource = top?.EventSource;
 		if(this.prevWorkspaceId == workspaceId && (this.source?.readyState == 1 || this.source?.readyState == 0)){
             return;
@@ -66,7 +64,8 @@ class EventStreamController {
                 }
             })*/
             //연결 실패되면 계속 시도하기에 임시 조치로 close
-            //this.source.close();
+            this.source.close();
+            this.#connect(workspaceId);
             //stop();
         };
         this.source.onopen = (success) => {
@@ -104,6 +103,15 @@ class EventStreamController {
         */
         //}
 	}
+    #connect(workspaceId){
+        this.source = new EventSource(`${__serverApi}/api/event-stream/workspace/${workspaceId}`, {
+            headers: {
+                'Authorization' : axios.defaults.headers.common['Authorization'],
+            },
+            withCredentials : ! top.__isLocal
+        });
+    }
 
 }
+
 export const eventStreamController = new EventStreamController();

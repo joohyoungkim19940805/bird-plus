@@ -6,7 +6,6 @@ import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 public interface ChattingRepository extends ReactiveCrudRepository<ChattingEntity, Long> {
-	static String TEST = "abcd";
     /*
 	'createAt', ccr.create_at,
 	'reactionList', (
@@ -140,6 +139,7 @@ public interface ChattingRepository extends ReactiveCrudRepository<ChattingEntit
     	cc.page_sequence,
     	aa.full_name,
     	aa.account_name,
+    	aa.profile_image,
     	(
     		SELECT 
     			json_agg(json_build_object(

@@ -48,7 +48,9 @@ public class AccountHandler {
 					.withJobGrade(accountRequest.getJobGrade())
 					.withDepartment(accountRequest.getDepartment())
 					.withProfileImage(accountRequest.getProfileImage())
-				);
+				).doOnSuccess(s -> {
+					
+				});
 			})
 			.flatMap(e->
 				ok()

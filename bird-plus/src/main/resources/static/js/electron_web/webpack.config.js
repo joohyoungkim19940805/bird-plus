@@ -10,6 +10,7 @@ const TerserPlugin = require('terser-webpack-plugin');
  */
 module.exports = {
 	mode: 'production',
+	devtool: 'source-map',
 	entry: {
 		mainPageRenderer: "./view/js/renderer/mainPageRenderer.js",
 		multipleChattingViewRenderer: "./view/js/renderer/multipleChattingViewRenderer.js",
