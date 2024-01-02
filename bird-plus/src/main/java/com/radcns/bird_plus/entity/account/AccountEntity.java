@@ -151,6 +151,20 @@ public class AccountEntity implements TokenTemplate {
         	private String department;
         	private String profileImage;
         }
+        
+        @Getter
+        @Setter
+        @Builder(toBuilder = true)
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        public static class SimpleUpdateAccountInfoEventResponse{
+        	private String fullName;
+        	private String jobGrade;
+        	private String department;
+        	private String profileImage;
+        	private Long accountId;
+        	private String accountName;
+        }
+        
     }
 
     @Override

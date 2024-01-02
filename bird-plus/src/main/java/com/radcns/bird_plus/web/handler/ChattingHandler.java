@@ -259,7 +259,7 @@ public class ChattingHandler {
 			);
 
 			return chattingRepository.findMaxByWorkspaceIdAndRoomId(workspaceId, roomId).flatMap(maxPageSequence -> {
-				Long endNo = ( maxPageSequence - size * ( page + 1 ) ) + 1;
+				Long endNo = ( maxPageSequence - size * ( page + 1 ) ) + (page == 0 ? 1 : 0);
 				Long startNo = size * page + 1;
 				startNo = maxPageSequence - (startNo == 1 ? 0 : startNo);
 				//workspaceId, roomId, account.getId(), startNo, endNo)

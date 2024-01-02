@@ -5,9 +5,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import com.radcns.bird_plus.entity.account.AccountEntity;
+import com.radcns.bird_plus.entity.account.AccountEntity.AccountDomain.SimpleUpdateAccountInfoEventResponse;
+import com.radcns.bird_plus.entity.chatting.ChattingEntity.ChattingDomain.ChattingDeleteResponse;
 import com.radcns.bird_plus.entity.room.RoomEntity;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity.RoomInAccountDomain.MyJoinedRoomListResponse;
+import com.radcns.bird_plus.repository.account.AccountRepository;
 import com.radcns.bird_plus.repository.room.RoomInAccountRepository;
 import com.radcns.bird_plus.repository.room.RoomRepository;
 import com.radcns.bird_plus.repository.workspace.WorkspaceInAccountRepository;
@@ -28,6 +31,9 @@ public class EventStreamService {
 	
 	@Autowired
 	private WorkspaceInAccountRepository workspaceInAccountRepository;
+	
+	@Autowired
+	private AccountRepository accountRepository;
 	
 	public Mono<ServerSentStreamTemplate<?>> chattingEmissionStream(ServerSentStreamTemplate<?> serverSentTemplate, AccountEntity account) {
 		return roomInAccountRepository.existsByAccountIdAndWorkspaceIdAndRoomId(account.getId(), serverSentTemplate.getWorkspaceId(), serverSentTemplate.getRoomId())
@@ -106,6 +112,24 @@ public class EventStreamService {
 		return roomInAccountRepository.existsByAccountIdAndWorkspaceIdAndRoomId(account.getId(), serverSentTemplate.getWorkspaceId(), serverSentTemplate.getRoomId())
 		.flatMap(bol ->{
 			if(bol) {
+				return Mono.just(serverSentTemplate);
+			}else {
+				return Mono.empty();
+			}
+		});
+	}
+	
+	public Mono<ServerSentStreamTemplate<?>> accountInfoChangeEmissionStream(ServerSentStreamTemplate<?> serverSentTemplate, AccountEntity account){
+		var simpleUpdateAccountInfoEventResponse = 
+				ServerSentStreamType.ACCOUNT_INFO_CHANGE_CAST_CLASS.cast(serverSentTemplate.getContent());
+		long targetAccountId = simpleUpdateAccountInfoEventResponse.getAccountId();
+		if(account.getId().equals(targetAccountId)){
+			return Mono.empty();
+		}
+		
+		return accountRepository.isWorkspaceJoinCommonAccessUser(account.getId(), targetAccountId).flatMap(bol->{
+			if(bol) {
+				simpleUpdateAccountInfoEventResponse.setAccountId(null);
 				return Mono.just(serverSentTemplate);
 			}else {
 				return Mono.empty();

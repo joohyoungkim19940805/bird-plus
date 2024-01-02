@@ -140,26 +140,26 @@ export const ipcRenderer = new class IpcRendererWeb{
 const electronEventTrigger = {
 	objectEventListener : {},
 	onEvent : {},
-	on : (eventName, callBack) => {
-		electronEventTrigger.onEvent[eventName] = callBack;
+	on : (eventName, callback) => {
+		electronEventTrigger.onEvent[eventName] = callback;
 		ipcRenderer.on(eventName, (event, message) => {
 			electronEventTrigger.trigger(eventName, event, message);
 		})
 	},
-	addElectronEventListener : (eventName, callBack) => {
+	addElectronEventListener : (eventName, callback) => {
 		if(electronEventTrigger.objectEventListener.hasOwnProperty(eventName)){
-			electronEventTrigger.objectEventListener[eventName].push({ [callBack.name] : callBack });
+			electronEventTrigger.objectEventListener[eventName].push({ [callback.name] : callback });
 		}else{
-			electronEventTrigger.objectEventListener[eventName] = [{ [callBack.name] : callBack }];
+			electronEventTrigger.objectEventListener[eventName] = [{ [callback.name] : callback }];
 		}
 		ipcRenderer.on(eventName, (event, message) => {
 			electronEventTrigger.trigger(eventName, event, message);
 		})
 	},
-	removeElectronEventListener : (eventName, callBack) => {
+	removeElectronEventListener : (eventName, callback) => {
 		if(electronEventTrigger.objectEventListener.hasOwnProperty(eventName)){
-			if(callBack){
-				electronEventTrigger.objectEventListener[eventName] = electronEventTrigger.objectEventListener[eventName].filter(e=> ! e.hasOwnProperty(callBack.name))
+			if(callback){
+				electronEventTrigger.objectEventListener[eventName] = electronEventTrigger.objectEventListener[eventName].filter(e=> ! e.hasOwnProperty(callback.name))
 			}else{
 				delete electronEventTrigger.objectEventListener[eventName]
 			}
@@ -172,18 +172,18 @@ const electronEventTrigger = {
 				return;
 			}
 			electronEventTrigger.objectEventListener[eventName].forEach(async obj => {
-				Object.values(obj).forEach(async callBack => {
-					if( ! callBack || ! callBack instanceof Function){
+				Object.values(obj).forEach(async callback => {
+					if( ! callback || ! callback instanceof Function){
 						return;
 					}
 					new Promise(res=>{	
 						try{
 							if(eventName == 'checkForUpdates' || eventName == 'updateAvailable' || eventName == 'updateDownloaded'){
-								callBack(event,message);
+								callback(event,message);
 								return;
 							}
 			
-							callBack(message);
+							callback(message);
 						}catch(err){
 							console.error(`${eventName} error message ::: `,err.message);
 							console.error(`${eventName} error stack ::: `,err.stack);
@@ -315,7 +315,7 @@ export const myAPI = {
 		})
 	},
 
-	getServerUrl : async () => `${location.origin}/login-page`,
+	getServerUrl : async () => `${location.origin}`,
 
 	pageChange : {
 		changeLoginPage : async () => top.location.href = '/web',

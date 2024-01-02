@@ -55,6 +55,8 @@ public class EventStreamHandler {
 								return eventStreamService.workspacePermitRequestEmissionStream(serverSentTemplate, account);
 							}else if(serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.CHATTING_DELETE_ACCEPT)){
 								return eventStreamService.chattingDeleteEmissionStream(serverSentTemplate, account);
+							}else if(serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.ACCOUNT_INFO_CHANGE_ACCEPT)) {
+								return eventStreamService.accountInfoChangeEmissionStream(serverSentTemplate, account);
 							}
 							else {
 								return Mono.just(serverSentTemplate);

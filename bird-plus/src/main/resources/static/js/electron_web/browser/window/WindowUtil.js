@@ -9,9 +9,9 @@ class WindowUtil{
     constructor(){
 
     }
-    async isLogin(callBack = () => {}){
+    async isLogin(callback = () => {}){
         if(this.#loginRemeber){
-            return Promise.resolve(callBack(this.#loginRemeber));
+            return Promise.resolve(callback(this.#loginRemeber));
         }
         return axios.get(__serverApi + '/api/account/search/is-login', {
             headers:{
@@ -23,7 +23,7 @@ class WindowUtil{
         })
         .then(response => {
             if( ! this.responseIsOk(response)){
-                return callBack({
+                return callback({
                     isLogin: false,
                     status: response?.status,
                     statusText: response?.statusText
@@ -45,7 +45,7 @@ class WindowUtil{
                         this.#loginRemeber = undefined;
                     }, 1000 * 60)
                 }
-                return callBack(response);
+                return callback(response);
             }
         })
     }

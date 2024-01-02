@@ -34,7 +34,6 @@ import com.radcns.bird_plus.AutoDbMappingGenerater.UnderType;
 import com.radcns.bird_plus.config.security.Role;
 import com.radcns.bird_plus.entity.chatting.ChattingEntity;
 import com.radcns.bird_plus.entity.room.constant.RoomType;
-import com.radcns.bird_plus.processor.DefaultEntityProcessor;
 
 import io.r2dbc.postgresql.codec.Json;
 import lombok.AllArgsConstructor;
@@ -103,7 +102,7 @@ public class Test {
 						spoon.getEnvironment().getSourceOutputDirectory().getPath().split("\\\\")
 					).filter(e-> ! e.equals("spooned-classes")).collect(Collectors.joining("\\\\"))	 + "\\\\target\\\\classes"	
 		);*/
-		model.processWith(new DefaultEntityProcessor());
+
 		//model.processWith(new JavaOutputProcessor());
 		//spoon.getEnvironment().setSourceOutputDirectory(new File())
 		//CtModel model = spoon.getModel();

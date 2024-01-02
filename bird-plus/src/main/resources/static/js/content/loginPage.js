@@ -233,7 +233,8 @@ const getStart = new class GetStart{
 
 	constructor(){
 		let isLoginPromise = common.isLogin(async result => {
-			let isJoinedCallBack = async () => {
+			
+			const isJoinedCallBack = async () => {
 				this.isWorkspaceJoined = await this.callIsWorkspaceJoined();
 				if(this.isWorkspaceJoined){
 					this.createRoomContainer.replaceChildren(this.#startMenuPage);
@@ -241,13 +242,19 @@ const getStart = new class GetStart{
 					this.createRoomContainer.replaceChildren(this.#searchWorkspacePage)
 				}
 			}
+			
 			if(result.isLogin){
 				isJoinedCallBack();
 			}else {
-				this.createRoomContainer.replaceChildren(this.#loginPage);
 				common.loginSuccessPromise.then(async () => {
 					isJoinedCallBack();
-				})
+				});
+				if(new URLSearchParams(location.search).get('sign_up')){
+					this.createRoomContainer.replaceChildren(this.#signUpPage);
+				
+				}else{
+					this.createRoomContainer.replaceChildren(this.#loginPage);
+				}
 			}
 			return result.isLogin;
 		});
