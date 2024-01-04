@@ -124,7 +124,7 @@ public class EventStreamService {
 				ServerSentStreamType.ACCOUNT_INFO_CHANGE_CAST_CLASS.cast(serverSentTemplate.getContent());
 		long targetAccountId = simpleUpdateAccountInfoEventResponse.getAccountId();
 		if(account.getId().equals(targetAccountId)){
-			return Mono.empty();
+			return Mono.just(serverSentTemplate);
 		}
 		
 		return accountRepository.isWorkspaceJoinCommonAccessUser(account.getId(), targetAccountId).flatMap(bol->{

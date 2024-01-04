@@ -7,7 +7,9 @@ import { noticeBoardController } from "./../controller/NoticeBoardController";
 import { roomController } from "./../controller/RoomController";
 import { workspaceController } from "./../controller/WorkspaceController";
 
-import { windowUtil } from "./../window/WindowUtil";
+import { windowUtil } from "../window/windowUtil";
+
+import axios from 'axios';
 
 /**
  * @author kimjoohyoung
@@ -178,11 +180,6 @@ const electronEventTrigger = {
 					}
 					new Promise(res=>{	
 						try{
-							if(eventName == 'checkForUpdates' || eventName == 'updateAvailable' || eventName == 'updateDownloaded'){
-								callback(event,message);
-								return;
-							}
-			
 							callback(message);
 						}catch(err){
 							console.error(`${eventName} error message ::: `,err.message);
@@ -316,6 +313,23 @@ export const myAPI = {
 	},
 
 	getServerUrl : async () => `${location.origin}`,
+	
+	logout : async () => () => {
+		axios.defaults.headers.common['Authorization'] = '';
+		fetch('/logout', {
+			method: 'GET',
+			headers: {
+				'Content-Type' : 'application/json'
+			}}
+		).then(response=>{
+			if( ! response.ok){
+				console.error('response is not ok', response);
+				alert('로그아웃에 실패하였습니다.');
+				return;
+			}
+			myAPI.pageChange.changeWokrspacePage();
+		})
+	},
 
 	pageChange : {
 		changeLoginPage : async () => top.location.href = '/web',
@@ -369,7 +383,8 @@ export const myAPI = {
 		searchRoomFavoritesList : async (param) => ipcRenderer.invoke('searchRoomFavoritesList', param),
 		searchRoomJoinedAccountList : async (param) => ipcRenderer.invoke('searchRoomJoinedAccountList', param),
 		getRoomDetail : async (param) => ipcRenderer.invoke('getRoomDetail', param),
-		isRoomFavorites : async (param) => ipcRenderer.invoke('isRoomFavorites', param)
+		isRoomFavorites : async (param) => ipcRenderer.invoke('isRoomFavorites', param),
+		isRoomOwner : async(param) => ipcRenderer.invoke('isRoomOwner', param),
 	},
 
 	noticeBoard : {

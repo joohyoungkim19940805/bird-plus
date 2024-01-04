@@ -295,8 +295,16 @@ public class RoomHandler {
 						.createBy(account.getId())
 						.build();
 						chattingEntity.setChatting(ChattingEntity.INVITE_ROOM_IN_ACCOUNT_NOTIFICATION.formatted(account.getFullName(), inviteAccount.getFullName()));
-
-						chattingRepository.save(chattingEntity).doOnSuccess(ss->{
+						chattingRepository.findMaxByWorkspaceIdAndRoomId(chattingEntity.getWorkspaceId(), chattingEntity.getRoomId())
+						.defaultIfEmpty((long)0)
+						.flatMap(maxSequence->chattingRepository.save(
+							chattingEntity
+							.withPageSequence(maxSequence + 1)
+							.withAccountId(account.getId())
+							.withCreateAt(LocalDateTime.now())
+							.withCreateBy(account.getId())
+							.withUpdateBy(account.getId())
+						)).doOnSuccess(ss->{
 							workspaceBroker.send(
 								new ServerSentStreamTemplate<ChattingResponse>(
 									createRoomInAccount.getWorkspaceId(),
@@ -310,6 +318,7 @@ public class RoomHandler {
 										.updateAt(LocalDateTime.now())
 										.fullName(account.getFullName())
 										.accountName(account.getAccountName())
+										.profileImage(account.getProfileImage())
 									.build(),
 									ServerSentStreamType.CHATTING_ACCEPT
 								) {}
@@ -797,5 +806,18 @@ public class RoomHandler {
 			.flatMap(e-> response(Result._0, e))
 		, ResponseWrapper.class);
 	}
+	public Mono<ServerResponse> isRoomOwner(ServerRequest request){
+		Long roomId = Long.valueOf(request.pathVariable("roomId"));
+		
+		return ok()
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(
+				accountService.convertRequestToAccount(request)
+				.flatMap(account -> {
+					return roomRepository.existsByCreateByAndId(account.getId(), roomId);
+				})
+				.flatMap(e-> response(Result._0, e))
+			, ResponseWrapper.class);
 
+	}
 }

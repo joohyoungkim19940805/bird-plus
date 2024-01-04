@@ -59,7 +59,7 @@ public class MainRouter implements IndexRouterSwagger{
 				//.and(route( GET("/mobile/multiple-chatting").and(accept(MediaType.TEXT_HTML)), mainHandler::mobileMultipleChatting))
 				//.and(route( GET("/mobile/multiple-notice-board").and(accept(MediaType.TEXT_HTML)), mainHandler::mobileMultipleNoticeBoard))
 				.and(route( GET("/web/create-sub-window/{pageName}").and(accept(MediaType.TEXT_HTML)), mainHandler::createSubWindow ))
-				;
+				.and(route( GET("/logout").and(accept(MediaType.APPLICATION_JSON)), mainHandler::logout));
 	}
 	//
 	@Bean
@@ -150,6 +150,7 @@ public class MainRouter implements IndexRouterSwagger{
 						.GET("/detail/{roomId}", accept(MediaType.APPLICATION_JSON), roomHandler::getRoomDetail)
 						.GET("/in-account-list/{roomId}", accept(MediaType.TEXT_EVENT_STREAM), roomHandler::searchRoomJoinedAccountList)
 						.GET("/is-room-favorites/{roomId}", accept(MediaType.APPLICATION_JSON), roomHandler::isRoomFavorites)
+						.GET("/is-owner/{roomId}", accept(MediaType.APPLICATION_JSON), roomHandler::isRoomOwner)
 					.build())
 			).build();
 	}

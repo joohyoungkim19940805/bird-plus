@@ -195,6 +195,26 @@ public class MainHandler {
 			)
 		*/
 	}
+	
+	public Mono<ServerResponse> logout(ServerRequest request){
+		return ok()
+			.cookie(ResponseCookie .fromClientResponse(HttpHeaders.AUTHORIZATION, "")
+					.httpOnly(false)
+					.sameSite("Strict")
+					.path("/")
+					.build())
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(response(Result._0), ResponseWrapper.class);
+		/*
+		 ok()
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(accountService.authenticate(request.bodyToMono(AccountEntity.class), request.remoteAddress())
+					.map(e -> {
+						return response(Result._00, e)
+					}), Response.class)
+			)
+		*/
+	}
 
 	
 	/*

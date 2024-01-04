@@ -81,7 +81,7 @@ export const chattingInfo = new class ChattingInfo{
 
     #page = 0;
 	#size = 10;
-
+//
     #element = Object.assign(document.createElement('div'), {
         id: 'chatting_info_wrapper',
         innerHTML: `
@@ -261,7 +261,7 @@ export const chattingInfo = new class ChattingInfo{
                 this.createItemElement(chattingData).then(liElement => {
 
                     this.#addMemory(liElement, chattingData.workspaceId, chattingData.roomId, chattingData.id)
-                    if(roomHandler.roomId != chattingData.roomId){
+                    if(roomHandler.roomId != chattingData.roomId && accountHandler.accountInfo.accountName != liElement.dataset.account_name){
                         setTimeout(()=>{
                             window.myAPI.notifications({
                                 fullName: liElement.dataset.full_name, 
@@ -415,7 +415,7 @@ export const chattingInfo = new class ChattingInfo{
             let {content} = event
             console.log('delete accept content', content);
             this.reset();
-            delete this.#memory[workspaceHandler.workspaceId]?.[roomHandler.roomId][content.chattingId];
+            delete this.#memory[workspaceHandler.workspaceId]?.[roomHandler.roomId]?.[content.chattingId];
             if(roomHandler.roomId == content.roomId){
                 let memory = Object.values(this.#memory[workspaceHandler.workspaceId]?.[roomHandler.roomId] || {});
                 Promise.all(this.#liList.map(async (e,i)=>{
@@ -623,7 +623,11 @@ export const chattingInfo = new class ChattingInfo{
                     //console.log(newData);
                     if(li.dataset.account_name == newData.accountName){
                         profileImage.src = newData.profileImage;
-                        fullName.textContent = newData.fullName;
+                        if(newData.accountName == accountHandler.accountInfo.accountName){
+                            fullName.textContent = '나';    
+                        }else{
+                            fullName.textContent = newData.fullName;
+                        }
                     }
                 })
             });
@@ -1024,6 +1028,8 @@ export const chattingInfo = new class ChattingInfo{
                     fileTargetList.forEach(e=>{
                         delete e.data.is_loading
                         e.data.is_upload_end = '';
+                        e.data.room_id = li.dataset.room_id;
+                        e.data.workspace_id = li.dataset.workspace_id;
                     });
                     window.myAPI.chatting.sendChatting({
                         id: data.id,
