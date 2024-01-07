@@ -6,6 +6,7 @@ const log = console;
 class EventStreamController {
     source;
 	prevWorkspaceId;
+    #initIntervar;
     constructor(){
     }
 
@@ -65,7 +66,8 @@ class EventStreamController {
             })*/
             //연결 실패되면 계속 시도하기에 임시 조치로 close
             //모바일 웹에서는 연결 실패 후 재시도 안하기에 수동 재시도로 변경
-            /*this.source.close();
+            this.source.close();
+            /*
             this.source = new EventSource(`${__serverApi}/api/event-stream/workspace/${workspaceId}`, {
                 headers: {
                     'Authorization' : axios.defaults.headers.common['Authorization'],
@@ -77,6 +79,15 @@ class EventStreamController {
         this.source.onopen = (success) => {
             log.debug('on success: ', success)
         }
+        this.#initIntervar = setInterval(()=>{
+            if( ! this.source || this.source.readyState == 2) return;
+            this.source = new EventSource(`${__serverApi}/api/event-stream/workspace/${workspaceId}`, {
+                headers: {
+                    'Authorization' : axios.defaults.headers.common['Authorization'],
+                },
+                withCredentials : ! top.__isLocal
+            });
+        }, 50);
         /*
         * This will listen only for events
         * similar to the following:
