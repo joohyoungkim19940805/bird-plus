@@ -46,6 +46,7 @@ public class ServerSentStreamTemplate<T> {
 	}
 	
 	public enum ServerSentStreamType{
+		VOID, 
 		ACCOUNT_INFO_CHANGE_ACCEPT,
 		
 		CHATTING_ACCEPT, 

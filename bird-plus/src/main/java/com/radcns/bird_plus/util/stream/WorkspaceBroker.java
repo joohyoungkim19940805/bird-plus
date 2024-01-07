@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import com.radcns.bird_plus.entity.chatting.ChattingEntity;
 import com.radcns.bird_plus.entity.chatting.ChattingEntity.ChattingDomain;
 import com.radcns.bird_plus.service.MailService;
+import com.radcns.bird_plus.util.stream.ServerSentStreamTemplate.ServerSentStreamType;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -91,6 +92,10 @@ public class WorkspaceBroker{
 		if( ! WorkspaceBroker.manager.containsKey(workspaceId)) {
 			var workspaceManager = new WorkspaceManager();
 			WorkspaceBroker.manager.put(workspaceId, workspaceManager);
+			
+			workspaceManager.getWorkspaceSinks().tryEmitNext(
+				new ServerSentStreamTemplate<Void>(workspaceId, (long)0, null, ServerSentStreamType.VOID	
+			) {});
 			return workspaceManager;
 		}
 		return WorkspaceBroker.manager.get(workspaceId);
