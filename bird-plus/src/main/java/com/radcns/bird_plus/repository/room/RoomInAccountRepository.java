@@ -12,6 +12,8 @@ import reactor.core.publisher.Mono;
 public interface RoomInAccountRepository extends ReactiveCrudRepository<RoomInAccountEntity, Long> {
     Mono<Long> countByAccountIdAndWorkspaceId(Long accountId, Long workspaceId);
 
+    Mono<Long> countByRoomId(Long roomId);
+    
     Mono<Boolean> existsByAccountIdAndRoomId(Long accountId, Long roomId);
 
     Mono<Boolean> existsByAccountIdAndWorkspaceIdAndRoomId(Long accountId, Long workspaceId, Long roomId);
@@ -258,10 +260,8 @@ public interface RoomInAccountRepository extends ReactiveCrudRepository<RoomInAc
     	rria.account_id = aa.id
 	 WHERE 
 	 	room_id = :#{[0]}
-	 AND
-    	rria.account_id != :#{[1]}
     """)
-    Mono<String> findGroupMessengerRoomName(Long roomId, Long accountId);
+    Mono<String> findGroupMessengerRoomName(Long roomId);
     
     @Query("""
     	SELECT t.room_id
@@ -293,6 +293,7 @@ public interface RoomInAccountRepository extends ReactiveCrudRepository<RoomInAc
     		  	WHERE
     		  		rria2.room_id = t.room_id
     		)
+    	LIMIT 1
     """)
     Mono<Long> findRoomIdWithExistsInviteAccount(RoomType roomType, Long workspaceId, List<Long> accountList, Integer count);
     

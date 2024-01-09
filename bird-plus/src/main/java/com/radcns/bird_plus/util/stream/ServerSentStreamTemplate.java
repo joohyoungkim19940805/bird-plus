@@ -7,6 +7,7 @@ import com.radcns.bird_plus.entity.chatting.ChattingReactionEntity.ChattingReact
 import com.radcns.bird_plus.entity.notice.NoticeBoardDetailEntity;
 import com.radcns.bird_plus.entity.notice.NoticeBoardEntity;
 import com.radcns.bird_plus.entity.notice.NoticeBoardInheritsTable;
+import com.radcns.bird_plus.entity.room.RoomEntity;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity.RoomInAccountDomain.RoomJoinedAccountResponse;
 import com.radcns.bird_plus.entity.workspace.WorkspaceInAccountEntity.WorkspaceMembersDomain.WokrspaceInAccountPermitListResponse;
@@ -54,7 +55,9 @@ public class ServerSentStreamTemplate<T> {
 		CHATTING_DELETE_ACCEPT,
 		
 		ROOM_ACCEPT, 
+		ROOM_DELETE_ACCEPT,
 		ROOM_IN_ACCOUNT_ACCEPT, 
+		ROOM_IN_ACCOUNT_DELETE_ACCEPT,
 		
 		NOTICE_BOARD_ACCEPT, 
 		NOTICE_BOARD_DELETE_ACCEPT,
@@ -69,7 +72,7 @@ public class ServerSentStreamTemplate<T> {
 		public final static Class<ChattingReactionResponse> CHATTING_REACTION_ACCEPT_CAST_CLASS = ChattingReactionResponse.class;
 		public final static Class<ChattingDeleteResponse> CHATTING_DELETE_ACCEPT_CAST_CLASS = ChattingDeleteResponse.class;
 		
-		public final static Class<RoomInAccountEntity> ROOM_ACCEPT_CAST_CLASS = RoomInAccountEntity.class;
+		public final static Class<RoomEntity> ROOM_ACCEPT_CAST_CLASS = RoomEntity.class;
 		public final static Class<RoomJoinedAccountResponse> ROOM_IN_ACCOUNT_ACCEPT_CAST_CLASS = RoomJoinedAccountResponse.class;
 		
 		public final static Class<NoticeBoardInheritsTable> NOTICE_BOARD_ACCEPT_CAST_CLASS = NoticeBoardInheritsTable.class;

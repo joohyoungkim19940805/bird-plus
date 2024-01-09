@@ -139,6 +139,9 @@ public class MainRouter implements IndexRouterSwagger{
 						.POST("/in-account", accept(MediaType.APPLICATION_JSON), roomHandler::createRoomInAccount)
 						.POST("/favorites", accept(MediaType.APPLICATION_JSON), roomHandler::createRoomFavorites)
 					.build())
+				.nest(path("/delete"), createPathBuilder -> createPathBuilder
+						.DELETE("/out/{roomId}/{accountName}", accept(MediaType.APPLICATION_JSON), roomHandler::roomInAccountOut)
+					.build())
 				.nest(path("/update"), updatePathBuilder -> updatePathBuilder
 						.POST("/order", accept(MediaType.APPLICATION_JSON), roomHandler::updateRoomInAccountOrder)
 						.POST("/favorites-order", accept(MediaType.APPLICATION_JSON), roomHandler::updateRoomFavoritesOrder)
@@ -151,6 +154,7 @@ public class MainRouter implements IndexRouterSwagger{
 						.GET("/in-account-list/{roomId}", accept(MediaType.TEXT_EVENT_STREAM), roomHandler::searchRoomJoinedAccountList)
 						.GET("/is-room-favorites/{roomId}", accept(MediaType.APPLICATION_JSON), roomHandler::isRoomFavorites)
 						.GET("/is-owner/{roomId}", accept(MediaType.APPLICATION_JSON), roomHandler::isRoomOwner)
+						.GET("/is-my-attend/{roomId}", accept(MediaType.APPLICATION_JSON), roomHandler::isMyAttendRoom)
 					.build())
 			).build();
 	}

@@ -39,24 +39,31 @@ public class EventStreamHandler {
 						.flatMap(account -> {
 							if(serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.CHATTING_ACCEPT)) {
 								return eventStreamService.chattingEmissionStream(serverSentTemplate, account);	
+								
 							}else if(serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.ROOM_ACCEPT)) {
 								return eventStreamService.roomEmissionStream(serverSentTemplate, account);
+								
 							//}else if(serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.ROOM_IN_ACCOUNT_ACCEPT)){
 								//return Mono.just(serverSentTemplate);
 							}else if(serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.NOTICE_BOARD_ACCEPT) || 
 									serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.NOTICE_BOARD_DELETE_ACCEPT) 
 							) {
 								return eventStreamService.noticeBoardEmissionStream(serverSentTemplate, account);	
+								
 							}else if(serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.CHATTING_REACTION_ACCEPT)) {
 								return eventStreamService.chattingReactionEmissionStream(serverSentTemplate, account);
+								
 							}else if(serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.WORKSPACE_PERMIT_REQUEST_ACCEPT) ||
 									serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.WORKSPACE_PERMIT_RESULT_ACCEPT)
 							) {
 								return eventStreamService.workspacePermitRequestEmissionStream(serverSentTemplate, account);
+								
 							}else if(serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.CHATTING_DELETE_ACCEPT)){
 								return eventStreamService.chattingDeleteEmissionStream(serverSentTemplate, account);
+								
 							}else if(serverSentTemplate.getServerSentStreamType().equals(ServerSentStreamType.ACCOUNT_INFO_CHANGE_ACCEPT)) {
 								return eventStreamService.accountInfoChangeEmissionStream(serverSentTemplate, account);
+								
 							}
 							else {
 								return Mono.just(serverSentTemplate);

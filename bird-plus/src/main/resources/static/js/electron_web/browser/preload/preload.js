@@ -99,21 +99,21 @@ export const ipcRenderer = new class IpcRendererWeb{
 				return [name, e]
 			});
 		}).forEach( ([name, clazz])=>{
-			this.#send[name] = clazz[name] 
-			this.#invoke[name] = clazz[name] 
+			this.#send[name] = clazz
+			this.#invoke[name] = clazz 
 		})
 	}
 	send(name, param){
 		if( ! this.#send[name] || ! this.#send[name] instanceof Function){
 			return;
 		}
-		this.#send[name](param, undefined, ipcRenderer);
+		this.#send[name][name](param, undefined, ipcRenderer);
 	}
 	invoke(name, param){
 		if( ! this.#invoke[name] || ! this.#invoke[name] instanceof Function){
 			return;
 		}
-		return this.#invoke[name](param, undefined, ipcRenderer);
+		return this.#invoke[name][name](param, undefined, ipcRenderer);
 	}
 	webEventSend(eventName, data){
 		if( ! this.#connection[eventName] || ! this.#connection[eventName] instanceof Function){
@@ -385,6 +385,8 @@ export const myAPI = {
 		getRoomDetail : async (param) => ipcRenderer.invoke('getRoomDetail', param),
 		isRoomFavorites : async (param) => ipcRenderer.invoke('isRoomFavorites', param),
 		isRoomOwner : async(param) => ipcRenderer.invoke('isRoomOwner', param),
+		isMyAttendRoom : async(param) => ipcRenderer.invoke('isMyAttendRoom', param),
+		roomInAccountOut : async(param) => ipcRenderer.invoke('roomInAccountOut', param),
 	},
 
 	noticeBoard : {
@@ -407,8 +409,6 @@ export const myAPI = {
 		createEmotionReaction : async (param) => ipcRenderer.invoke('createEmotionReaction', param),
 		getIsReaction : async (param) => ipcRenderer.invoke('getIsReaction', param)
 	}
-
-
 }
 window.myAPI = myAPI;
 console.log('????????????????');

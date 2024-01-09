@@ -120,6 +120,8 @@ public class RoomInAccountEntity {
             private Long joinedCount;
 
             private Long orderSort;
+            
+            private Long favoritesOrderSort;
 
             private RoomType roomType;
         }
@@ -161,6 +163,18 @@ public class RoomInAccountEntity {
             private Long createMils;
 
             private Long updateMils;
+        }
+        
+        @Getter
+        @Setter
+        @Builder
+        public static class RoomInAccountDeleteResponse{
+        	//private Long workspaceId;
+        	//private Long roomId;
+        	private String accountName;
+        	private String roomName;
+        	private RoomType roomType;
+        	
         }
     }
 }

@@ -1,5 +1,7 @@
 package com.radcns.bird_plus.service;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
@@ -8,12 +10,17 @@ import com.radcns.bird_plus.entity.account.AccountEntity;
 import com.radcns.bird_plus.entity.account.AccountEntity.AccountDomain.SimpleUpdateAccountInfoEventResponse;
 import com.radcns.bird_plus.entity.chatting.ChattingEntity.ChattingDomain.ChattingDeleteResponse;
 import com.radcns.bird_plus.entity.room.RoomEntity;
+import com.radcns.bird_plus.entity.room.RoomFavoritesEntity;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity;
 import com.radcns.bird_plus.entity.room.RoomInAccountEntity.RoomInAccountDomain.MyJoinedRoomListResponse;
+import com.radcns.bird_plus.entity.room.constant.RoomType;
 import com.radcns.bird_plus.repository.account.AccountRepository;
+import com.radcns.bird_plus.repository.room.RoomFavoritesRepository;
 import com.radcns.bird_plus.repository.room.RoomInAccountRepository;
 import com.radcns.bird_plus.repository.room.RoomRepository;
 import com.radcns.bird_plus.repository.workspace.WorkspaceInAccountRepository;
+import com.radcns.bird_plus.util.exception.AccountException;
+import com.radcns.bird_plus.util.exception.BirdPlusException.Result;
 import com.radcns.bird_plus.util.stream.ServerSentStreamTemplate;
 import com.radcns.bird_plus.util.stream.ServerSentStreamTemplate.ServerSentStreamType;
 
@@ -28,6 +35,9 @@ public class EventStreamService {
 	
 	@Autowired
 	private RoomInAccountRepository roomInAccountRepository;
+	
+	@Autowired
+	private RoomFavoritesRepository roomFavoritesRepository;
 	
 	@Autowired
 	private WorkspaceInAccountRepository workspaceInAccountRepository;
@@ -52,30 +62,60 @@ public class EventStreamService {
 	}*/
 	
 	public Mono<ServerSentStreamTemplate<?>> roomEmissionStream(ServerSentStreamTemplate<?> serverSentTemplate, AccountEntity account){
-		RoomInAccountEntity roomInAccountEntity = ServerSentStreamType.ROOM_ACCEPT_CAST_CLASS.cast(serverSentTemplate.getContent());
-
-		if( ! roomInAccountEntity.getAccountId().equals(account.getId())) {
-			return Mono.empty();
+		RoomEntity roomEntity = ServerSentStreamType.ROOM_ACCEPT_CAST_CLASS.cast(serverSentTemplate.getContent());
+		List<RoomType> roomType;
+		if(roomEntity.getRoomType().equals(RoomType.ROOM_PUBLIC) || roomEntity.getRoomType().equals(RoomType.ROOM_PRIVATE)) {
+			roomType = List.of(RoomType.ROOM_PRIVATE, RoomType.ROOM_PUBLIC);
+		}else{//(e.getRoomType().equals(RoomType.MESSENGER) || e.getRoomType().equals(RoomType.SELF)) {
+			roomType = List.of(RoomType.MESSENGER, RoomType.SELF);
 		}
 		
-		return roomRepository.findById(roomInAccountEntity.getRoomId())
-			.map(roomEntity -> {
-				return new ServerSentStreamTemplate<MyJoinedRoomListResponse>(
-					roomInAccountEntity.getWorkspaceId(),
-					roomInAccountEntity.getRoomId(),
+		return roomInAccountRepository.existsByAccountIdAndRoomId(account.getId(), roomEntity.getId())
+		.flatMap(bol -> {
+			if(bol) {
+				return roomInAccountRepository.findByRoomIdAndAccountId(roomEntity.getId(), account.getId());
+			}else {
+				return roomInAccountRepository.findMaxJoinRoomByAccountIdAndWorkspaceIdAndRoomType(account.getId(), roomEntity.getWorkspaceId(), roomType)
+					.defaultIfEmpty((long)0)
+					.flatMap(count -> {
+						RoomInAccountEntity roomInAccountEntity = RoomInAccountEntity.builder()
+							.roomId(roomEntity.getId())
+							.accountId(account.getId())
+							.orderSort(count + 1)
+							.workspaceId(roomEntity.getWorkspaceId())
+						.build();
+						return roomInAccountRepository.save(roomInAccountEntity);
+					});
+			}
+		})
+		.flatMap(e->{
+			if( ! e.getAccountId().equals(account.getId())) {
+				return Mono.empty();
+			}
+			var newServerSentStreamTemplate = new ServerSentStreamTemplate<MyJoinedRoomListResponse>(
+					e.getWorkspaceId(),
+					e.getRoomId(),
 					MyJoinedRoomListResponse.builder()
-						.id(roomInAccountEntity.getId())
-						.roomId(roomInAccountEntity.getRoomId())
+						.id(e.getId())
+						.roomId(e.getRoomId())
 						//.roomCode(roomEntity.getRoomCode())
 						.roomName(roomEntity.getRoomName())
 						.isEnabled(roomEntity.getIsEnabled())
 						.workspaceId(roomEntity.getWorkspaceId())
-						.orderSort(roomInAccountEntity.getOrderSort())
-						.roomType(roomEntity.getRoomType())
+						.orderSort(e.getOrderSort())
+						.roomType(roomEntity.getRoomType()) 
 					.build(),
 					ServerSentStreamType.ROOM_ACCEPT
 				) {};
+			
+			return roomFavoritesRepository.findByRoomIdAndAccountId(roomEntity.getId(), account.getId())
+			.defaultIfEmpty(RoomFavoritesEntity.builder().build())
+			.map(roomFavoritesEntity->{
+				newServerSentStreamTemplate.getContent().setFavoritesOrderSort(roomFavoritesEntity.getOrderSort());
+				return newServerSentStreamTemplate;
 			});
+		});
+
 	}
 	
 	public Mono<ServerSentStreamTemplate<?>> noticeBoardEmissionStream(ServerSentStreamTemplate<?> serverSentTemplate, AccountEntity account) {

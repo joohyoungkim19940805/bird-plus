@@ -15,6 +15,8 @@ public interface RoomFavoritesRepository extends ReactiveCrudRepository<RoomFavo
 
     Mono<Void> deleteByAccountIdAndRoomIdAndWorkspaceId(Long accountId, Long roomId, Long workspaceId);
 
+    Mono<RoomFavoritesEntity> findByRoomIdAndAccountId(Long roomId, Long accountId);
+    
     @Query("""
     SELECT
     	max(rrf.order_sort)

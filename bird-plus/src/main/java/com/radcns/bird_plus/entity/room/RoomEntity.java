@@ -141,5 +141,14 @@ public class RoomEntity implements TokenTemplate {
     		private RoomType roomType;
     		private List<String> inviteAccountList;
     	}
+    	
+    	@Getter
+    	@Setter
+        @Builder
+    	public static class RoomDeleteResponse{
+    		private Long roomId;
+    		//private Long LastRemainingAccountId;
+    		//private String LastRemainingAccountName;
+    	}
     }
 }
