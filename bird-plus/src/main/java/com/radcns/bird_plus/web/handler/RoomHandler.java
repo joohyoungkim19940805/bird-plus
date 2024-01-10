@@ -103,15 +103,41 @@ public class RoomHandler {
 			})
 			.doOnSuccess(e-> {
 				e.setCreateBy(null);
-				workspaceBroker.send(
-					new ServerSentStreamTemplate<RoomEntity>(
-						e.getWorkspaceId(),
-						e.getId(),
-						e,
-						ServerSentStreamType.ROOM_ACCEPT
-					) {}
-				);
-				//.subscribe();
+				List<RoomType> roomType;
+				if(e.getRoomType().equals(RoomType.ROOM_PUBLIC) || e.getRoomType().equals(RoomType.ROOM_PRIVATE)) {
+					roomType = List.of(RoomType.ROOM_PRIVATE, RoomType.ROOM_PUBLIC);
+				}else{//(e.getRoomType().equals(RoomType.MESSENGER) || e.getRoomType().equals(RoomType.SELF)) {
+					roomType = List.of(RoomType.MESSENGER, RoomType.SELF);
+				}
+				
+				roomInAccountRepository.existsByAccountIdAndRoomId(account.getId(), e.getId())
+				.flatMap(bol -> {
+					if(bol) {
+						return roomInAccountRepository.findByRoomIdAndAccountId(e.getId(), account.getId());
+					}else {
+						return roomInAccountRepository.findMaxJoinRoomByAccountIdAndWorkspaceIdAndRoomType(account.getId(), e.getWorkspaceId(), roomType)
+							.defaultIfEmpty((long)0)
+							.flatMap(count -> {
+								RoomInAccountEntity roomInAccountEntity = RoomInAccountEntity.builder()
+									.roomId(e.getId())
+									.accountId(account.getId())
+									.orderSort(count + 1)
+									.workspaceId(e.getWorkspaceId())
+								.build();
+								return roomInAccountRepository.save(roomInAccountEntity);
+							});
+					}
+				}).doOnSuccess(result->{
+					workspaceBroker.send(
+						new ServerSentStreamTemplate<RoomEntity>(
+							e.getWorkspaceId(),
+							e.getId(),
+							e,
+							ServerSentStreamType.ROOM_ACCEPT
+						) {}
+					);
+				})
+				.subscribe();
 				/*roomRepository.save(
 					e.withRoomCode(List.of(accountService.generateAccessToken(account, JwtIssuerType.BOT).getToken()))
 					.withCreateAt(null)

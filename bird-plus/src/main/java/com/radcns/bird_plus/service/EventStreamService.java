@@ -75,17 +75,7 @@ public class EventStreamService {
 			if(bol) {
 				return roomInAccountRepository.findByRoomIdAndAccountId(roomEntity.getId(), account.getId());
 			}else {
-				return roomInAccountRepository.findMaxJoinRoomByAccountIdAndWorkspaceIdAndRoomType(account.getId(), roomEntity.getWorkspaceId(), roomType)
-					.defaultIfEmpty((long)0)
-					.flatMap(count -> {
-						RoomInAccountEntity roomInAccountEntity = RoomInAccountEntity.builder()
-							.roomId(roomEntity.getId())
-							.accountId(account.getId())
-							.orderSort(count + 1)
-							.workspaceId(roomEntity.getWorkspaceId())
-						.build();
-						return roomInAccountRepository.save(roomInAccountEntity);
-					});
+				return Mono.empty();
 			}
 		})
 		.flatMap(e->{

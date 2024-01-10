@@ -12,6 +12,8 @@ import {roomHandler} from "@handler/room/RoomHandler"
 
 import CommonInit from "@root/js/CommonInit";
 
+import HeaderDefault from "@component/header/HeaderDefault"
+
 new CommonInit('multipleChatting');
 window.addEventListener("DOMContentLoaded", (event) => {
 	let workspaceIdResolve;
