@@ -1,5 +1,9 @@
 package com.radcns.bird_plus;
 
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
+
 import org.jnativehook.GlobalScreen;
 import org.jnativehook.NativeHookException;
 import org.jnativehook.keyboard.NativeKeyEvent;
@@ -34,6 +38,12 @@ public class AutoCreateConvertMethod implements NativeKeyListener{
 	}
 
 	public static void main(String a[]) {    
+		// Clear previous logging configurations.
+		LogManager.getLogManager().reset();
+
+		// Get the logger for "org.jnativehook" and set the level to off.
+		Logger logger = Logger.getLogger(GlobalScreen.class.getPackage().getName());
+		logger.setLevel(Level.OFF);
 		try {
             GlobalScreen.registerNativeHook();
         }
@@ -45,7 +55,12 @@ public class AutoCreateConvertMethod implements NativeKeyListener{
         }
 
         GlobalScreen.addNativeKeyListener(new AutoCreateConvertMethod());
-		while(true);
+		try {
+			Thread.sleep(Long.MAX_VALUE);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 }
